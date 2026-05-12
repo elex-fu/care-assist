@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.db.session import engine
 from app.core.exceptions import BusinessException
-from app.api import auth, members, home, indicators, reports, ai_conversations
+from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals
 
 
 @asynccontextmanager
@@ -52,3 +52,4 @@ app.include_router(home.router, prefix="/api")
 app.include_router(indicators.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(ai_conversations.router, prefix="/api")
+app.include_router(hospitals.router, prefix="/api")
