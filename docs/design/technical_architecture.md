@@ -504,7 +504,7 @@ Celery Worker 执行：
 |------|------|-----------|---------|
 | 单元测试 | pytest + pytest-asyncio | >= 80% | Service层业务逻辑、异常判断算法、趋势计算 |
 | 集成测试 | pytest + TestClient | >= 60% | API路由、数据库事务、Redis缓存一致性 |
-| E2E测试 | Minium（微信官方） | 核心路径 | 上传→OCR→查看→设置提醒 完整闭环 |
+| E2E测试 | Minium（微信官方） | 核心路径 | 上传→OCR→查看→设置提醒 完整闭环；401 并发刷新竞态回归 |
 | AI回归测试 | 自定义脚本 | 100%黄金集 | Prompt版本化 + 固定测试图片集 OCR准确率监控 |
 | 性能测试 | locust | 关键指标 | 首页加载<2s、AI对话响应<5s、并发100用户 |
 
@@ -522,6 +522,12 @@ Celery Worker 执行：
 ### 8.4 前端核心路径 E2E
 
 使用 Minium 框架覆盖：上传报告 → OCR 识别 → 查看结果 → 设置提醒 的完整用户闭环。
+
+### 8.5 关键回归测试（必须自动化）
+
+**OCR 上传链路 E2E**：模拟完整链路 `wx.chooseImage → 压缩 → 上传 → OSS → Celery OCR → AI 提取 → DB 写入 → WebSocket 推送`，使用 mock 外部服务，验证每个失败分支（OSS 失败 / OCR 失败 / AI 失败 / DB 失败）的前端状态与重试机制。
+
+**Token 刷新竞态回归测试**：模拟同时发起 3 个请求且均返回 401，验证 refresh API 仅被调用 1 次，且 3 个请求在刷新后全部成功重试。防止并发刷新导致 token 失效的 bug 在未来重构中被回退。
 
 详细测试代码示例见 [`backend_design.md`](backend_design.md) 第 8 节和 [`frontend_design.md`](frontend_design.md) 相关章节。
 
@@ -544,9 +550,10 @@ Celery Worker 执行：
 
 ### 9.2 自动清理任务
 
-每日凌晨 3:00 由 Celery Beat 触发 `cleanup_expired_data` 任务：
-- 清理 90 天前的 AI 对话记录
-- 清理 1 年前的软删除成员数据
+每日凌晨 3:00 由 Celery Beat 触发 `cleanup_expired_data` 任务。针对 `indicator_data`、`health_events` 等高频写入的大表，采用 **分批删除（LIMIT 1000 / 批 + 批次间 sleep 1s）** 策略，避免长时间锁表和主从复制延迟：
+
+- 分批清理 90 天前的 AI 对话记录
+- 分批清理 1 年前的软删除成员数据
 - 清理 24 小时前的导出临时文件
 
 详细清理任务实现见 [`backend_design.md`](backend_design.md) 第 13 节。

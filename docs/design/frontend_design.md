@@ -269,8 +269,13 @@ const request = (method) => async (url, data = {}, options = {}) => {
       },
       success: (res) => {
         if (res.statusCode === 401) {
-          // Token过期，静默刷新后重试
-          refreshToken().then(() => request(method)(url, data, options));
+          // Token过期，使用全局 Promise lock 避免并发刷新竞态
+          if (!globalStore.state.refreshingPromise) {
+            globalStore.state.refreshingPromise = refreshToken().finally(() => {
+              globalStore.state.refreshingPromise = null;
+            });
+          }
+          globalStore.state.refreshingPromise.then(() => request(method)(url, data, options));
           return;
         }
         if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -310,7 +315,8 @@ class WSManager {
 
   connect(token) {
     this.socket = wx.connectSocket({
-      url: `wss://api.health-helper.example.com/ws?token=${token}`
+      url: `wss://api.health-helper.example.com/ws`,
+      protocols: [`health-protocol,${token}`]
     });
     this.socket.onOpen(() => {
       this.reconnectCount = 0;

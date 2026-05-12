@@ -87,6 +87,36 @@ backend/
 ├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
+```
+
+### 数据库连接池配置
+
+```python
+# app/db/session.py
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import declarative_base
+import aioredis
+
+DATABASE_URL = "mysql+aiomysql://user:pass@host/db"
+
+engine = create_async_engine(
+    DATABASE_URL,
+    pool_size=20,           # 常驻连接数
+    max_overflow=10,        # 高峰期可额外创建的连接
+    pool_pre_ping=True,     # 连接前发送 ping，自动回收死连接
+    pool_recycle=3600,      # 连接 1 小时后强制回收，防止 MySQL wait_timeout 断开
+    echo=False,
+)
+
+async_session = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
+
+# Redis 连接池（WebSocket 状态共享 + 限流计数器）
+redis_pool = aioredis.ConnectionPool.from_url(
+    "redis://localhost:6379", max_connections=50
+)
+```
 ├── requirements.txt
 └── pyproject.toml
 ```
@@ -187,38 +217,67 @@ from fastapi import WebSocket
 from typing import Dict, List
 import json
 
+class ConnectionStore:
+    """连接存储抽象：生产环境用Redis，单实例开发可回退到内存Dict"""
+    async def add(self, member_id: str, websocket_id: str) -> None: ...
+    async def remove(self, member_id: str, websocket_id: str) -> None: ...
+    async def get_connections(self, member_id: str) -> List[str]: ...
+
+class RedisConnectionStore(ConnectionStore):
+    def __init__(self, redis):
+        self.redis = redis
+        self.key_prefix = "ws:connections"
+
+    async def add(self, member_id: str, websocket_id: str) -> None:
+        await self.redis.sadd(f"{self.key_prefix}:{member_id}", websocket_id)
+
+    async def remove(self, member_id: str, websocket_id: str) -> None:
+        await self.redis.srem(f"{self.key_prefix}:{member_id}", websocket_id)
+
+    async def get_connections(self, member_id: str) -> List[str]:
+        return [x.decode() for x in await self.redis.smembers(f"{self.key_prefix}:{member_id}")]
+
 class ConnectionManager:
-    def __init__(self):
-        # member_id -> [websocket]
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+    def __init__(self, store: ConnectionStore):
+        self.store = store
+        self._ws_registry: Dict[str, WebSocket] = {}  # 仅本实例持有的WebSocket对象
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
-        # 从query param解析token获取member_id
         member_id = self._extract_member_id(websocket)
-        if member_id not in self.active_connections:
-            self.active_connections[member_id] = []
-        self.active_connections[member_id].append(websocket)
+        ws_id = str(id(websocket))
+        self._ws_registry[ws_id] = websocket
+        await self.store.add(member_id, ws_id)
 
     async def disconnect(self, websocket: WebSocket):
         member_id = self._extract_member_id(websocket)
-        if member_id in self.active_connections:
-            self.active_connections[member_id].remove(websocket)
+        ws_id = str(id(websocket))
+        self._ws_registry.pop(ws_id, None)
+        await self.store.remove(member_id, ws_id)
 
     async def send_to_member(self, member_id: str, message: dict):
-        if member_id in self.active_connections:
-            for ws in self.active_connections[member_id]:
+        ws_ids = await self.store.get_connections(member_id)
+        for ws_id in ws_ids:
+            ws = self._ws_registry.get(ws_id)
+            if ws:
                 await ws.send_json(message)
 
     async def handle_message(self, websocket: WebSocket, data: dict):
+        # 速率限制：单连接每秒最多10条消息
+        if not self._check_rate_limit(websocket):
+            await websocket.close(code=1008, reason="rate limit exceeded")
+            return
         msg_type = data.get("type")
         if msg_type == "ping":
             await websocket.send_json({"type": "pong"})
         elif msg_type == "chat":
-            # 转发到AI服务处理流式响应
             await ai_service.handle_chat_stream(websocket, data)
 
-ws_manager = ConnectionManager()
+    def _check_rate_limit(self, websocket: WebSocket) -> bool:
+        # 实现略：基于Redis的滑动窗口计数器
+        return True
+
+ws_manager = ConnectionManager(store=RedisConnectionStore(redis_pool))
 ```
 
 ---
@@ -549,8 +608,14 @@ from app.ai.factory import ProviderFactory
 from app.core.indicator_engine import IndicatorEngine
 from app.services.report_service import ReportService
 
+from asgiref.sync import async_to_sync
+
 @shared_task(bind=True, max_retries=3)
 def ocr_and_analyze_report(self, report_id: str, image_url: str, member_id: str):
+    """Celery 同步任务包装器：内部调用 async 逻辑"""
+    return async_to_sync(_ocr_async)(report_id, image_url, member_id)
+
+async def _ocr_async(report_id: str, image_url: str, member_id: str):
     try:
         # 1. 调用AI多模态解析
         provider = ProviderFactory.get_provider("kimi")  # OCR用Kimi视觉能力强
@@ -1034,7 +1099,7 @@ class MemberService:
 
         admin = Member(
             family_id=family.id,
-            role="admin",
+            role="creator",
             **admin_info
         )
         await admin.save()
@@ -1185,19 +1250,40 @@ class ExportService:
 
 ```python
 # app/tasks/cleanup_task.py
+from sqlalchemy import delete
+from datetime import datetime, timedelta
+import asyncio
+
 @shared_task
 def cleanup_expired_data():
-    """每日凌晨3点执行数据清理"""
-    # 清理90天前的AI对话
-    await db.execute(
-        delete(AIConversation)
-        .where(AIConversation.updated_at < datetime.now() - timedelta(days=90))
-    )
-    # 清理1年前的软删除成员
-    await db.execute(
-        delete(Member)
-        .where(Member.deleted_at < datetime.now() - timedelta(days=365))
-    )
-    # 清理24小时前的导出临时文件
-    ExportService.cleanup_temp_files(max_age_hours=24)
+    """每日凌晨3点执行数据清理 — 分批删除避免锁表"""
+    BATCH_SIZE = 1000
+
+    async def _cleanup():
+        # 1. 分批清理 90 天前的 AI 对话
+        while True:
+            result = await db.execute(
+                delete(AIConversation)
+                .where(AIConversation.updated_at < datetime.now() - timedelta(days=90))
+                .limit(BATCH_SIZE)
+            )
+            if result.rowcount == 0:
+                break
+            await asyncio.sleep(1)  # 批次间 sleep，降低主库压力
+
+        # 2. 分批清理 1 年前的软删除成员
+        while True:
+            result = await db.execute(
+                delete(Member)
+                .where(Member.deleted_at < datetime.now() - timedelta(days=365))
+                .limit(BATCH_SIZE)
+            )
+            if result.rowcount == 0:
+                break
+            await asyncio.sleep(1)
+
+        # 3. 清理 24 小时前的导出临时文件（文件系统操作，无需分批）
+        ExportService.cleanup_temp_files(max_age_hours=24)
+
+    async_to_sync(_cleanup)()
 ```

@@ -115,11 +115,15 @@ POST /api/auth/refresh
 
 ### 2.3 WebSocket 连接认证
 
-WebSocket 连接时通过 Query Parameter 传递 token：
+WebSocket 连接时通过 `Sec-WebSocket-Protocol` header 传递 token，避免 URL 中泄露 JWT：
 
 ```
-wss://api.health-helper.example.com/ws?token=<jwt_token>
+wss://api.health-helper.example.com/ws
+Headers:
+  Sec-WebSocket-Protocol: health-protocol, <jwt_token>
 ```
+
+> 微信小程序 `wx.connectSocket` 支持 `protocols` 数组参数传递 token。
 
 ---
 
@@ -148,7 +152,7 @@ GET /api/members/me
     "allergies": ["青霉素"],
     "chronic_diseases": ["高血压"],
     "type": "adult",
-    "role": "admin",
+    "role": "creator",
     "subscription_status": {
       "daily_digest": true,
       "urgent_alert": true,
@@ -814,8 +818,10 @@ GET /api/export/all
 **连接URL**：
 
 ```
-wss://api.health-helper.example.com/ws?token=<jwt_token>
+wss://api.health-helper.example.com/ws
 ```
+
+**认证方式**：通过 `Sec-WebSocket-Protocol` header 传递 JWT（详见 2.3 节）。
 
 **心跳机制**：
 

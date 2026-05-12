@@ -73,8 +73,8 @@ CREATE TABLE members (
     allergies JSON DEFAULT '[]',
     chronic_diseases JSON DEFAULT '[]',
     type ENUM('adult','child','elderly') DEFAULT 'adult',
-    role ENUM('admin','member') DEFAULT 'member',
-    -- 角色说明：admin = 家庭管理员（可编辑全部数据、邀请家人）；member = 家人（可查看全部、仅编辑自己数据）
+    role ENUM('creator','member') DEFAULT 'member',
+    -- 角色说明：creator = 家庭创建者/管理员（可编辑全部数据、邀请家人）；member = 家人（可查看全部、仅编辑自己数据）
     wx_openid VARCHAR(100),
     subscription_status JSON DEFAULT '{}',
     -- 示例：{"daily_digest": true, "urgent_alert": true, "review_reminder": false}
@@ -290,7 +290,7 @@ CREATE TABLE vaccine_records (
 **`members.role`**（家庭角色，已简化为两级）：
 | 值 | 含义 | 权限 |
 |----|------|------|
-| `admin` | 家庭管理员 | 可编辑全部成员数据、邀请家人、移除成员 |
+| `creator` | 家庭创建者/管理员 | 可编辑全部成员数据、邀请家人、移除成员 |
 | `member` | 家人 | 可查看全部成员数据，仅可编辑自己创建的内容 |
 
 ### 4.2 JSON 字段约定
