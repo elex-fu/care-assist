@@ -28,3 +28,7 @@ extracted/
 
 # Docker volumes
 docker-volumes/
+
+# Environment files
+.env
+backend/.env

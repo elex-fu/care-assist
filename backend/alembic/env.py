@@ -9,6 +9,7 @@ from alembic import context
 
 # Import app models base
 from app.db.session import Base, DATABASE_URL
+from app.models import *  # noqa: F401
 
 # this is the Alembic Config object
 config = context.config
@@ -21,8 +22,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here for 'autogenerate' support
-# from app.models import *  # noqa: F401
-# target_metadata = Base.metadata
 target_metadata = Base.metadata
 
 
