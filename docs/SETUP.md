@@ -53,7 +53,29 @@ docker-compose up -d backend
 
 后端运行于 http://localhost:8000，自带热重载。
 
-### 方式 B：本地 Python（调试更灵活）
+### 方式 B：一键脚本（推荐本地开发）
+
+项目提供了三个开发脚本：
+
+```bash
+# 一键启动：检测 MySQL/Redis，安装依赖，启动后端
+./scripts/dev-start.sh
+
+# 查看运行状态
+./scripts/dev-status.sh
+
+# 停止后端（保留 MySQL/Redis）
+./scripts/dev-stop.sh
+```
+
+`dev-start.sh` 会自动：
+- 检测端口占用
+- 启动本地 MySQL（brew services 或 Docker）
+- 启动本地 Redis（brew services 或 Docker，如不可用则跳过并警告）
+- 创建 Python 虚拟环境并安装依赖
+- 启动 FastAPI 并等待 health check 通过
+
+### 方式 C：手动启动
 
 ```bash
 cd backend
