@@ -1,0 +1,7 @@
+<view class="container">
+  <view class="status-card">
+    <text wx:if="{{status === 'loading'}}">连接中...</text>
+    <text wx:elif="{{status === 'connected'}}" class="success">后端已连接</text>
+    <text wx:else class="error">连接失败，请检查网络</text>
+  </view>
+</view>

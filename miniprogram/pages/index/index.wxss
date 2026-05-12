@@ -1,0 +1,19 @@
+.container {
+  padding: var(--space-lg);
+}
+
+.status-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  padding: var(--space-md);
+  text-align: center;
+  font-size: 16px;
+}
+
+.success {
+  color: var(--status-green);
+}
+
+.error {
+  color: var(--status-red);
+}

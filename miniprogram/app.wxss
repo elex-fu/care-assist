@@ -1,0 +1,32 @@
+page {
+  --primary-dark: #2563EB;
+  --primary-mid: #3B82F6;
+  --primary-light: #EFF6FF;
+  --primary-fade: #DBEAFE;
+  --status-green: #10B981;
+  --status-green-light: #ECFDF5;
+  --status-yellow: #F59E0B;
+  --status-yellow-light: #FEF3C7;
+  --status-red: #EF4444;
+  --status-red-light: #FEF2F2;
+  --ai-purple: #8B5CF6;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-tertiary: #94A3B8;
+  --bg-primary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --divider: #E2E8F0;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --radius-card: 12px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-full: 999px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
