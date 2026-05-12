@@ -103,3 +103,59 @@ async def test_api_indicator_flow_via_playwright():
 
         await context.close()
         await browser.close()
+
+
+@pytest.mark.asyncio
+async def test_api_batch_indicator_flow_via_playwright():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context()
+
+        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
+        creator_name = "E2EBatchUser"
+
+        # Register
+        resp = await context.request.post(
+            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps({"code": code}),
+        )
+        assert resp.ok, await resp.text()
+        body = await resp.json()
+        token = body["data"]["access_token"]
+        member_id = body["data"]["member"]["id"]
+
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+        # Batch create indicators
+        resp = await context.request.post(
+            f"{BASE_URL}/api/indicators/batch",
+            headers=headers,
+            data=json.dumps({
+                "member_id": member_id,
+                "items": [
+                    {
+                        "indicator_key": "systolic_bp",
+                        "indicator_name": "收缩压",
+                        "value": 120.0,
+                        "unit": "mmHg",
+                        "record_date": "2024-06-15",
+                    },
+                    {
+                        "indicator_key": "diastolic_bp",
+                        "indicator_name": "舒张压",
+                        "value": 80.0,
+                        "unit": "mmHg",
+                        "record_date": "2024-06-15",
+                    },
+                ],
+            }),
+        )
+        assert resp.ok, await resp.text()
+        data = await resp.json()
+        assert len(data["data"]) == 2
+        assert data["data"][0]["indicator_key"] == "systolic_bp"
+        assert data["data"][1]["indicator_key"] == "diastolic_bp"
+
+        await context.close()
+        await browser.close()

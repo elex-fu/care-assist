@@ -15,7 +15,9 @@ class AIService:
 
     SYSTEM_PROMPT = """你是一位家庭智能健康助手，擅长解读健康指标和医疗报告。
 请用简洁、温暖的中文回答，给出具体、可操作的建议。
-如果指标异常，请提醒用户关注并建议就医。"""
+如果指标异常，请提醒用户关注并建议就医。
+
+免责声明：本助手的建议仅供参考，不能替代专业医生的诊断和治疗。如有严重不适，请及时就医。"""
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("AI_API_KEY")
@@ -51,6 +53,12 @@ class AIService:
         context = self._build_context(member, indicators, reports)
         return f"[AI] 收到您的问题：{message}。根据{member.name}的健康数据，{context}"
 
+    def _append_disclaimer(self, reply: str) -> str:
+        disclaimer = "\n\n【免责声明】本助手的建议仅供参考，不能替代专业医生的诊断和治疗。如有严重不适，请及时就医。"
+        if disclaimer not in reply:
+            reply += disclaimer
+        return reply
+
     async def _generate_mock_reply(
         self,
         member: Member,
@@ -63,32 +71,40 @@ class AIService:
 
         # Greeting patterns
         if any(w in user_lower for w in ["你好", "hello", "hi", "在吗"]):
-            return f"您好！我是您的家庭健康助手。{member.name}最近的身体状况如何？我可以帮您分析健康指标或解读检查报告。"
+            reply = f"您好！我是您的家庭健康助手。{member.name}最近的身体状况如何？我可以帮您分析健康指标或解读检查报告。"
+            return self._append_disclaimer(reply)
 
         # Indicator analysis
         if any(w in user_lower for w in ["血压", "血糖", "指标", "正常吗", "怎么样"]):
             if recent_indicators:
-                return self._analyze_indicators(member.name, recent_indicators)
-            return f"目前{member.name}还没有记录健康指标。建议定期记录血压、血糖等关键指标，我可以帮您分析趋势。"
+                reply = self._analyze_indicators(member.name, recent_indicators)
+            else:
+                reply = f"目前{member.name}还没有记录健康指标。建议定期记录血压、血糖等关键指标，我可以帮您分析趋势。"
+            return self._append_disclaimer(reply)
 
         # Report analysis
         if any(w in user_lower for w in ["报告", "检查", "ocr", "化验"]):
             if recent_reports:
-                return self._analyze_reports(member.name, recent_reports)
-            return f"目前{member.name}还没有上传检查报告。您可以上传化验单或诊断报告，我会帮您提取关键指标并解读。"
+                reply = self._analyze_reports(member.name, recent_reports)
+            else:
+                reply = f"目前{member.name}还没有上传检查报告。您可以上传化验单或诊断报告，我会帮您提取关键指标并解读。"
+            return self._append_disclaimer(reply)
 
         # Trend analysis
         if any(w in user_lower for w in ["趋势", "变化", "最近", "恶化", "改善"]):
             if recent_indicators and len(recent_indicators) >= 2:
-                return self._analyze_trends(member.name, recent_indicators)
-            return f"需要至少两条指标记录才能分析趋势。建议持续记录{member.name}的健康数据。"
+                reply = self._analyze_trends(member.name, recent_indicators)
+            else:
+                reply = f"需要至少两条指标记录才能分析趋势。建议持续记录{member.name}的健康数据。"
+            return self._append_disclaimer(reply)
 
         # Diet / lifestyle advice
         if any(w in user_lower for w in ["饮食", "吃", "运动", "注意", "建议"]):
-            return self._give_advice(member, recent_indicators)
+            reply = self._give_advice(member, recent_indicators)
+            return self._append_disclaimer(reply)
 
         # Default response
-        return (
+        reply = (
             f"我理解您关于{member.name}的关心。"
             "我可以帮您：\n"
             "1. 分析健康指标（血压、血糖等）\n"
@@ -96,6 +112,7 @@ class AIService:
             "3. 提供健康建议\n"
             "请告诉我您想了解哪方面的信息？"
         )
+        return self._append_disclaimer(reply)
 
     def _analyze_indicators(self, name: str, indicators: list[dict]) -> str:
         abnormal = [i for i in indicators if i.get("status") in ("low", "high", "critical")]
@@ -205,6 +222,31 @@ class AIService:
                 advice.append("4. 血糖偏高，建议控制糖分摄入，规律进餐")
 
         return "\n".join(advice)
+
+    async def generate_family_summary(
+        self,
+        member_cards: list[dict],
+    ) -> str:
+        """Generate AI daily summary for family dashboard."""
+        if self.api_key:
+            return f"[AI] 家庭健康概览：共{len(member_cards)}位成员，已生成智能摘要。"
+
+        total_abnormal = sum(c.get("abnormal_count", 0) for c in member_cards)
+        critical_members = [c for c in member_cards if c.get("latest_status") == "critical"]
+        high_members = [c for c in member_cards if c.get("latest_status") in ("high", "low")]
+
+        if critical_members:
+            names = "、".join(c["name"] for c in critical_members)
+            reply = f"⚠️ 今日重点关注：{names}有关键指标严重异常，建议尽快就医复查。"
+        elif high_members:
+            names = "、".join(c["name"] for c in high_members)
+            reply = f"⚡ 注意：{names}有指标偏高/偏低，建议持续关注并调整生活习惯。"
+        elif total_abnormal > 0:
+            reply = f"📋 今日家庭健康概览：检测到{total_abnormal}项异常指标，建议定期复查。"
+        else:
+            reply = "✅ 今日家庭成员指标整体平稳，继续保持良好的健康习惯！"
+
+        return self._append_disclaimer(reply)
 
     def _build_context(self, member, indicators, reports) -> str:
         parts = [f"成员：{member.name}，类型：{member.type}"]

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException
+from app.core.ai_service import AIService
 from app.models.member import Member
 from app.models.family import Family
 from app.schemas.common import ResponseWrapper
@@ -22,10 +23,9 @@ async def get_dashboard(
 
     member_cards = await MemberService.get_family_dashboard(db, family.id)
 
-    # AI daily summary placeholder
-    ai_summary = "今日家庭成员指标整体平稳，暂无异常提醒。"
-    if any(c["abnormal_count"] > 0 for c in member_cards):
-        ai_summary = f"检测到 {sum(c['abnormal_count'] for c in member_cards)} 项异常指标，建议关注。"
+    # Generate real AI daily summary based on family health data
+    ai_svc = AIService()
+    ai_summary = await ai_svc.generate_family_summary(member_cards)
 
     return ResponseWrapper(
         data={

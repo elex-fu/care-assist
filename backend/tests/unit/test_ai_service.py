@@ -161,3 +161,52 @@ class TestAIServiceMockReplies:
             user_message="测试",
         )
         assert "[AI]" in reply
+
+    async def test_family_summary_normal(self):
+        svc = AIService()
+        cards = [
+            {"name": "张三", "latest_status": "normal", "abnormal_count": 0},
+            {"name": "李四", "latest_status": "normal", "abnormal_count": 0},
+        ]
+        summary = await svc.generate_family_summary(cards)
+        assert "整体平稳" in summary or "良好" in summary
+        assert "免责声明" in summary
+
+    async def test_family_summary_with_abnormal(self):
+        svc = AIService()
+        cards = [
+            {"name": "张三", "latest_status": "normal", "abnormal_count": 0},
+            {"name": "李四", "latest_status": "high", "abnormal_count": 2},
+        ]
+        summary = await svc.generate_family_summary(cards)
+        assert "李四" in summary
+        assert "免责声明" in summary
+
+    async def test_family_summary_critical(self):
+        svc = AIService()
+        cards = [
+            {"name": "张三", "latest_status": "critical", "abnormal_count": 1},
+        ]
+        summary = await svc.generate_family_summary(cards)
+        assert "严重异常" in summary or "就医" in summary
+        assert "免责声明" in summary
+
+    async def test_disclaimer_in_all_replies(self):
+        svc = AIService()
+        member = MagicMock()
+        member.name = "张三"
+        member.type = "adult"
+        test_cases = [
+            ("你好", "您好"),
+            ("血压怎么样", "还没有记录"),
+            ("饮食要注意什么", "建议"),
+            ("随便说点什么", "分析"),
+        ]
+        for msg, expected in test_cases:
+            reply = await svc.generate_reply(
+                member=member,
+                conversation_history=[],
+                user_message=msg,
+            )
+            assert "免责声明" in reply, f"Missing disclaimer for message: {msg}"
+            assert expected in reply, f"Missing expected content for message: {msg}"

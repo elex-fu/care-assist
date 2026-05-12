@@ -118,3 +118,105 @@ async def test_api_hospital_event_flow_via_playwright():
 
         await context.close()
         await browser.close()
+
+
+@pytest.mark.asyncio
+async def test_api_hospital_watch_and_compare_via_playwright():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context()
+
+        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
+        creator_name = "E2EWatchUser"
+
+        # Register
+        resp = await context.request.post(
+            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps({"code": code}),
+        )
+        assert resp.ok, await resp.text()
+        body = await resp.json()
+        token = body["data"]["access_token"]
+        member_id = body["data"]["member"]["id"]
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+        # Create hospital event with watch indicators
+        resp = await context.request.post(
+            f"{BASE_URL}/api/hospital-events",
+            headers=headers,
+            data=json.dumps({
+                "member_id": member_id,
+                "hospital": "同仁医院",
+                "department": "心内科",
+                "admission_date": "2024-06-01",
+                "diagnosis": "高血压观察",
+                "watch_indicators": ["systolic_bp", "diastolic_bp"],
+            }),
+        )
+        assert resp.ok, await resp.text()
+        data = await resp.json()
+        event_id = data["data"]["id"]
+
+        # Create indicators for yesterday and today
+        from datetime import datetime, timedelta
+        today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
+
+        # Yesterday indicator
+        resp = await context.request.post(
+            f"{BASE_URL}/api/indicators",
+            headers=headers,
+            data=json.dumps({
+                "member_id": member_id,
+                "indicator_key": "systolic_bp",
+                "indicator_name": "收缩压",
+                "value": 120.0,
+                "unit": "mmHg",
+                "record_date": yesterday.isoformat(),
+                "source_hospital_id": event_id,
+            }),
+        )
+        assert resp.ok
+
+        # Today indicator
+        resp = await context.request.post(
+            f"{BASE_URL}/api/indicators",
+            headers=headers,
+            data=json.dumps({
+                "member_id": member_id,
+                "indicator_key": "systolic_bp",
+                "indicator_name": "收缩压",
+                "value": 130.0,
+                "unit": "mmHg",
+                "record_date": today.isoformat(),
+                "source_hospital_id": event_id,
+            }),
+        )
+        assert resp.ok
+
+        # Get watch indicators
+        resp = await context.request.get(
+            f"{BASE_URL}/api/hospital-events/{event_id}/watch",
+            headers=headers,
+        )
+        assert resp.ok, await resp.text()
+        data = await resp.json()
+        assert len(data["data"]) >= 1
+        watch_item = data["data"][0]
+        assert watch_item["indicator_key"] == "systolic_bp"
+        assert watch_item["value"] == 130.0
+        assert watch_item["previous_value"] == 120.0
+
+        # Get comparison
+        resp = await context.request.get(
+            f"{BASE_URL}/api/hospital-events/{event_id}/compare",
+            headers=headers,
+        )
+        assert resp.ok, await resp.text()
+        data = await resp.json()
+        assert data["data"]["event_id"] == event_id
+        assert data["data"]["total"] >= 1
+
+        await context.close()
+        await browser.close()

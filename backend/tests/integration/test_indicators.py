@@ -41,8 +41,8 @@ class TestIndicatorCreate:
         # Create another family/member
         from app.models.family import Family
         from app.models.member import Member
-        import uuid
-        family = Family(id=str(uuid.uuid4()), name="Other", invite_code="OTHER01")
+        import uuid, secrets
+        family = Family(id=str(uuid.uuid4()), name="Other", invite_code=secrets.token_urlsafe(8)[:6].upper())
         db.add(family)
         await db.commit()
         other = Member(
@@ -129,6 +129,67 @@ class TestIndicatorDelete:
     async def test_delete_indicator_not_found(self, auth_client):
         resp = await auth_client.delete("/api/indicators/nonexistent-id")
         assert resp.status_code == 404
+
+
+class TestIndicatorBatchCreate:
+    async def test_batch_create_indicators(self, auth_client, test_member):
+        payload = {
+            "member_id": test_member.id,
+            "items": [
+                {
+                    "indicator_key": "systolic_bp",
+                    "indicator_name": "收缩压",
+                    "value": 120.0,
+                    "unit": "mmHg",
+                    "record_date": "2024-06-15",
+                },
+                {
+                    "indicator_key": "diastolic_bp",
+                    "indicator_name": "舒张压",
+                    "value": 80.0,
+                    "unit": "mmHg",
+                    "record_date": "2024-06-15",
+                },
+            ],
+        }
+        resp = await auth_client.post("/api/indicators/batch", json=payload)
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert len(data) == 2
+        assert data[0]["indicator_key"] == "systolic_bp"
+        assert data[1]["indicator_key"] == "diastolic_bp"
+
+    async def test_batch_create_forbidden_other_family(self, auth_client, db):
+        from app.models.family import Family
+        from app.models.member import Member
+        import uuid, secrets
+        family = Family(
+            id=str(uuid.uuid4()), name="Other",
+            invite_code=secrets.token_urlsafe(8)[:6].upper(),
+        )
+        db.add(family)
+        await db.commit()
+        other = Member(
+            id=str(uuid.uuid4()), family_id=family.id, name="Other",
+            gender="male", type="adult", role="member",
+        )
+        db.add(other)
+        await db.commit()
+
+        payload = {
+            "member_id": other.id,
+            "items": [
+                {
+                    "indicator_key": "systolic_bp",
+                    "indicator_name": "收缩压",
+                    "value": 120.0,
+                    "unit": "mmHg",
+                    "record_date": "2024-06-15",
+                },
+            ],
+        }
+        resp = await auth_client.post("/api/indicators/batch", json=payload)
+        assert resp.status_code == 403
 
 
 class TestIndicatorTrend:

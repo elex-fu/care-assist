@@ -12,6 +12,7 @@ from app.core.indicator_engine import IndicatorEngine
 from app.models.member import Member
 from app.models.indicator import IndicatorData
 from app.schemas.indicator import IndicatorCreate, IndicatorOut, IndicatorTrendOut, IndicatorTrendPoint
+from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
@@ -113,6 +114,53 @@ async def delete_indicator(
     await db.delete(indicator)
     await db.commit()
     return ResponseWrapper(data={"deleted": True})
+
+
+@router.post("/batch", response_model=ResponseWrapper[list[IndicatorOut]])
+async def batch_create_indicators(
+    payload: BatchIndicatorCreate,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    target = await _verify_member_in_family(payload.member_id, current, db)
+    age_months = _calculate_age_months(target.birth_date)
+
+    created = []
+    for item in payload.items:
+        status = IndicatorEngine.judge(item.value, item.indicator_key, age_months)
+        deviation = IndicatorEngine.calculate_deviation(item.value, item.indicator_key, age_months)
+
+        config = IndicatorEngine.THRESHOLDS.get(item.indicator_key, {})
+        threshold = config.get("threshold", {})
+        if age_months and "age_groups" in config:
+            for group in config["age_groups"]:
+                if age_months <= group["max_age_months"]:
+                    threshold = group
+                    break
+
+        indicator = IndicatorData(
+            member_id=payload.member_id,
+            indicator_key=item.indicator_key,
+            indicator_name=item.indicator_name,
+            value=Decimal(str(item.value)),
+            unit=item.unit,
+            lower_limit=Decimal(str(threshold.get("lower"))) if threshold.get("lower") is not None else None,
+            upper_limit=Decimal(str(threshold.get("upper"))) if threshold.get("upper") is not None else None,
+            status=status,
+            deviation_percent=Decimal(str(round(deviation, 4))),
+            record_date=item.record_date,
+            record_time=item.record_time,
+            source_report_id=item.source_report_id,
+            source_hospital_id=item.source_hospital_id,
+            source_batch_id=item.source_batch_id,
+        )
+        db.add(indicator)
+        created.append(indicator)
+
+    await db.commit()
+    for ind in created:
+        await db.refresh(ind)
+    return ResponseWrapper(data=[IndicatorOut.model_validate(i) for i in created])
 
 
 @router.get("/trend", response_model=ResponseWrapper[IndicatorTrendOut])
