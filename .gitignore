@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
+
+# Node
+node_modules/
+
+# IDEs
+.idea/
+.vscode/
+
+# Archives
+*.zip
+
+# Extracted temp
+extracted/
+
+# Docker volumes
+docker-volumes/
