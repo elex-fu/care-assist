@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="form-group">
+    <text class="label">姓名</text>
+    <input class="input" placeholder="请输入成员姓名" data-field="name" bindinput="onInput" value="{{form.name}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">性别</text>
+    <radio-group bindchange="onGenderChange">
+      <label class="radio-item"><radio value="male" checked="{{form.gender === 'male'}}" />男</label>
+      <label class="radio-item"><radio value="female" checked="{{form.gender === 'female'}}" />女</label>
+    </radio-group>
+  </view>
+
+  <view class="form-group">
+    <text class="label">成员类型</text>
+    <radio-group bindchange="onTypeChange">
+      <label class="radio-item"><radio value="adult" checked="{{form.type === 'adult'}}" />成人</label>
+      <label class="radio-item"><radio value="child" checked="{{form.type === 'child'}}" />儿童</label>
+      <label class="radio-item"><radio value="elderly" checked="{{form.type === 'elderly'}}" />长辈</label>
+    </radio-group>
+  </view>
+
+  <view class="form-group">
+    <text class="label">生日</text>
+    <picker mode="date" value="{{form.birth_date}}" bindchange="onInput" data-field="birth_date">
+      <view class="picker">{{form.birth_date || '请选择生日'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">血型</text>
+    <picker bindchange="onBloodTypeChange" value="{{bloodTypes.indexOf(form.blood_type)}}" range="{{bloodTypes}}">
+      <view class="picker">{{form.blood_type || '请选择血型'}}</view>
+    </picker>
+  </view>
+
+  <button class="submit-btn" bindtap="submit">保存</button>
+</view>

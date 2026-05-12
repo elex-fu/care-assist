@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="header" wx:if="{{member}}">
+    <view class="avatar">
+      <text>{{member.name[0]}}</text>
+    </view>
+    <text class="name">{{member.name}}</text>
+    <text class="meta">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}} · {{member.gender === 'male' ? '男' : '女'}}</text>
+    <text class="meta" wx:if="{{member.blood_type}}">血型 {{member.blood_type}}</text>
+  </view>
+
+  <view class="section" wx:if="{{member}}">
+    <text class="section-title">基本信息</text>
+    <view class="info-row">
+      <text class="info-label">角色</text>
+      <text class="info-value">{{member.role === 'creator' ? '家庭创建者' : '家庭成员'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{member.birth_date}}">
+      <text class="info-label">生日</text>
+      <text class="info-value">{{member.birth_date}}</text>
+    </view>
+    <view class="info-row" wx:if="{{member.allergies.length}}">
+      <text class="info-label">过敏史</text>
+      <text class="info-value">{{member.allergies.join('、')}}</text>
+    </view>
+    <view class="info-row" wx:if="{{member.chronic_diseases.length}}">
+      <text class="info-label">慢性病</text>
+      <text class="info-value">{{member.chronic_diseases.join('、')}}</text>
+    </view>
+  </view>
+</view>

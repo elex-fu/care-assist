@@ -1,0 +1,18 @@
+<view class="card">
+  <view class="card-top">
+    <view class="avatar {{statusClass}}">
+      <text class="avatar-text">{{member.name?.[0] || '?'}}</text>
+    </view>
+    <view class="status-badge {{statusClass}}">
+      <text>{{statusIcon}}</text>
+    </view>
+  </view>
+  <view class="card-body">
+    <text class="name">{{member.name}}</text>
+    <text class="type">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}}</text>
+  </view>
+  <view class="card-footer">
+    <text class="status-label {{statusClass}}">{{statusText}}</text>
+    <text class="abnormal" wx:if="{{member.abnormal_count > 0}}">{{member.abnormal_count}}项异常</text>
+  </view>
+</view>

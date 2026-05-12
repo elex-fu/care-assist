@@ -1,0 +1,48 @@
+.container {
+  padding: 16px;
+  background: #F8FAFC;
+  min-height: 100vh;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.title {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 8px;
+}
+
+.desc {
+  display: block;
+  font-size: 14px;
+  color: #94A3B8;
+  margin-bottom: 20px;
+}
+
+.link-box {
+  background: #F1F5F9;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.link-text {
+  font-size: 13px;
+  color: #475569;
+  word-break: break-all;
+}
+
+.copy-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}

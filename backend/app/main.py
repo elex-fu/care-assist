@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.db.session import engine
 from app.core.exceptions import BusinessException
-from app.api import auth, members
+from app.api import auth, members, home
 
 
 @asynccontextmanager
@@ -48,3 +48,4 @@ async def health_check():
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(members.router, prefix="/api")
+app.include_router(home.router, prefix="/api")

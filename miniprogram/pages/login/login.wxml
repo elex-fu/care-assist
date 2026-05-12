@@ -1,0 +1,19 @@
+<view class="container">
+  <view class="logo">
+    <text class="logo-text">家庭健康助手</text>
+    <text class="logo-sub">守护全家健康</text>
+  </view>
+
+  <view class="card" wx:if="{{step === 'login'}}">
+    <text class="title">微信一键登录</text>
+    <text class="desc">首次使用将自动创建家庭</text>
+    <button class="btn-primary" bindtap="onLogin" loading="{{loading}}">微信登录</button>
+  </view>
+
+  <view class="card" wx:if="{{step === 'register'}}">
+    <text class="title">创建家庭</text>
+    <text class="desc">请输入您的姓名，系统将为您创建家庭</text>
+    <input class="input" placeholder="请输入您的姓名" bindinput="onInput" value="{{creatorName}}" />
+    <button class="btn-primary" bindtap="onRegister" loading="{{loading}}">创建并登录</button>
+  </view>
+</view>

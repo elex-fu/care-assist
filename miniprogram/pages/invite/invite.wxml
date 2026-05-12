@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="card">
+    <text class="title">邀请家人加入</text>
+    <text class="desc">分享以下链接给家人，他们点击后即可加入您的家庭</text>
+    <view class="link-box" wx:if="{{inviteLink}}">
+      <text class="link-text">{{inviteLink}}</text>
+    </view>
+    <button class="copy-btn" bindtap="copyLink" wx:if="{{inviteLink}}">复制链接</button>
+  </view>
+</view>

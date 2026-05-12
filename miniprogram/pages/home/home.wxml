@@ -1,0 +1,33 @@
+<view class="container">
+  <!-- Header -->
+  <view class="header">
+    <view class="family-name">{{family?.name || '加载中...'}}</view>
+    <view class="ai-icon" bindtap="goToInvite">
+      <text class="ai-text">AI</text>
+    </view>
+  </view>
+
+  <!-- AI Daily Summary -->
+  <view class="ai-banner" wx:if="{{aiSummary}}">
+    <text class="ai-banner-text">{{aiSummary}}</text>
+  </view>
+
+  <!-- Member Cards Grid -->
+  <view class="member-grid">
+    <view
+      class="member-card"
+      wx:for="{{members}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goToMemberDetail"
+    >
+      <member-card member="{{item}}" />
+    </view>
+
+    <!-- Add Member Card -->
+    <view class="member-card add-card" bindtap="goToAddMember">
+      <view class="add-icon">+</view>
+      <text class="add-text">添加成员</text>
+    </view>
+  </view>
+</view>

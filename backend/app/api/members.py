@@ -56,6 +56,38 @@ async def update_subscription(
     return ResponseWrapper(data={"subscription_status": member.subscription_status})
 
 
+@router.post("", response_model=ResponseWrapper[MemberOut])
+async def create_member(
+    name: str,
+    gender: str = "male",
+    type: str = "adult",
+    birth_date: str | None = None,
+    blood_type: str | None = None,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    if not PermissionChecker.is_creator(current):
+        raise ForbiddenException("仅家庭创建者可添加成员")
+
+    import uuid
+    from datetime import date as dt_date
+
+    member = Member(
+        id=str(uuid.uuid4()),
+        family_id=current.family_id,
+        name=name,
+        gender=gender,
+        type=type,
+        birth_date=dt_date.fromisoformat(birth_date) if birth_date else None,
+        blood_type=blood_type,
+        role="member",
+    )
+    db.add(member)
+    await db.commit()
+    await db.refresh(member)
+    return ResponseWrapper(data=MemberOut.model_validate(member))
+
+
 @router.get("", response_model=ResponseWrapper[FamilyMembersOut])
 async def list_family_members(
     member: Member = Depends(get_current_member),

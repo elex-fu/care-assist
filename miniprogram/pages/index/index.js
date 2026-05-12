@@ -4,19 +4,15 @@ Page({
   },
 
   onLoad() {
-    this.checkHealth()
+    this.checkLogin()
   },
 
-  async checkHealth() {
-    try {
-      const res = await wx.request({
-        url: `${getApp().globalData.apiBase}/health`,
-      })
-      this.setData({
-        status: res.data.status === 'ok' ? 'connected' : 'error',
-      })
-    } catch {
-      this.setData({ status: 'error' })
+  async checkLogin() {
+    const token = wx.getStorageSync('access_token')
+    if (token) {
+      wx.switchTab({ url: '/pages/home/home' })
+    } else {
+      wx.redirectTo({ url: '/pages/login/login' })
     }
   },
 })
