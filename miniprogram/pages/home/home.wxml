@@ -1,15 +1,18 @@
 <view class="container">
   <!-- Header -->
   <view class="header">
-    <view class="family-name">{{family?.name || '加载中...'}}</view>
-    <view class="ai-icon" bindtap="goToInvite">
-      <text class="ai-text">AI</text>
+    <view class="family-name">{{family && family.name ? family.name : '加载中...'}}</view>
+    <view class="add-icon-btn" bindtap="goToUpload">
+      <text class="add-icon-text">+</text>
     </view>
   </view>
 
   <!-- AI Daily Summary -->
   <view class="ai-banner" wx:if="{{aiSummary}}">
     <text class="ai-banner-text">{{aiSummary}}</text>
+    <view class="refresh-btn" bindtap="loadDashboard">
+      <text class="refresh-text">刷新</text>
+    </view>
   </view>
 
   <!-- Member Cards Grid -->

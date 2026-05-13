@@ -1,3 +1,103 @@
 <view class="container">
-  <text class="placeholder">AI 助手 · 即将上线</text>
+  <!-- Top Bar: Member Selector + History -->
+  <view class="top-bar">
+    <scroll-view class="member-selector" scroll-x="true" enable-flex="true">
+      <view
+        class="member-chip {{currentMemberId === item.id ? 'active' : ''}}"
+        wx:for="{{members}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="selectMember"
+      >
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+    <view class="history-btn" bindtap="toggleHistory">
+      <text>历史</text>
+    </view>
+  </view>
+
+  <!-- Chat Messages -->
+  <scroll-view class="chat-scroll" scroll-y="true" scroll-into-view="msg-{{messages.length - 1}}">
+    <view class="message-list">
+      <!-- Welcome -->
+      <view class="message system" wx:if="{{!messages.length}}">
+        <view class="bubble system-bubble">
+          <text class="bubble-text">你好！我是家庭健康助手 AI，可以帮你分析健康指标、解读报告、提供建议。请直接输入问题或点击下方快速提问。</text>
+        </view>
+      </view>
+
+      <view
+        class="message {{item.role === 'user' ? 'user' : 'assistant'}}"
+        wx:for="{{messages}}"
+        wx:key="index"
+        id="msg-{{index}}"
+      >
+        <view class="bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
+          <text class="bubble-text">{{item.content}}</text>
+        </view>
+      </view>
+
+      <!-- Loading -->
+      <view class="message assistant" wx:if="{{loading}}">
+        <view class="bubble assistant-bubble loading-bubble">
+          <view class="typing">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- Quick Questions -->
+  <view class="quick-questions" wx:if="{{!loading && messages.length < 2}}">
+    <view
+      class="q-chip"
+      wx:for="{{quickQuestions}}"
+      wx:key="*this"
+      data-q="{{item}}"
+      bindtap="onQuickQuestion"
+    >
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- Input Bar -->
+  <view class="input-bar">
+    <input
+      class="chat-input"
+      placeholder="输入问题..."
+      value="{{inputValue}}"
+      bindinput="onInput"
+      confirm-type="send"
+      bindconfirm="onSendTap"
+    />
+    <view class="send-btn {{inputValue.trim() ? 'active' : ''}}" bindtap="onSendTap">
+      <text>发送</text>
+    </view>
+  </view>
+
+  <!-- History Popup -->
+  <view class="popup-overlay" wx:if="{{showHistory}}" bindtap="closeHistory">
+    <view class="popup-sheet" catchtap="preventClose">
+      <view class="popup-header">
+        <text class="popup-title">历史对话</text>
+        <text class="popup-close" bindtap="closeHistory">✕</text>
+      </view>
+      <view class="popup-body">
+        <view class="conv-item" wx:for="{{conversations}}" wx:key="id" data-id="{{item.id}}" bindtap="loadConversation">
+          <text class="conv-preview">{{item.last_message_preview || '无消息'}}</text>
+          <text class="conv-count">{{item.message_count}} 条</text>
+        </view>
+        <view class="empty-state" wx:if="{{!conversations.length}}">
+          <text>暂无历史对话</text>
+        </view>
+      </view>
+      <view class="popup-footer">
+        <button class="btn-new" bindtap="startNewConversation">新建对话</button>
+      </view>
+    </view>
+  </view>
 </view>

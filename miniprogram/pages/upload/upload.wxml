@@ -1,3 +1,117 @@
 <view class="container">
-  <text class="placeholder">上传报告 · 即将上线</text>
+  <!-- Step 1: Select -->
+  <block wx:if="{{step === 'select'}}">
+    <view class="section">
+      <text class="section-title">选择成员</text>
+      <scroll-view class="member-selector" scroll-x="true" enable-flex="true">
+        <view
+          class="member-chip {{currentMemberId === item.id ? 'active' : ''}}"
+          wx:for="{{members}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="selectMember"
+        >
+          <text>{{item.name}}</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">选择图片来源</text>
+      <view class="source-grid">
+        <view class="source-card" bindtap="pickImage" data-source="camera">
+          <text class="source-icon">📷</text>
+          <text class="source-label">拍照</text>
+        </view>
+        <view class="source-card" bindtap="pickImage" data-source="album">
+          <text class="source-icon">🖼️</text>
+          <text class="source-label">相册</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- Step 2: Preview -->
+  <block wx:if="{{step === 'preview'}}">
+    <view class="preview-wrap">
+      <image class="preview-img" src="{{tempFilePath}}" mode="aspectFit" />
+    </view>
+
+    <view class="form-section">
+      <view class="form-row">
+        <text class="form-label">医院名称</text>
+        <input class="form-input" placeholder="请输入医院名称（可选）" value="{{hospital}}" bindinput="onHospitalInput" />
+      </view>
+
+      <view class="form-row">
+        <text class="form-label">报告日期</text>
+        <picker mode="date" value="{{reportDate}}" bindchange="onDateChange">
+          <view class="form-picker">
+            <text>{{reportDate}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-row">
+        <text class="form-label">报告类型</text>
+        <picker mode="selector" range="{{['检验报告', '诊断报告', '处方', '出院小结']}}" bindchange="onTypeChange">
+          <view class="form-picker">
+            <text>{{['检验报告', '诊断报告', '处方', '出院小结'][reportType === 'lab' ? 0 : reportType === 'diagnosis' ? 1 : reportType === 'prescription' ? 2 : 3]}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+
+    <view class="action-bar">
+      <button class="btn-secondary" bindtap="retry">重选</button>
+      <button class="btn-primary" bindtap="startUpload">开始识别</button>
+    </view>
+  </block>
+
+  <!-- Step 3: Uploading -->
+  <block wx:if="{{step === 'uploading' || step === 'processing'}}">
+    <view class="progress-wrap">
+      <view class="spinner"></view>
+      <text class="progress-text">{{progressText}}</text>
+    </view>
+  </block>
+
+  <!-- Step 4: Result -->
+  <block wx:if="{{step === 'result'}}">
+    <view class="result-header">
+      <text class="result-title">识别结果</text>
+      <text class="result-subtitle">{{hospital || '未填写医院'}} · {{reportDate}}</text>
+    </view>
+
+    <view class="indicator-list" wx:if="{{extractedIndicators.length}}">
+      <view
+        class="indicator-item {{item.status === 'critical' || item.status === 'high' || item.status === 'low' ? 'abnormal' : ''}}"
+        wx:for="{{extractedIndicators}}"
+        wx:key="index"
+      >
+        <view class="indicator-main">
+          <text class="indicator-name">{{item.indicator_name}}</text>
+          <text class="indicator-raw">{{item.raw_text}}</text>
+        </view>
+        <view class="indicator-value-wrap">
+          <text class="indicator-value">{{item.value}}</text>
+          <text class="indicator-unit">{{item.unit}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:else>
+      <text class="empty-title">未识别到指标</text>
+      <text class="empty-subtitle">请检查图片清晰度后重试</text>
+    </view>
+
+    <view class="action-bar">
+      <button class="btn-secondary" bindtap="retry">再传一张</button>
+      <button class="btn-primary" bindtap="goToIndicators">查看指标</button>
+    </view>
+  </block>
 </view>

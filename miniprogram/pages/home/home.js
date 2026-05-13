@@ -1,4 +1,5 @@
 const api = require('../../utils/api')
+const { store, setMembers } = require('../../utils/store')
 
 Page({
   data: {
@@ -9,6 +10,21 @@ Page({
   },
 
   onLoad() {
+    // Prefer store data to avoid flicker
+    const cachedFamily = store.family
+    const cachedMembers = store.members
+    if (cachedFamily || (cachedMembers && cachedMembers.length)) {
+      this.setData({
+        family: cachedFamily,
+        members: cachedMembers || [],
+        loading: true,
+      })
+    }
+    this.loadDashboard()
+  },
+
+  onShow() {
+    // Refresh when coming back
     this.loadDashboard()
   },
 
@@ -20,6 +36,8 @@ Page({
     try {
       const res = await api.get('/api/home/dashboard')
       const data = res.data
+      setMembers(data.members || [])
+      store.family = data.family
       this.setData({
         family: data.family,
         members: data.members,
@@ -43,5 +61,9 @@ Page({
 
   goToInvite() {
     wx.navigateTo({ url: '/pages/invite/invite' })
+  },
+
+  goToUpload() {
+    wx.switchTab({ url: '/pages/upload/upload' })
   },
 })

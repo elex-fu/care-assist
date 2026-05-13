@@ -1,3 +1,143 @@
 <view class="container">
-  <text class="placeholder">指标中心 · 即将上线</text>
+  <!-- Member Selector -->
+  <scroll-view class="member-selector" scroll-x="true" enable-flex="true">
+    <view
+      class="member-chip {{currentMemberId === item.id ? 'active' : ''}}"
+      wx:for="{{members}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="selectMember"
+    >
+      <text>{{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- Indicator List -->
+  <view class="indicator-list" wx:if="{{!loading && indicators.length}}">
+    <view
+      class="indicator-item"
+      wx:for="{{indicators}}"
+      wx:key="id"
+      data-key="{{item.indicator_key}}"
+      data-name="{{item.indicator_name}}"
+      bindtap="showTrend"
+    >
+      <view class="indicator-main">
+        <text class="indicator-name">{{item.indicator_name}}</text>
+        <view class="indicator-value-wrap">
+          <text class="indicator-value">{{item.value}}</text>
+          <text class="indicator-unit">{{item.unit}}</text>
+        </view>
+      </view>
+      <view class="indicator-meta">
+        <view class="status-badge" style="background: {{getStatusColor(item.status)}};">
+          <text>{{getStatusLabel(item.status)}}</text>
+        </view>
+        <text class="indicator-date">{{formatDateLabel(item.record_date)}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Empty State -->
+  <view class="empty-state" wx:if="{{!loading && !indicators.length}}">
+    <text class="empty-icon">📊</text>
+    <text class="empty-title">还没有记录</text>
+    <text class="empty-subtitle">点击右下角按钮添加第一条指标</text>
+  </view>
+
+  <!-- Loading -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- Floating Add Button -->
+  <view class="fab" bindtap="openAddForm" wx:if="{{!showAddForm}}">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- Add Form Overlay -->
+  <view class="form-overlay" wx:if="{{showAddForm}}" bindtap="closeAddForm">
+    <view class="form-sheet" catchtap="preventClose">
+      <view class="form-header">
+        <text class="form-title">添加指标</text>
+        <text class="form-close" bindtap="closeAddForm">✕</text>
+      </view>
+
+      <view class="form-body">
+        <view class="form-row">
+          <text class="form-label">指标名称</text>
+          <picker mode="selector" range="{{['收缩压', '舒张压', '心率', '空腹血糖', '糖化血红蛋白', '体重', '身高', '体温']}}" value="{{indicatorIndex}}" bindchange="onIndicatorChange">
+            <view class="form-picker">
+              <text>{{['收缩压', '舒张压', '心率', '空腹血糖', '糖化血红蛋白', '体重', '身高', '体温'][indicatorIndex]}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-row">
+          <text class="form-label">数值 ({{indicatorUnit}})</text>
+          <input class="form-input" type="digit" placeholder="请输入数值" value="{{indicatorValue}}" bindinput="onValueInput" />
+        </view>
+
+        <view class="form-row">
+          <text class="form-label">记录日期</text>
+          <picker mode="date" value="{{recordDate}}" bindchange="onDateChange">
+            <view class="form-picker">
+              <text>{{recordDate}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="form-footer">
+        <button class="btn-submit" bindtap="submitIndicator">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Trend Popup -->
+  <view class="popup-overlay" wx:if="{{showTrendPopup}}" bindtap="closeTrendPopup">
+    <view class="popup-sheet" catchtap="preventClose">
+      <view class="popup-header">
+        <text class="popup-title">{{trendData.indicator_name}} 趋势</text>
+        <text class="popup-close" bindtap="closeTrendPopup">✕</text>
+      </view>
+
+      <view class="popup-body" wx:if="{{trendData}}">
+        <view class="trend-current" wx:if="{{trendData.current}}">
+          <text class="trend-label">最新</text>
+          <view class="trend-value-row">
+            <text class="trend-value">{{trendData.current.value}}</text>
+            <text class="trend-unit">{{trendData.unit}}</text>
+            <view class="trend-status" style="background: {{getStatusColor(trendData.current.status)}};">
+              <text>{{getStatusLabel(trendData.current.status)}}</text>
+            </view>
+          </view>
+          <text class="trend-date">{{formatDateLabel(trendData.current.record_date)}}</text>
+        </view>
+
+        <view class="trend-previous" wx:if="{{trendData.previous}}">
+          <text class="trend-label">上次</text>
+          <view class="trend-value-row">
+            <text class="trend-value">{{trendData.previous.value}}</text>
+            <text class="trend-unit">{{trendData.unit}}</text>
+            <view class="trend-status" style="background: {{getStatusColor(trendData.previous.status)}};">
+              <text>{{getStatusLabel(trendData.previous.status)}}</text>
+            </view>
+          </view>
+          <text class="trend-date">{{formatDateLabel(trendData.previous.record_date)}}</text>
+        </view>
+
+        <view class="trend-summary" wx:if="{{trendData.trend}}">
+          <text class="trend-arrow">{{getTrendArrow(trendData.trend.direction)}}</text>
+          <text class="trend-evaluation">{{getTrendLabel(trendData.trend.evaluation)}}</text>
+        </view>
+      </view>
+
+      <view class="popup-empty" wx:else>
+        <text>暂无趋势数据</text>
+      </view>
+    </view>
+  </view>
 </view>

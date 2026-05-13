@@ -78,9 +78,38 @@ function refreshToken() {
   })
 }
 
+function uploadFile(url, filePath, name = 'file', formData = {}) {
+  const token = wx.getStorageSync('access_token')
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: API_BASE + url,
+      filePath,
+      name,
+      header: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      formData,
+      success: (res) => {
+        try {
+          const data = JSON.parse(res.data)
+          if (data.code !== 0) {
+            reject(new Error(data.message || '上传失败'))
+            return
+          }
+          resolve(data)
+        } catch (e) {
+          reject(new Error('解析响应失败'))
+        }
+      },
+      fail: reject,
+    })
+  })
+}
+
 module.exports = {
   get(url) { return request({ url, method: 'GET' }) },
   post(url, data) { return request({ url, method: 'POST', data }) },
   put(url, data) { return request({ url, method: 'PUT', data }) },
   del(url) { return request({ url, method: 'DELETE' }) },
+  uploadFile,
 }

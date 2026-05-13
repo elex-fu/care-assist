@@ -38,8 +38,17 @@ Page({
       wx.showToast({ title: '请输入姓名', icon: 'none' })
       return
     }
+    let url = `/api/members?name=${encodeURIComponent(form.name)}&gender=${form.gender}&type=${form.type}`
+    if (form.birth_date) {
+      url += `&birth_date=${form.birth_date}`
+    }
+    if (form.blood_type) {
+      url += `&blood_type=${form.blood_type}`
+    }
+    // Note: allergies and chronic_diseases are collected in form but not sent
+    // because backend POST /api/members does not support them yet.
     try {
-      await api.post(`/api/members?name=${encodeURIComponent(form.name)}&gender=${form.gender}&type=${form.type}`, {})
+      await api.post(url, {})
       wx.showToast({ title: '添加成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1000)
     } catch (err) {

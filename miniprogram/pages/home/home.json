@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "家庭看板",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F8FAFC"
+  "backgroundColor": "#F8FAFC",
+  "usingComponents": {
+    "member-card": "/components/member-card/member-card"
+  }
 }

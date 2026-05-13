@@ -1,30 +1,130 @@
 <view class="container">
+  <!-- Header -->
   <view class="header" wx:if="{{member}}">
     <view class="avatar">
-      <text>{{member.name[0]}}</text>
+      <text>{{member.name ? member.name[0] : '?'}}</text>
     </view>
     <text class="name">{{member.name}}</text>
-    <text class="meta">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}} · {{member.gender === 'male' ? '男' : '女'}}</text>
-    <text class="meta" wx:if="{{member.blood_type}}">血型 {{member.blood_type}}</text>
+    <view class="meta-row">
+      <text class="meta">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}}</text>
+      <text class="meta-dot">·</text>
+      <text class="meta">{{member.gender === 'male' ? '男' : '女'}}</text>
+      <text class="meta-dot" wx:if="{{member.blood_type}}">·</text>
+      <text class="meta" wx:if="{{member.blood_type}}">血型 {{member.blood_type}}</text>
+    </view>
+    <text class="role-tag">{{member.role === 'creator' ? '家庭创建者' : '家庭成员'}}</text>
   </view>
 
-  <view class="section" wx:if="{{member}}">
-    <text class="section-title">基本信息</text>
-    <view class="info-row">
-      <text class="info-label">角色</text>
-      <text class="info-value">{{member.role === 'creator' ? '家庭创建者' : '家庭成员'}}</text>
+  <!-- Tabs -->
+  <view class="tab-bar">
+    <view class="tab {{activeTab === 'timeline' ? 'active' : ''}}" data-tab="timeline" bindtap="switchTab">
+      <text>时间轴</text>
     </view>
-    <view class="info-row" wx:if="{{member.birth_date}}">
-      <text class="info-label">生日</text>
-      <text class="info-value">{{member.birth_date}}</text>
+    <view class="tab {{activeTab === 'indicators' ? 'active' : ''}}" data-tab="indicators" bindtap="switchTab">
+      <text>指标</text>
     </view>
-    <view class="info-row" wx:if="{{member.allergies.length}}">
-      <text class="info-label">过敏史</text>
-      <text class="info-value">{{member.allergies.join('、')}}</text>
+    <view class="tab {{activeTab === 'reports' ? 'active' : ''}}" data-tab="reports" bindtap="switchTab">
+      <text>报告</text>
     </view>
-    <view class="info-row" wx:if="{{member.chronic_diseases.length}}">
-      <text class="info-label">慢性病</text>
-      <text class="info-value">{{member.chronic_diseases.join('、')}}</text>
+    <view class="tab {{activeTab === 'ai' ? 'active' : ''}}" data-tab="ai" bindtap="switchTab">
+      <text>AI</text>
+    </view>
+  </view>
+
+  <!-- Timeline Tab -->
+  <view class="tab-content" wx:if="{{activeTab === 'timeline'}}">
+    <view class="timeline" wx:if="{{events.length}}">
+      <view class="timeline-item" wx:for="{{events}}" wx:key="id">
+        <view class="timeline-node"></view>
+        <view class="timeline-card">
+          <view class="timeline-header">
+            <text class="timeline-type">{{item.type === 'visit' ? '就诊' : item.type === 'lab' ? '检验' : item.type === 'medication' ? '用药' : item.type === 'symptom' ? '症状' : item.type === 'hospital' ? '住院' : item.type === 'vaccine' ? '疫苗' : item.type === 'checkup' ? '体检' : item.type === 'milestone' ? '里程碑' : '事件'}}</text>
+            <text class="timeline-date">{{item.event_date}}</text>
+          </view>
+          <text class="timeline-hospital" wx:if="{{item.hospital}}">{{item.hospital}}</text>
+          <text class="timeline-diagnosis" wx:if="{{item.diagnosis}}">{{item.diagnosis}}</text>
+          <text class="timeline-notes" wx:if="{{item.notes}}">{{item.notes}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-state" wx:else>
+      <text class="empty-title">暂无时间轴记录</text>
+      <text class="empty-subtitle">指标和报告会自动生成时间轴</text>
+    </view>
+  </view>
+
+  <!-- Indicators Tab -->
+  <view class="tab-content" wx:if="{{activeTab === 'indicators'}}">
+    <view class="indicator-grid" wx:if="{{indicators.length}}">
+      <view class="indicator-card" wx:for="{{indicators}}" wx:key="id">
+        <text class="card-name">{{item.indicator_name}}</text>
+        <view class="card-value-row">
+          <text class="card-value">{{item.value}}</text>
+          <text class="card-unit">{{item.unit}}</text>
+        </view>
+        <view class="card-status" style="background: {{getStatusColor(item.status)}};">
+          <text>{{getStatusLabel(item.status)}}</text>
+        </view>
+        <text class="card-date">{{formatDateFull(item.record_date)}}</text>
+      </view>
+    </view>
+    <view class="empty-state" wx:else>
+      <text class="empty-title">暂无指标记录</text>
+      <text class="empty-subtitle" bindtap="goToIndicatorsPage">去添加指标 ›</text>
+    </view>
+  </view>
+
+  <!-- Reports Tab -->
+  <view class="tab-content" wx:if="{{activeTab === 'reports'}}">
+    <view class="report-list" wx:if="{{reports.length}}">
+      <view class="report-card" wx:for="{{reports}}" wx:key="id">
+        <view class="report-header">
+          <text class="report-type">{{item.type === 'lab' ? '检验报告' : item.type === 'diagnosis' ? '诊断报告' : item.type === 'prescription' ? '处方' : '出院小结'}}</text>
+          <view class="report-status {{item.ocr_status}}">
+            <text>{{item.ocr_status === 'completed' ? '已识别' : item.ocr_status === 'pending' ? '待处理' : item.ocr_status === 'processing' ? '识别中' : '失败'}}</text>
+          </view>
+        </view>
+        <text class="report-hospital" wx:if="{{item.hospital}}">{{item.hospital}}</text>
+        <text class="report-date">{{item.report_date || '未填写日期'}}</text>
+        <view class="report-extracted" wx:if="{{item.extracted_indicators && item.extracted_indicators.length}}">
+          <text class="extracted-label">识别到 {{item.extracted_indicators.length}} 项指标</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-state" wx:else>
+      <text class="empty-title">暂无报告</text>
+      <text class="empty-subtitle" bindtap="goToUploadPage">去上传报告 ›</text>
+    </view>
+  </view>
+
+  <!-- AI Tab -->
+  <view class="tab-content ai-tab" wx:if="{{activeTab === 'ai'}}">
+    <view class="ai-chat">
+      <view class="ai-message-list">
+        <view class="ai-message {{item.role === 'user' ? 'user' : 'assistant'}}" wx:for="{{aiMessages}}" wx:key="index">
+          <view class="ai-bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
+            <text>{{item.content}}</text>
+          </view>
+        </view>
+        <view class="ai-message assistant" wx:if="{{aiLoading}}">
+          <view class="ai-bubble assistant-bubble loading-bubble">
+            <view class="typing">
+              <view class="dot"></view>
+              <view class="dot"></view>
+              <view class="dot"></view>
+            </view>
+          </view>
+        </view>
+        <view class="ai-welcome" wx:if="{{!aiMessages.length && !aiLoading}}">
+          <text class="ai-welcome-text">向 AI 询问关于 {{member && member.name ? member.name : ''}} 的健康问题</text>
+        </view>
+      </view>
+    </view>
+    <view class="ai-input-bar">
+      <input class="ai-input" placeholder="输入问题..." value="{{aiInput}}" bindinput="onAiInput" confirm-type="send" bindconfirm="sendAiMessage" />
+      <view class="ai-send {{aiInput.trim() ? 'active' : ''}}" bindtap="sendAiMessage">
+        <text>发送</text>
+      </view>
     </view>
   </view>
 </view>

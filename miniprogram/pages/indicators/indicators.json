@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "指标中心"
+  "navigationBarTitleText": "指标中心",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
 }

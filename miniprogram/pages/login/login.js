@@ -1,4 +1,5 @@
 const api = require('../../utils/api')
+const { store, setMembers } = require('../../utils/store')
 
 Page({
   data: {
@@ -48,6 +49,12 @@ Page({
     wx.setStorageSync('access_token', data.access_token)
     wx.setStorageSync('refresh_token', data.refresh_token)
     wx.setStorageSync('current_member', data.member)
+    store.token = data.access_token
+    store.currentMember = data.member
+    // Also set members if family data available
+    if (data.family) {
+      store.family = data.family
+    }
     wx.switchTab({ url: '/pages/home/home' })
   },
 })
