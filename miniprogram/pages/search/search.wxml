@@ -1,0 +1,66 @@
+<view class="container">
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索指标、报告、住院记录..." value="{{keyword}}" bindinput="onInput" confirm-type="search" bindconfirm="onConfirm" />
+      <view class="clear-btn" wx:if="{{keyword}}" bindtap="clearKeyword">
+        <text>✕</text>
+      </view>
+    </view>
+    <view class="search-btn" bindtap="doSearch">
+      <text>搜索</text>
+    </view>
+  </view>
+
+  <view class="results" wx:if="{{searched}}">
+    <view wx:if="{{loading}}" class="loading-state">
+      <text>搜索中...</text>
+    </view>
+
+    <view wx:elif="{{results.length}}">
+      <view class="result-group" wx:for="{{results}}" wx:key="id" wx:for-item="item">
+        <view class="group-label">
+          <text>{{getGroupLabel(item.entity_type)}}</text>
+        </view>
+        <view class="result-card" data-item="{{item}}" bindtap="onResultTap">
+          <view class="result-icon">
+            <text>{{getResultIcon(item.entity_type)}}</text>
+          </view>
+          <view class="result-body">
+            <text class="result-title">{{item.title}}</text>
+            <text class="result-subtitle" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+            <view class="result-meta">
+              <text class="result-member">{{item.member_name}}</text>
+              <text class="result-date" wx:if="{{item.record_date}}">{{item.record_date}}</text>
+            </view>
+          </view>
+          <text class="result-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:else>
+      <text class="empty-title">没有找到相关内容</text>
+      <text class="empty-subtitle">换个关键词试试，或问 AI</text>
+      <view class="ask-ai-btn" bindtap="askAi">
+        <text>问 AI 🤖</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="tips" wx:if="{{!searched}}">
+    <text class="tips-title">搜索提示</text>
+    <view class="tip-item">
+      <text class="tip-dot">·</text>
+      <text class="tip-text">输入指标名称如「血压」「血糖」查找记录</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-dot">·</text>
+      <text class="tip-text">输入医院名称查找相关报告和住院记录</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-dot">·</text>
+      <text class="tip-text">输入成员姓名查找其所有健康数据</text>
+    </view>
+  </view>
+</view>

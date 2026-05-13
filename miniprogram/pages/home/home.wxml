@@ -2,8 +2,13 @@
   <!-- Header -->
   <view class="header">
     <view class="family-name">{{family && family.name ? family.name : '加载中...'}}</view>
-    <view class="add-icon-btn" bindtap="goToUpload">
-      <text class="add-icon-text">+</text>
+    <view class="header-actions">
+      <view class="search-icon-btn" bindtap="goToSearch">
+        <text class="search-icon-text">🔍</text>
+      </view>
+      <view class="add-icon-btn" bindtap="goToUpload">
+        <text class="add-icon-text">+</text>
+      </view>
     </view>
   </view>
 
@@ -24,7 +29,7 @@
       data-id="{{item.id}}"
       bindtap="goToMemberDetail"
     >
-      <member-card member="{{item}}" />
+      <member-card member="{{item}}" hospitalActive="{{!!hospitalMap[item.id]}}" />
     </view>
 
     <!-- Add Member Card -->

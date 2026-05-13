@@ -10,6 +10,15 @@ Page({
 
     // Timeline
     events: [],
+    showEventForm: false,
+    eventForm: {
+      type: 'visit',
+      event_date: '',
+      hospital: '',
+      diagnosis: '',
+      notes: '',
+    },
+    eventTypes: ['visit', 'lab', 'medication', 'symptom', 'hospital', 'vaccine', 'checkup', 'milestone'],
 
     // Indicators
     indicators: [],
@@ -26,11 +35,15 @@ Page({
 
   onLoad(options) {
     const id = options.id
+    const tab = options.tab
     if (id) {
       this.loadMember(id)
       this.loadTimeline(id)
       this.loadIndicators(id)
       this.loadReports(id)
+    }
+    if (tab && ['timeline', 'indicators', 'reports', 'ai'].includes(tab)) {
+      this.setData({ activeTab: tab })
     }
   },
 
@@ -126,6 +139,70 @@ Page({
 
   goToUploadPage() {
     wx.switchTab({ url: '/pages/upload/upload' })
+  },
+
+  goToHospitals() {
+    const memberId = this.data.member && this.data.member.id
+    if (!memberId) return
+    wx.navigateTo({
+      url: `/pages/hospital/hospital?member_id=${memberId}`,
+    })
+  },
+
+  goToReportDetail(e) {
+    const reportId = e.currentTarget.dataset.id
+    const memberId = this.data.member && this.data.member.id
+    if (!reportId || !memberId) return
+    wx.navigateTo({
+      url: `/pages/report-detail/report-detail?member_id=${memberId}&report_id=${reportId}`,
+    })
+  },
+
+  // Timeline event creation
+  toggleEventForm() {
+    this.setData({ showEventForm: !this.data.showEventForm })
+  },
+
+  onEventInput(e) {
+    const { field } = e.currentTarget.dataset
+    this.setData({ [`eventForm.${field}`]: e.detail.value })
+  },
+
+  onEventDateChange(e) {
+    this.setData({ 'eventForm.event_date': e.detail.value })
+  },
+
+  onEventTypeChange(e) {
+    const idx = parseInt(e.detail.value)
+    this.setData({ 'eventForm.type': this.data.eventTypes[idx] })
+  },
+
+  async submitEvent() {
+    const { member, eventForm } = this.data
+    if (!member) return
+    if (!eventForm.event_date) {
+      wx.showToast({ title: '请选择日期', icon: 'none' })
+      return
+    }
+
+    try {
+      await api.post('/api/health-events', {
+        member_id: member.id,
+        type: eventForm.type,
+        event_date: eventForm.event_date,
+        hospital: eventForm.hospital.trim() || undefined,
+        diagnosis: eventForm.diagnosis.trim() || undefined,
+        notes: eventForm.notes.trim() || undefined,
+      })
+      wx.showToast({ title: '添加成功', icon: 'success' })
+      this.setData({
+        showEventForm: false,
+        eventForm: { type: 'visit', event_date: '', hospital: '', diagnosis: '', notes: '' },
+      })
+      this.loadTimeline(member.id)
+    } catch (err) {
+      wx.showToast({ title: err.message || '添加失败', icon: 'none' })
+    }
   },
 
   formatDateFull,

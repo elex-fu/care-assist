@@ -7,6 +7,7 @@ Page({
     members: [],
     aiSummary: '',
     loading: true,
+    hospitalMap: {}, // member_id -> active hospital event
   },
 
   onLoad() {
@@ -44,6 +45,7 @@ Page({
         aiSummary: data.ai_summary,
         loading: false,
       })
+      this.checkHospitalStatus(data.members || [])
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' })
       this.setData({ loading: false })
@@ -65,5 +67,38 @@ Page({
 
   goToUpload() {
     wx.switchTab({ url: '/pages/upload/upload' })
+  },
+
+  goToSearch() {
+    wx.navigateTo({ url: '/pages/search/search' })
+  },
+
+  async checkHospitalStatus(members) {
+    const hospitalMap = {}
+    await Promise.all(
+      members.map(async (m) => {
+        try {
+          const res = await api.get(`/api/hospital-events?member_id=${m.id}&status=active`)
+          if (res.data && res.data.length > 0) {
+            hospitalMap[m.id] = res.data[0]
+          }
+        } catch (err) {
+          // ignore
+        }
+      })
+    )
+    this.setData({ hospitalMap })
+  },
+
+  goToMemberDetail(e) {
+    const id = e.currentTarget.dataset.id
+    const hospitalEvent = this.data.hospitalMap[id]
+    if (hospitalEvent) {
+      wx.navigateTo({
+        url: `/pages/hospital-detail/hospital-detail?member_id=${id}&event_id=${hospitalEvent.id}`,
+      })
+    } else {
+      wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
+    }
   },
 })

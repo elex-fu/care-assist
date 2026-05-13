@@ -13,6 +13,9 @@
       <text class="meta" wx:if="{{member.blood_type}}">血型 {{member.blood_type}}</text>
     </view>
     <text class="role-tag">{{member.role === 'creator' ? '家庭创建者' : '家庭成员'}}</text>
+    <view class="hospital-link" bindtap="goToHospitals">
+      <text>🏥 住院记录 ›</text>
+    </view>
   </view>
 
   <!-- Tabs -->
@@ -33,6 +36,42 @@
 
   <!-- Timeline Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'timeline'}}">
+    <view class="add-event-bar">
+      <view class="add-event-btn" bindtap="toggleEventForm">
+        <text>{{showEventForm ? '取消' : '+ 添加事件'}}</text>
+      </view>
+    </view>
+
+    <view class="event-form" wx:if="{{showEventForm}}">
+      <view class="form-group">
+        <text class="form-label">类型</text>
+        <picker bindchange="onEventTypeChange" value="{{eventTypes.indexOf(eventForm.type)}}" range="{{['就诊', '检验', '用药', '症状', '住院', '疫苗', '体检', '里程碑']}}">
+          <view class="form-picker">
+            {{eventForm.type === 'visit' ? '就诊' : eventForm.type === 'lab' ? '检验' : eventForm.type === 'medication' ? '用药' : eventForm.type === 'symptom' ? '症状' : eventForm.type === 'hospital' ? '住院' : eventForm.type === 'vaccine' ? '疫苗' : eventForm.type === 'checkup' ? '体检' : eventForm.type === 'milestone' ? '里程碑' : '事件'}}
+          </view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="form-label">日期 *</text>
+        <picker mode="date" value="{{eventForm.event_date}}" data-field="event_date" bindchange="onEventDateChange">
+          <view class="form-picker">{{eventForm.event_date || '请选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="form-label">医院</text>
+        <input class="form-input" placeholder="请输入医院" data-field="hospital" bindinput="onEventInput" value="{{eventForm.hospital}}" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">诊断</text>
+        <input class="form-input" placeholder="请输入诊断" data-field="diagnosis" bindinput="onEventInput" value="{{eventForm.diagnosis}}" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">备注</text>
+        <input class="form-input" placeholder="请输入备注" data-field="notes" bindinput="onEventInput" value="{{eventForm.notes}}" />
+      </view>
+      <button class="form-submit" bindtap="submitEvent">保存</button>
+    </view>
+
     <view class="timeline" wx:if="{{events.length}}">
       <view class="timeline-item" wx:for="{{events}}" wx:key="id">
         <view class="timeline-node"></view>
@@ -77,7 +116,7 @@
   <!-- Reports Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'reports'}}">
     <view class="report-list" wx:if="{{reports.length}}">
-      <view class="report-card" wx:for="{{reports}}" wx:key="id">
+      <view class="report-card" wx:for="{{reports}}" wx:key="id" data-id="{{item.id}}" bindtap="goToReportDetail">
         <view class="report-header">
           <text class="report-type">{{item.type === 'lab' ? '检验报告' : item.type === 'diagnosis' ? '诊断报告' : item.type === 'prescription' ? '处方' : '出院小结'}}</text>
           <view class="report-status {{item.ocr_status}}">

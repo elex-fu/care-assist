@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="header-row">
+    <text class="header-title">住院记录</text>
+    <view class="add-btn" bindtap="goToAdd">
+      <text class="add-btn-text">+ 新建</text>
+    </view>
+  </view>
+
+  <view class="event-list" wx:if="{{events.length}}">
+    <view class="event-card" wx:for="{{events}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail">
+      <view class="event-header">
+        <text class="event-hospital">{{item.hospital}}</text>
+        <view class="status-tag {{item.status}}">
+          <text>{{item.status === 'active' ? '住院中' : '已出院'}}</text>
+        </view>
+      </view>
+      <text class="event-dept" wx:if="{{item.department}}">{{item.department}}</text>
+      <view class="event-meta">
+        <text class="event-date">入院 {{item.admission_date}}</text>
+        <text class="event-days" wx:if="{{item.status === 'active'}}">第 {{computeDays(item.admission_date, item.discharge_date)}} 天</text>
+        <text class="event-days discharged" wx:if="{{item.status === 'discharged' && item.discharge_date}}">出院 {{item.discharge_date}}</text>
+      </view>
+      <text class="event-diagnosis" wx:if="{{item.diagnosis}}">诊断: {{item.diagnosis}}</text>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <text class="empty-title">暂无住院记录</text>
+    <text class="empty-subtitle" bindtap="goToAdd">添加住院记录 +</text>
+  </view>
+</view>

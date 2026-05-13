@@ -1,0 +1,57 @@
+<view class="container">
+  <view class="report-header" wx:if="{{report}}">
+    <view class="header-row">
+      <view class="type-tag {{report.type}}">
+        <text>{{getTypeLabel(report.type)}}</text>
+      </view>
+      <view class="status-badge {{getStatusClass(report.ocr_status)}}">
+        <text>{{getStatusLabel(report.ocr_status)}}</text>
+      </view>
+    </view>
+    <text class="hospital" wx:if="{{report.hospital}}">{{report.hospital}}</text>
+    <text class="department" wx:if="{{report.department}}">{{report.department}}</text>
+    <text class="report-date">{{report.report_date || '未填写日期'}}</text>
+  </view>
+
+  <view class="section" wx:if="{{report && report.images && report.images.length}}">
+    <text class="section-title">原图</text>
+    <view class="image-placeholder">
+      <text class="placeholder-text">共 {{report.images.length}} 张图片</text>
+      <text class="placeholder-sub">图片预览待接入 OSS/CDN</text>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{report && report.extracted_indicators && report.extracted_indicators.length}}">
+    <text class="section-title">识别指标</text>
+    <view class="indicator-list">
+      <view class="indicator-row" wx:for="{{report.extracted_indicators}}" wx:key="index">
+        <text class="indicator-name">{{item.name || item.indicator_name || '未知指标'}}</text>
+        <view class="indicator-value-wrap">
+          <text class="indicator-value {{item.status === 'high' || item.status === 'critical' || item.status === 'low' ? 'abnormal' : ''}}">
+            {{item.value}}
+          </text>
+          <text class="indicator-unit">{{item.unit}}</text>
+        </view>
+        <text class="indicator-status {{item.status || 'normal'}}">{{item.status === 'normal' ? '正常' : item.status === 'low' ? '偏低' : item.status === 'high' ? '偏高' : item.status === 'critical' ? '建议复查' : ''}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{report && report.ai_summary}}">
+    <text class="section-title">AI 摘要</text>
+    <view class="ai-summary-card">
+      <text class="ai-summary-text">{{report.ai_summary}}</text>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{report && (!report.extracted_indicators || !report.extracted_indicators.length) && !report.ai_summary}}">
+    <text class="empty-title">暂无识别结果</text>
+    <text class="empty-subtitle">OCR 处理完成后将展示指标</text>
+  </view>
+
+  <view class="footer-actions" wx:if="{{report}}">
+    <view class="delete-btn" bindtap="deleteReport">
+      <text>删除报告</text>
+    </view>
+  </view>
+</view>

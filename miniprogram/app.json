@@ -9,7 +9,12 @@
     "pages/profile/profile",
     "pages/member-add/member-add",
     "pages/member-detail/member-detail",
-    "pages/invite/invite"
+    "pages/invite/invite",
+    "pages/hospital/hospital",
+    "pages/hospital-add/hospital-add",
+    "pages/hospital-detail/hospital-detail",
+    "pages/report-detail/report-detail",
+    "pages/search/search"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -53,6 +53,10 @@
   background: #EF4444;
 }
 
+.status-hospital {
+  background: #8B5CF6;
+}
+
 .card-body {
   margin-bottom: 8px;
 }

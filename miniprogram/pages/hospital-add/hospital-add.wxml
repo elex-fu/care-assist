@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="form-group">
+    <text class="label">医院名称 *</text>
+    <input class="input" placeholder="请输入医院名称" data-field="hospital" bindinput="onInput" value="{{form.hospital}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">科室</text>
+    <input class="input" placeholder="请输入科室" data-field="department" bindinput="onInput" value="{{form.department}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">入院日期 *</text>
+    <picker mode="date" value="{{form.admission_date}}" data-field="admission_date" bindchange="onDateChange">
+      <view class="picker">{{form.admission_date || '请选择入院日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">出院日期（未填则标记为住院中）</text>
+    <picker mode="date" value="{{form.discharge_date}}" data-field="discharge_date" bindchange="onDateChange">
+      <view class="picker">{{form.discharge_date || '请选择出院日期（可选）'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">诊断</text>
+    <input class="input" placeholder="请输入诊断" data-field="diagnosis" bindinput="onInput" value="{{form.diagnosis}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">主治医生</text>
+    <input class="input" placeholder="请输入主治医生" data-field="doctor" bindinput="onInput" value="{{form.doctor}}" />
+  </view>
+
+  <button class="submit-btn" bindtap="submit">保存</button>
+</view>

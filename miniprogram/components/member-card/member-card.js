@@ -1,6 +1,7 @@
 Component({
   properties: {
     member: Object,
+    hospitalActive: Boolean,
   },
 
   data: {
@@ -10,8 +11,16 @@ Component({
   },
 
   observers: {
-    'member': function(member) {
+    'member, hospitalActive': function(member, hospitalActive) {
       if (!member) return
+      if (hospitalActive) {
+        this.setData({
+          statusClass: 'status-hospital',
+          statusText: '住院中',
+          statusIcon: 'H',
+        })
+        return
+      }
       const status = member.latest_status || 'normal'
       const map = {
         normal: { class: 'status-normal', text: '正常', icon: '✓' },
