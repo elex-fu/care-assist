@@ -65,13 +65,19 @@
   margin-bottom: 10px;
 }
 
-.hospital-link {
+.header-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.header-link {
   padding: 6px 14px;
   background: #F5F3FF;
   border-radius: 10px;
 }
 
-.hospital-link text {
+.header-link text {
   font-size: 13px;
   color: #7C3AED;
   font-weight: 500;

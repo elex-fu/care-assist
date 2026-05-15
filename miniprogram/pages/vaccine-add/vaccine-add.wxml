@@ -1,0 +1,57 @@
+<view class="container">
+  <view class="form-group">
+    <text class="label">疫苗名称 *</text>
+    <input class="input" placeholder="请输入疫苗名称" data-field="vaccine_name" bindinput="onInput" value="{{form.vaccine_name}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">剂次</text>
+    <input class="input" type="number" placeholder="请输入剂次" data-field="dose" bindinput="onNumberInput" value="{{form.dose}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">计划日期 *</text>
+    <picker mode="date" value="{{form.scheduled_date}}" data-field="scheduled_date" bindchange="onDateChange">
+      <view class="picker">{{form.scheduled_date || '请选择计划日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">实际接种日期</text>
+    <picker mode="date" value="{{form.actual_date}}" data-field="actual_date" bindchange="onDateChange">
+      <view class="picker">{{form.actual_date || '请选择实际接种日期（可选）'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">状态</text>
+    <picker bindchange="onStatusChange" value="{{statuses.indexOf(form.status)}}" range="{{['待接种', '已完成', '即将接种', '已逾期']}}">
+      <view class="picker">
+        {{form.status === 'pending' ? '待接种' : form.status === 'completed' ? '已完成' : form.status === 'upcoming' ? '即将接种' : form.status === 'overdue' ? '已逾期' : '待接种'}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">接种地点</text>
+    <input class="input" placeholder="请输入接种地点" data-field="location" bindinput="onInput" value="{{form.location}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">批号</text>
+    <input class="input" placeholder="请输入疫苗批号" data-field="batch_no" bindinput="onInput" value="{{form.batch_no}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">反应记录</text>
+    <input class="input" placeholder="请输入接种后反应" data-field="reaction" bindinput="onInput" value="{{form.reaction}}" />
+  </view>
+
+  <button class="submit-btn" bindtap="submit">{{isEdit ? '保存' : '添加'}}</button>
+
+  <view class="danger-zone" wx:if="{{isEdit}}">
+    <view class="delete-btn" bindtap="deleteVaccine">
+      <text>删除记录</text>
+    </view>
+  </view>
+</view>

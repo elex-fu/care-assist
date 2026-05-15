@@ -1,0 +1,44 @@
+<view class="container">
+  <view class="form-group">
+    <text class="label">标题 *</text>
+    <input class="input" placeholder="例如：宝宝3月龄体检" data-field="title" bindinput="onInput" value="{{form.title}}" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">类型</text>
+    <picker bindchange="onTypeChange" value="{{types.indexOf(form.type)}}" range="{{['疫苗', '体检', '复查', '用药']}}">
+      <view class="picker">
+        {{form.type === 'vaccine' ? '疫苗' : form.type === 'checkup' ? '体检' : form.type === 'review' ? '复查' : form.type === 'medication' ? '用药' : '体检'}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">计划日期 *</text>
+    <picker mode="date" value="{{form.scheduled_date}}" data-field="scheduled_date" bindchange="onDateChange">
+      <view class="picker">{{form.scheduled_date || '请选择计划日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">优先级</text>
+    <picker bindchange="onPriorityChange" value="{{priorities.indexOf(form.priority)}}" range="{{['紧急', '高', '普通', '低']}}">
+      <view class="picker">
+        {{form.priority === 'critical' ? '紧急' : form.priority === 'high' ? '高' : form.priority === 'normal' ? '普通' : form.priority === 'low' ? '低' : '普通'}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <text class="label">备注</text>
+    <input class="input" placeholder="请输入备注（可选）" data-field="description" bindinput="onInput" value="{{form.description}}" />
+  </view>
+
+  <button class="submit-btn" bindtap="submit">{{isEdit ? '保存' : '添加'}}</button>
+
+  <view class="danger-zone" wx:if="{{isEdit}}">
+    <view class="delete-btn" bindtap="deleteReminder">
+      <text>删除提醒</text>
+    </view>
+  </view>
+</view>

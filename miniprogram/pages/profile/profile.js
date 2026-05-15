@@ -38,6 +38,14 @@ Page({
     wx.navigateTo({ url: '/pages/invite/invite' })
   },
 
+  goToReminders() {
+    wx.navigateTo({ url: '/pages/reminder/reminder' })
+  },
+
+  goToProfileEdit() {
+    wx.navigateTo({ url: '/pages/profile-edit/profile-edit' })
+  },
+
   goToMemberDetail(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })

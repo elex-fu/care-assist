@@ -1,0 +1,85 @@
+.container {
+  padding: 16px;
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.input {
+  font-size: 16px;
+  color: #1E293B;
+  padding: 8px 0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.picker {
+  font-size: 16px;
+  color: #1E293B;
+  padding: 8px 0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.radio-item {
+  margin-right: 16px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.submit-btn {
+  margin-top: 16px;
+  background: #2563EB;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.switch-group {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 8px 16px;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.switch-row:last-child {
+  border-bottom: none;
+}
+
+.switch-label {
+  font-size: 15px;
+  color: #1E293B;
+}

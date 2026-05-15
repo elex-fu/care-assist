@@ -1,0 +1,131 @@
+.container {
+  padding: 16px;
+  background: #F8FAFC;
+  min-height: 100vh;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.add-btn {
+  background: #2563EB;
+  padding: 6px 14px;
+  border-radius: 10px;
+}
+
+.add-btn-text {
+  font-size: 13px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.vaccine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vaccine-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.vaccine-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.status-tag {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-tag.pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-tag.completed {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-tag.upcoming {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.status-tag.overdue {
+  background: #FEF2F2;
+  color: #EF4444;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.meta {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.meta-dot {
+  font-size: 13px;
+  color: #CBD5E1;
+}
+
+.card-extra {
+  margin-bottom: 2px;
+}
+
+.extra-text {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.extra-text.reaction {
+  color: #EF4444;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80px;
+}
+
+.empty-title {
+  font-size: 15px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.empty-subtitle {
+  font-size: 13px;
+  color: #2563EB;
+}

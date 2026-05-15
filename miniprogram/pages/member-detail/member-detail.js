@@ -149,6 +149,14 @@ Page({
     })
   },
 
+  goToVaccines() {
+    const memberId = this.data.member && this.data.member.id
+    if (!memberId) return
+    wx.navigateTo({
+      url: `/pages/vaccine/vaccine?member_id=${memberId}`,
+    })
+  },
+
   goToReportDetail(e) {
     const reportId = e.currentTarget.dataset.id
     const memberId = this.data.member && this.data.member.id

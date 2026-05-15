@@ -14,7 +14,12 @@
     "pages/hospital-add/hospital-add",
     "pages/hospital-detail/hospital-detail",
     "pages/report-detail/report-detail",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/vaccine/vaccine",
+    "pages/vaccine-add/vaccine-add",
+    "pages/reminder/reminder",
+    "pages/reminder-add/reminder-add",
+    "pages/profile-edit/profile-edit"
   ],
   "window": {
     "backgroundTextStyle": "light",

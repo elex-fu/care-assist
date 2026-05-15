@@ -1,0 +1,38 @@
+<view class="container">
+  <view class="header-row">
+    <text class="header-title">疫苗记录</text>
+    <view class="add-btn" bindtap="goToAdd">
+      <text class="add-btn-text">+ 新增</text>
+    </view>
+  </view>
+
+  <view class="vaccine-list" wx:if="{{vaccines.length}}">
+    <view class="vaccine-card" wx:for="{{vaccines}}" wx:key="id" data-id="{{item.id}}" bindtap="goToEdit">
+      <view class="card-header">
+        <text class="vaccine-name">{{item.vaccine_name}}</text>
+        <view class="status-tag {{getStatusClass(item.status)}}">
+          <text>{{getStatusLabel(item.status)}}</text>
+        </view>
+      </view>
+      <view class="card-meta">
+        <text class="meta">第 {{item.dose}} 剂</text>
+        <text class="meta-dot">·</text>
+        <text class="meta">计划 {{item.scheduled_date}}</text>
+      </view>
+      <view class="card-extra" wx:if="{{item.actual_date}}">
+        <text class="extra-text">实际接种: {{item.actual_date}}</text>
+      </view>
+      <view class="card-extra" wx:if="{{item.location}}">
+        <text class="extra-text">地点: {{item.location}}</text>
+      </view>
+      <view class="card-extra" wx:if="{{item.reaction}}">
+        <text class="extra-text reaction">反应: {{item.reaction}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <text class="empty-title">暂无疫苗记录</text>
+    <text class="empty-subtitle" bindtap="goToAdd">添加疫苗记录 +</text>
+  </view>
+</view>

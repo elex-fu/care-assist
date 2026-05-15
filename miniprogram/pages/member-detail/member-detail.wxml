@@ -13,8 +13,13 @@
       <text class="meta" wx:if="{{member.blood_type}}">血型 {{member.blood_type}}</text>
     </view>
     <text class="role-tag">{{member.role === 'creator' ? '家庭创建者' : '家庭成员'}}</text>
-    <view class="hospital-link" bindtap="goToHospitals">
-      <text>🏥 住院记录 ›</text>
+    <view class="header-links">
+      <view class="header-link" bindtap="goToHospitals">
+        <text>🏥 住院记录 ›</text>
+      </view>
+      <view class="header-link" bindtap="goToVaccines">
+        <text>💉 疫苗记录 ›</text>
+      </view>
     </view>
   </view>
 
