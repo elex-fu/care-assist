@@ -45,6 +45,33 @@ class AIService:
             member, user_message, page_context, recent_indicators, recent_reports
         )
 
+    async def generate_reply_stream(
+        self,
+        member: Member,
+        conversation_history: list[dict],
+        user_message: str,
+        page_context: Optional[str] = None,
+        recent_indicators: Optional[list[dict]] = None,
+        recent_reports: Optional[list[dict]] = None,
+    ):
+        """Generate AI reply as an async generator of text chunks."""
+        import asyncio
+
+        # Get full reply first
+        full_reply = await self.generate_reply(
+            member, conversation_history, user_message,
+            page_context, recent_indicators, recent_reports,
+        )
+
+        # Stream by sentences for a natural typing effect
+        import re
+        sentences = re.split(r'(?<=[。！？\n])', full_reply)
+        sentences = [s for s in sentences if s]
+
+        for sentence in sentences:
+            yield sentence
+            await asyncio.sleep(0.15)  # Simulate typing delay
+
     async def _call_llm_api(
         self, member, history, message, page_context, indicators, reports
     ) -> str:

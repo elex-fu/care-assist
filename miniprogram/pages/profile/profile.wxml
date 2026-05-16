@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{elderMode ? 'elder-mode' : ''}}">
   <!-- User Card -->
   <view class="user-card">
     <view class="avatar">
@@ -40,6 +40,11 @@
         <text class="menu-label">提醒管理</text>
         <text class="menu-arrow">›</text>
       </view>
+      <view class="menu-item" bindtap="goToMedications">
+        <text class="menu-icon">💊</text>
+        <text class="menu-label">用药管理</text>
+        <text class="menu-arrow">›</text>
+      </view>
       <view class="menu-item" bindtap="goToProfileEdit">
         <text class="menu-icon">✏️</text>
         <text class="menu-label">编辑资料</text>
@@ -49,6 +54,11 @@
         <text class="menu-icon">📤</text>
         <text class="menu-label">数据导出</text>
         <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="toggleElderMode">
+        <text class="menu-icon">👴</text>
+        <text class="menu-label">长辈模式</text>
+        <text class="menu-arrow">{{elderMode ? '已开启' : '›'}}</text>
       </view>
     </view>
   </view>

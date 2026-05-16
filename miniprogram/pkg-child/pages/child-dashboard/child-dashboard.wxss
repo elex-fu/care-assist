@@ -1,0 +1,270 @@
+.container {
+  min-height: 100vh;
+  background: #F8FAFC;
+  padding: 16px;
+  padding-bottom: 40px;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #94A3B8;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.name {
+  display: block;
+  font-size: 18px;
+  color: #FFFFFF;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.age {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-link {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+}
+
+.detail-link text {
+  font-size: 12px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* Focus Card */
+.focus-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.focus-label {
+  display: block;
+  font-size: 13px;
+  color: #94A3B8;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.focus-text {
+  font-size: 15px;
+  color: #1E293B;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Quick Links */
+.quick-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.quick-item {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.quick-icon {
+  font-size: 24px;
+}
+
+.quick-label {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* Section */
+.section {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  display: block;
+  font-size: 15px;
+  color: #1E293B;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* Todo List */
+.todo-list {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: #F59E0B;
+  flex-shrink: 0;
+}
+
+.todo-text {
+  font-size: 14px;
+  color: #475569;
+}
+
+/* Vaccine List */
+.vaccine-list {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.vaccine-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.vaccine-item:last-child {
+  border-bottom: none;
+}
+
+.vaccine-name {
+  font-size: 14px;
+  color: #1E293B;
+}
+
+.vaccine-status {
+  font-size: 12px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.vaccine-item.completed .vaccine-status {
+  color: #10B981;
+}
+
+.vaccine-item.overdue .vaccine-status {
+  color: #EF4444;
+}
+
+/* Indicator List */
+.indicator-list {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.indicator-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.indicator-item:last-child {
+  border-bottom: none;
+}
+
+.indicator-name {
+  font-size: 14px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.indicator-value-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.indicator-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.indicator-unit {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.indicator-date {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+/* AI Card */
+.ai-card {
+  background: linear-gradient(135deg, #F3E8FF, #E0E7FF);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ai-text {
+  font-size: 14px;
+  color: #4C1D95;
+  line-height: 1.6;
+}

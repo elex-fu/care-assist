@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{elderMode ? 'elder-mode' : ''}}">
   <!-- Top Bar: Member Selector + History -->
   <view class="top-bar">
     <scroll-view class="member-selector" scroll-x="true" enable-flex="true">
@@ -34,14 +34,8 @@
         id="msg-{{index}}"
       >
         <view class="bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
-          <text class="bubble-text">{{item.content}}</text>
-        </view>
-      </view>
-
-      <!-- Loading -->
-      <view class="message assistant" wx:if="{{loading}}">
-        <view class="bubble assistant-bubble loading-bubble">
-          <view class="typing">
+          <text class="bubble-text" wx:if="{{item.content}}">{{item.content}}</text>
+          <view class="typing" wx:if="{{!item.content && item.role === 'assistant'}}">
             <view class="dot"></view>
             <view class="dot"></view>
             <view class="dot"></view>

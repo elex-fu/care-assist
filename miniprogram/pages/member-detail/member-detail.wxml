@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{elderMode ? 'elder-mode' : ''}}">
   <!-- Header -->
   <view class="header" wx:if="{{member}}">
     <view class="avatar">
@@ -19,6 +19,9 @@
       </view>
       <view class="header-link" bindtap="goToVaccines">
         <text>💉 疫苗记录 ›</text>
+      </view>
+      <view class="header-link" bindtap="goToMedications">
+        <text>💊 用药管理 ›</text>
       </view>
     </view>
   </view>

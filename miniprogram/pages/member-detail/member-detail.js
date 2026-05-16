@@ -7,6 +7,7 @@ Page({
     member: null,
     activeTab: 'timeline', // timeline | indicators | reports | ai
     loading: false,
+    elderMode: false,
 
     // Timeline
     events: [],
@@ -46,6 +47,10 @@ Page({
     if (tab && ['timeline', 'indicators', 'reports', 'ai'].includes(tab)) {
       this.setData({ activeTab: tab })
     }
+  },
+
+  onShow() {
+    this.setData({ elderMode: store.elderMode || false })
   },
 
   async loadMember(id) {
@@ -146,7 +151,7 @@ Page({
     const memberId = this.data.member && this.data.member.id
     if (!memberId) return
     wx.navigateTo({
-      url: `/pages/hospital/hospital?member_id=${memberId}`,
+      url: `/pkg-hospital/pages/hospital/hospital?member_id=${memberId}`,
     })
   },
 
@@ -154,7 +159,15 @@ Page({
     const memberId = this.data.member && this.data.member.id
     if (!memberId) return
     wx.navigateTo({
-      url: `/pages/vaccine/vaccine?member_id=${memberId}`,
+      url: `/pkg-child/pages/vaccine/vaccine?member_id=${memberId}`,
+    })
+  },
+
+  goToMedications() {
+    const memberId = this.data.member && this.data.member.id
+    if (!memberId) return
+    wx.navigateTo({
+      url: `/pkg-medication/pages/medication/medication?member_id=${memberId}`,
     })
   },
 
@@ -163,7 +176,7 @@ Page({
     const memberId = this.data.member && this.data.member.id
     if (!reportId || !memberId) return
     wx.navigateTo({
-      url: `/pages/report-detail/report-detail?member_id=${memberId}&report_id=${reportId}`,
+      url: `/pkg-system/pages/report-detail/report-detail?member_id=${memberId}&report_id=${reportId}`,
     })
   },
 

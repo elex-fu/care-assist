@@ -30,3 +30,156 @@ page {
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
+
+/* Elder Mode overrides */
+.elder-mode .member-name,
+.elder-mode .indicator-name,
+.elder-mode .card-name,
+.elder-mode .name,
+.elder-mode .user-name,
+.elder-mode .section-title,
+.elder-mode .form-title,
+.elder-mode .form-label {
+  font-size: 18px !important;
+}
+
+.elder-mode .indicator-value,
+.elder-mode .trend-value,
+.elder-mode .card-value {
+  font-size: 26px !important;
+}
+
+.elder-mode .bubble-text,
+.elder-mode .info-item,
+.elder-mode .todo-text,
+.elder-mode .vaccine-name,
+.elder-mode .ai-text {
+  font-size: 16px !important;
+}
+
+.elder-mode .btn-submit,
+.elder-mode .export-btn,
+.elder-mode .btn-new,
+.elder-mode .send-btn {
+  height: 56px !important;
+  font-size: 18px !important;
+}
+
+.elder-mode .member-chip,
+.elder-mode .q-chip {
+  font-size: 16px !important;
+  padding: 8px 18px !important;
+}
+
+.elder-mode .menu-item {
+  padding: 16px 0 !important;
+}
+
+.elder-mode .menu-label {
+  font-size: 17px !important;
+}
+
+.elder-mode .fab {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.elder-mode .fab-icon {
+  font-size: 32px !important;
+}
+
+.elder-mode .status-badge,
+.elder-mode .time-tag {
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+}
+
+.elder-mode input,
+.elder-mode .form-input,
+.elder-mode .form-picker,
+.elder-mode .row-picker,
+.elder-mode .row-input,
+.elder-mode .chat-input {
+  height: 52px !important;
+  font-size: 17px !important;
+}
+
+.elder-mode .picker-text,
+.elder-mode .picker-card {
+  font-size: 17px !important;
+}
+
+.elder-mode .empty-title {
+  font-size: 18px !important;
+}
+
+.elder-mode .empty-subtitle {
+  font-size: 15px !important;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-block {
+  background: #E2E8F0;
+  border-radius: 12px;
+}
+
+.skeleton-text {
+  background: #E2E8F0;
+  border-radius: 4px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-title {
+  background: #E2E8F0;
+  border-radius: 4px;
+  height: 20px;
+  width: 40%;
+  margin-bottom: 12px;
+}
+
+.skeleton-circle {
+  background: #E2E8F0;
+  border-radius: 50%;
+}
+
+.skeleton-banner {
+  background: #E2E8F0;
+  border-radius: 12px;
+  height: 80px;
+  margin-bottom: 16px;
+}
+
+.skeleton-card {
+  background: #E2E8F0;
+  border-radius: 16px;
+  height: 120px;
+}
+
+.skeleton-chip {
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+  background: #E2E8F0;
+  border-radius: 16px;
+  margin-right: 8px;
+}
+
+.skeleton-row {
+  background: #E2E8F0;
+  border-radius: 12px;
+  height: 72px;
+  margin-bottom: 12px;
+}

@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{elderMode ? 'elder-mode' : ''}}">
   <!-- Member Selector -->
   <scroll-view class="member-selector" scroll-x="true" enable-flex="true">
     <view
@@ -45,9 +45,12 @@
     <text class="empty-subtitle">点击右下角按钮添加第一条指标</text>
   </view>
 
-  <!-- Loading -->
-  <view class="loading-wrap" wx:if="{{loading}}">
-    <text class="loading-text">加载中...</text>
+  <!-- Skeleton Loading -->
+  <view class="skeleton-wrap" wx:if="{{loading}}" style="padding: 12px 16px;">
+    <view style="white-space: nowrap; margin-bottom: 12px;">
+      <view class="skeleton-chip" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+    </view>
+    <view class="skeleton-row" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
   </view>
 
   <!-- Floating Actions -->

@@ -7,7 +7,13 @@ Page({
     members: [],
     aiSummary: '',
     loading: true,
-    hospitalMap: {}, // member_id -> active hospital event
+    hospitalMap: {},
+    elderMode: false,
+  },
+
+  onShow() {
+    this.setData({ elderMode: store.elderMode || false })
+    this.loadDashboard()
   },
 
   onLoad() {
@@ -52,11 +58,6 @@ Page({
     }
   },
 
-  goToMemberDetail(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
-  },
-
   goToAddMember() {
     wx.navigateTo({ url: '/pages/member-add/member-add' })
   },
@@ -92,13 +93,21 @@ Page({
 
   goToMemberDetail(e) {
     const id = e.currentTarget.dataset.id
+    const member = this.data.members.find(m => m.id === id)
     const hospitalEvent = this.data.hospitalMap[id]
+
     if (hospitalEvent) {
       wx.navigateTo({
-        url: `/pages/hospital-detail/hospital-detail?member_id=${id}&event_id=${hospitalEvent.id}`,
+        url: `/pkg-hospital/pages/hospital-detail/hospital-detail?member_id=${id}&event_id=${hospitalEvent.id}`,
       })
-    } else {
-      wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
+      return
     }
+
+    if (member && member.type === 'child') {
+      wx.navigateTo({ url: `/pkg-child/pages/child-dashboard/child-dashboard?member_id=${id}` })
+      return
+    }
+
+    wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
   },
 })

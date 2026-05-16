@@ -4,6 +4,7 @@ const raw = {
   family: wx.getStorageSync('family') || null,
   members: wx.getStorageSync('members') || [],
   currentMemberId: wx.getStorageSync('current_member_id') || null,
+  elderMode: wx.getStorageSync('elder_mode') || false,
 }
 
 const store = new Proxy(raw, {
@@ -24,6 +25,9 @@ const store = new Proxy(raw, {
     }
     if (key === 'currentMemberId') {
       wx.setStorageSync('current_member_id', value)
+    }
+    if (key === 'elderMode') {
+      wx.setStorageSync('elder_mode', value)
     }
     return true
   },
@@ -62,6 +66,7 @@ function clearAll() {
   wx.removeStorageSync('family')
   wx.removeStorageSync('members')
   wx.removeStorageSync('current_member_id')
+  wx.removeStorageSync('elder_mode')
 }
 
 module.exports = { store, setMembers, setCurrentMemberId, getMemberById, getCurrentMember, isCreator, clearAll }

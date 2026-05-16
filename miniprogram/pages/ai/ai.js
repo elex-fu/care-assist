@@ -1,5 +1,6 @@
 const api = require('../../utils/api')
 const { store, setMembers, setCurrentMemberId } = require('../../utils/store')
+const { getClient } = require('../../utils/websocket')
 
 const QUICK_QUESTIONS = [
   '血压正常吗？',
@@ -19,7 +20,10 @@ Page({
     showHistory: false,
     conversations: [],
     quickQuestions: QUICK_QUESTIONS,
+    elderMode: false,
   },
+
+  ws: null,
 
   onLoad() {
     const cachedMembers = store.members
@@ -33,6 +37,17 @@ Page({
     this.init()
   },
 
+  onUnload() {
+    if (this.ws) {
+      this.ws.disconnect()
+      this.ws = null
+    }
+  },
+
+  onShow() {
+    this.setData({ elderMode: store.elderMode || false })
+  },
+
   async init() {
     try {
       const res = await api.get('/api/members')
@@ -43,15 +58,48 @@ Page({
       if (currentId) {
         await this.loadOrCreateConversation(currentId)
       }
+      this.connectWebSocket()
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' })
     }
   },
 
+  connectWebSocket() {
+    const token = wx.getStorageSync('access_token')
+    if (!token) return
+
+    this.ws = getClient()
+    this.ws.disconnect() // Ensure clean state
+
+    this.ws.on('chat_chunk', (data) => {
+      const messages = this.data.messages
+      const lastIdx = messages.length - 1
+      if (lastIdx >= 0 && messages[lastIdx].role === 'assistant') {
+        messages[lastIdx].content += data.content || ''
+        this.setData({ messages: [...messages] })
+      }
+    })
+
+    this.ws.on('chat_done', () => {
+      this.setData({ loading: false })
+    })
+
+    this.ws.on('chat_error', (data) => {
+      wx.showToast({ title: data.message || 'AI 回复失败', icon: 'none' })
+      const messages = this.data.messages
+      const lastIdx = messages.length - 1
+      if (lastIdx >= 0 && messages[lastIdx].role === 'assistant') {
+        messages[lastIdx].content = '[回复失败，请重试]'
+      }
+      this.setData({ messages: [...messages], loading: false })
+    })
+
+    this.ws.connect(token)
+  },
+
   async loadOrCreateConversation(memberId) {
     this.setData({ loading: true })
     try {
-      // Try to find an existing conversation
       const listRes = await api.get(`/api/ai-conversations?member_id=${memberId}`)
       const conversations = listRes.data || []
 
@@ -64,7 +112,6 @@ Page({
           loading: false,
         })
       } else {
-        // Create new conversation
         const createRes = await api.post('/api/ai-conversations', {
           member_id: memberId,
           page_context: 'ai_tab',
@@ -93,7 +140,7 @@ Page({
     this.setData({ inputValue: e.detail.value })
   },
 
-  async sendMessage(content) {
+  sendMessage(content) {
     const text = typeof content === 'string' ? content : this.data.inputValue
     const { conversationId, messages } = this.data
 
@@ -103,13 +150,32 @@ Page({
       return
     }
 
-    const newMessages = [...messages, { role: 'user', content: text }]
+    // Add user message and placeholder assistant message
+    const newMessages = [
+      ...messages,
+      { role: 'user', content: text },
+      { role: 'assistant', content: '' },
+    ]
     this.setData({
       messages: newMessages,
       inputValue: '',
       loading: true,
     })
 
+    if (this.ws && this.ws.connected) {
+      this.ws.send({
+        type: 'chat',
+        conversation_id: conversationId,
+        user_message: text,
+      })
+    } else {
+      // Fallback to REST if WS not connected
+      this._sendRestMessage(text)
+    }
+  },
+
+  async _sendRestMessage(text) {
+    const { conversationId, messages } = this.data
     try {
       const res = await api.post(`/api/ai-conversations/${conversationId}/messages`, {
         user_message: text,
@@ -148,12 +214,9 @@ Page({
       const conversations = listRes.data || []
       const conv = conversations.find(c => c.id === id)
       if (conv) {
-        // Need to fetch full conversation to get messages
-        // For now, assume messages aren't in list; we need to fetch from send endpoint or add GET /{id}
-        // As a workaround, create a new conversation flow
         this.setData({
           conversationId: id,
-          messages: [], // messages not available in list endpoint
+          messages: [],
           showHistory: false,
         })
       }

@@ -27,6 +27,17 @@ Page({
       family,
       members,
       creator: isCreator(),
+      elderMode: store.elderMode || false,
+    })
+  },
+
+  toggleElderMode() {
+    const newValue = !this.data.elderMode
+    store.elderMode = newValue
+    this.setData({ elderMode: newValue })
+    wx.showToast({
+      title: newValue ? '已开启长辈模式' : '已关闭长辈模式',
+      icon: 'none',
     })
   },
 
@@ -39,7 +50,11 @@ Page({
   },
 
   goToReminders() {
-    wx.navigateTo({ url: '/pages/reminder/reminder' })
+    wx.navigateTo({ url: '/pkg-system/pages/reminder/reminder' })
+  },
+
+  goToMedications() {
+    wx.navigateTo({ url: '/pkg-medication/pages/medication/medication' })
   },
 
   goToProfileEdit() {
@@ -47,7 +62,7 @@ Page({
   },
 
   goToExport() {
-    wx.navigateTo({ url: '/pages/export/export' })
+    wx.navigateTo({ url: '/pkg-system/pages/export/export' })
   },
 
   goToMemberDetail(e) {

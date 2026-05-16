@@ -1,0 +1,80 @@
+<view class="container">
+  <view class="header-row">
+    <text class="header-title">数据导出</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">选择成员</text>
+    <picker bindchange="onMemberChange" value="{{members.findIndex(m => m.id === memberId)}}" range="{{members}}" range-key="name">
+      <view class="picker-card">
+        <text class="picker-text">{{members.find(m => m.id === memberId) ? members.find(m => m.id === memberId).name : '选择成员'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section">
+    <text class="section-title">导出格式</text>
+    <picker bindchange="onFormatChange" value="{{formatIndex}}" range="{{formats}}">
+      <view class="picker-card">
+        <text class="picker-text">{{formats[formatIndex]}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section" wx:if="{{formats[formatIndex] === 'Excel'}}">
+    <text class="section-title">日期范围（可选）</text>
+    <view class="date-row">
+      <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+        <view class="date-picker">
+          <text>{{startDate}}</text>
+        </view>
+      </picker>
+      <text class="date-sep">至</text>
+      <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+        <view class="date-picker">
+          <text>{{endDate}}</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{!showResult}}">
+    <text class="section-title">导出内容</text>
+    <view class="info-list">
+      <text class="info-item">· 基本信息</text>
+      <text class="info-item">· 指标记录</text>
+      <text class="info-item">· 报告记录</text>
+      <text class="info-item">· 健康事件</text>
+      <text class="info-item">· 住院记录</text>
+      <text class="info-item">· 疫苗记录</text>
+      <text class="info-item">· 提醒记录</text>
+    </view>
+    <button class="export-btn" bindtap="doExport" loading="{{exporting}}">{{exporting ? '导出中...' : '开始导出'}}</button>
+  </view>
+
+  <view class="result-section" wx:if="{{showResult}}">
+    <view class="result-header">
+      <text class="result-title">导出结果</text>
+      <view class="result-actions">
+        <view class="action-btn" wx:if="{{exportData}}" bindtap="copyData">
+          <text>复制</text>
+        </view>
+        <view class="action-btn" wx:if="{{downloadedFile}}" bindtap="previewFile">
+          <text>预览</text>
+        </view>
+        <view class="action-btn back" bindtap="goBack">
+          <text>返回</text>
+        </view>
+      </view>
+    </view>
+    <view class="json-card" wx:if="{{exportData}}">
+      <text class="json-text">{{exportData ? JSON.stringify(exportData, null, 2) : ''}}</text>
+    </view>
+    <view class="file-card" wx:if="{{downloadedFile}}">
+      <text class="file-text">文件已下载到本地</text>
+      <text class="file-hint">点击「预览」查看</text>
+    </view>
+  </view>
+</view>

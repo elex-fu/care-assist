@@ -3,10 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.db.session import engine
 from app.core.exceptions import BusinessException
-from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search
+from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export
 
 
 @asynccontextmanager
@@ -57,3 +58,8 @@ app.include_router(vaccines.router, prefix="/api")
 app.include_router(reminders.router, prefix="/api")
 app.include_router(health_events.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
+app.include_router(ws.router, prefix="/api")
+app.include_router(medications.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")

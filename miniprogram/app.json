@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/onboarding/onboarding",
     "pages/login/login",
     "pages/home/home",
     "pages/indicators/indicators",
@@ -10,19 +11,44 @@
     "pages/member-add/member-add",
     "pages/member-detail/member-detail",
     "pages/invite/invite",
-    "pages/hospital/hospital",
-    "pages/hospital-add/hospital-add",
-    "pages/hospital-detail/hospital-detail",
-    "pages/report-detail/report-detail",
-    "pages/search/search",
-    "pages/vaccine/vaccine",
-    "pages/vaccine-add/vaccine-add",
-    "pages/reminder/reminder",
-    "pages/reminder-add/reminder-add",
-    "pages/profile-edit/profile-edit",
-    "pages/export/export",
     "pages/join/join",
-    "pages/indicator-batch/indicator-batch"
+    "pages/profile-edit/profile-edit",
+    "pages/search/search"
+  ],
+  "subpackages": [
+    {
+      "root": "pkg-hospital",
+      "pages": [
+        "pages/hospital/hospital",
+        "pages/hospital-add/hospital-add",
+        "pages/hospital-detail/hospital-detail"
+      ]
+    },
+    {
+      "root": "pkg-child",
+      "pages": [
+        "pages/child-dashboard/child-dashboard",
+        "pages/vaccine/vaccine",
+        "pages/vaccine-add/vaccine-add"
+      ]
+    },
+    {
+      "root": "pkg-medication",
+      "pages": [
+        "pages/medication/medication",
+        "pages/medication-add/medication-add"
+      ]
+    },
+    {
+      "root": "pkg-system",
+      "pages": [
+        "pages/reminder/reminder",
+        "pages/reminder-add/reminder-add",
+        "pages/export/export",
+        "pages/report-detail/report-detail",
+        "pages/indicator-batch/indicator-batch"
+      ]
+    }
   ],
   "window": {
     "backgroundTextStyle": "light",

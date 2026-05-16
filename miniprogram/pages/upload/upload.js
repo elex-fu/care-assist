@@ -7,6 +7,7 @@ Page({
   data: {
     step: 'select', // select | preview | uploading | processing | result
     members: [],
+    elderMode: false,
     currentMemberId: null,
     tempFilePath: '',
     hospital: '',
@@ -27,6 +28,10 @@ Page({
       })
     }
     this.loadMembers()
+  },
+
+  onShow() {
+    this.setData({ elderMode: store.elderMode || false })
   },
 
   async loadMembers() {

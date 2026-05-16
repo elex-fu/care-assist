@@ -22,6 +22,7 @@ Page({
     showAddForm: false,
     showTrendPopup: false,
     trendData: null,
+    elderMode: false,
 
     // Add form fields
     indicatorIndex: 0,
@@ -42,6 +43,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ elderMode: store.elderMode || false })
     const id = this.data.currentMemberId
     if (id) this.loadIndicators(id)
   },
@@ -126,7 +128,7 @@ Page({
       wx.showToast({ title: '请先选择成员', icon: 'none' })
       return
     }
-    wx.navigateTo({ url: `/pages/indicator-batch/indicator-batch?member_id=${memberId}` })
+    wx.navigateTo({ url: `/pkg-system/pages/indicator-batch/indicator-batch?member_id=${memberId}` })
   },
 
   closeAddForm() {

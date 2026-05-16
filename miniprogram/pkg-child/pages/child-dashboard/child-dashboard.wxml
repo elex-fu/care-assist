@@ -1,0 +1,92 @@
+<view class="container">
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:if="{{!loading && member}}">
+    <!-- Header -->
+    <view class="header">
+      <view class="avatar">
+        <text>{{member.name ? member.name[0] : '?'}}</text>
+      </view>
+      <view class="header-info">
+        <text class="name">{{member.name}}</text>
+        <text class="age">{{months}} 个月 · {{segmentInfo.label}}</text>
+      </view>
+      <view class="detail-link" bindtap="goToMemberDetail">
+        <text>查看档案 ›</text>
+      </view>
+    </view>
+
+    <!-- Focus Card -->
+    <view class="focus-card">
+      <text class="focus-label">本阶段关注</text>
+      <text class="focus-text">{{segmentInfo.focus}}</text>
+    </view>
+
+    <!-- Quick Links -->
+    <view class="quick-links">
+      <view class="quick-item" bindtap="goToVaccines">
+        <text class="quick-icon">💉</text>
+        <text class="quick-label">疫苗</text>
+      </view>
+      <view class="quick-item" bindtap="goToIndicators">
+        <text class="quick-icon">📊</text>
+        <text class="quick-label">生长</text>
+      </view>
+      <view class="quick-item" bindtap="goToUpload">
+        <text class="quick-icon">📤</text>
+        <text class="quick-label">上传</text>
+      </view>
+      <view class="quick-item" bindtap="goToMemberDetail">
+        <text class="quick-icon">📋</text>
+        <text class="quick-label">档案</text>
+      </view>
+    </view>
+
+    <!-- Todo List -->
+    <view class="section">
+      <text class="section-title">本月待办</text>
+      <view class="todo-list" wx:if="{{segmentInfo.todos.length}}">
+        <view class="todo-item" wx:for="{{segmentInfo.todos}}" wx:key="*this">
+          <view class="todo-dot"></view>
+          <text class="todo-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Vaccines -->
+    <view class="section" wx:if="{{vaccines.length}}">
+      <text class="section-title">疫苗记录</text>
+      <view class="vaccine-list">
+        <view class="vaccine-item {{item.status}}" wx:for="{{vaccines}}" wx:key="id">
+          <text class="vaccine-name">{{item.vaccine_name}}</text>
+          <text class="vaccine-status">{{item.status === 'completed' ? '已完成' : item.status === 'pending' ? '待接种' : item.status === 'upcoming' ? '即将接种' : '已逾期'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Growth Indicators -->
+    <view class="section" wx:if="{{indicators.length}}">
+      <text class="section-title">最近生长指标</text>
+      <view class="indicator-list">
+        <view class="indicator-item" wx:for="{{indicators}}" wx:key="id">
+          <text class="indicator-name">{{item.indicator_name}}</text>
+          <view class="indicator-value-wrap">
+            <text class="indicator-value">{{item.value}}</text>
+            <text class="indicator-unit">{{item.unit}}</text>
+          </view>
+          <text class="indicator-date">{{item.record_date}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI Suggestion -->
+    <view class="section">
+      <text class="section-title">AI 建议</text>
+      <view class="ai-card">
+        <text class="ai-text">{{member.name}} 目前 {{months}} 个月大，正处于 {{segmentInfo.label}}。建议定期进行生长发育评估，按时完成疫苗接种，保持良好的饮食和睡眠习惯。</text>
+      </view>
+    </view>
+  </view>
+</view>

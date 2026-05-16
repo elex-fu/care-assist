@@ -16,6 +16,9 @@ App({
     if (family) store.family = family
     if (members && members.length) store.members = members
     if (currentMemberId) store.currentMemberId = currentMemberId
+
+    const elderMode = wx.getStorageSync('elder_mode')
+    if (elderMode) store.elderMode = true
   },
 
   onShow() {

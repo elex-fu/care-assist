@@ -1,0 +1,77 @@
+<view class="container">
+  <swiper class="swiper" current="{{current}}" bindchange="onSwiperChange">
+    <!-- Step 1: Welcome -->
+    <swiper-item>
+      <view class="step">
+        <view class="illustration">
+          <text class="illustration-icon">🏠</text>
+        </view>
+        <text class="step-title">欢迎使用家庭健康助手</text>
+        <text class="step-desc">您的家庭健康管理智能助手，帮助您记录指标、管理报告、关注家人健康。</text>
+        <view class="step-action">
+          <view class="btn-primary" bindtap="nextStep">
+            <text>开始了解</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- Step 2: Add Member -->
+    <swiper-item>
+      <view class="step">
+        <view class="illustration">
+          <text class="illustration-icon">👨‍👩‍👧‍👦</text>
+        </view>
+        <text class="step-title">添加家庭成员</text>
+        <text class="step-desc">为家人创建健康档案，记录每个成员的检查报告和健康指标。</text>
+        <view class="step-action">
+          <view class="btn-primary" bindtap="nextStep">
+            <text>下一步</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- Step 3: Upload Report -->
+    <swiper-item>
+      <view class="step">
+        <view class="illustration">
+          <text class="illustration-icon">📸</text>
+        </view>
+        <text class="step-title">拍照上传报告</text>
+        <text class="step-desc">用手机拍照上传体检报告或化验单，AI 自动识别指标并提取关键数据。</text>
+        <view class="step-action">
+          <view class="btn-primary" bindtap="nextStep">
+            <text>下一步</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- Step 4: AI Insight -->
+    <swiper-item>
+      <view class="step">
+        <view class="illustration">
+          <text class="illustration-icon">🤖</text>
+        </view>
+        <text class="step-title">AI 健康解读</text>
+        <text class="step-desc">随时向 AI 助手提问，获取指标分析、健康建议和注意事项。</text>
+        <view class="step-action">
+          <view class="btn-primary" bindtap="finishOnboarding">
+            <text>进入家庭健康助手</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- Dots -->
+  <view class="dots">
+    <view class="dot {{current === index ? 'active' : ''}}" wx:for="{{4}}" wx:key="index"></view>
+  </view>
+
+  <!-- Skip -->
+  <view class="skip-wrap" wx:if="{{current < 3}}">
+    <text class="skip" bindtap="finishOnboarding">跳过</text>
+  </view>
+</view>

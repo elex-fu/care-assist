@@ -72,12 +72,12 @@ Page({
         break
       case 'report':
         wx.navigateTo({
-          url: `/pages/report-detail/report-detail?member_id=${item.member_id}&report_id=${item.id}`,
+          url: `/pkg-system/pages/report-detail/report-detail?member_id=${item.member_id}&report_id=${item.id}`,
         })
         break
       case 'hospital_event':
         wx.navigateTo({
-          url: `/pages/hospital-detail/hospital-detail?member_id=${item.member_id}&event_id=${item.id}`,
+          url: `/pkg-hospital/pages/hospital-detail/hospital-detail?member_id=${item.member_id}&event_id=${item.id}`,
         })
         break
       case 'health_event':

@@ -1,8 +1,14 @@
 const API_BASE = 'http://localhost:8000'
 
 let refreshingPromise = null
+const MAX_RETRIES = 3
+const RETRY_DELAY_BASE = 500
 
-function request(options) {
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function request(options, attempt = 1) {
   return new Promise((resolve, reject) => {
     const token = wx.getStorageSync('access_token')
     wx.request({
@@ -19,13 +25,25 @@ function request(options) {
           handle401(options, resolve, reject)
           return
         }
+        if (res.statusCode >= 500 && attempt <= MAX_RETRIES) {
+          const backoff = RETRY_DELAY_BASE * Math.pow(2, attempt - 1)
+          delay(backoff).then(() => request(options, attempt + 1).then(resolve).catch(reject))
+          return
+        }
         if (res.data && res.data.code !== 0) {
           reject(new Error(res.data.message || '请求失败'))
           return
         }
         resolve(res.data)
       },
-      fail: (err) => reject(err),
+      fail: (err) => {
+        if (attempt <= MAX_RETRIES) {
+          const backoff = RETRY_DELAY_BASE * Math.pow(2, attempt - 1)
+          delay(backoff).then(() => request(options, attempt + 1).then(resolve).catch(reject))
+          return
+        }
+        reject(err)
+      },
     })
   })
 }

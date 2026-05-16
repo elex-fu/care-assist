@@ -1,41 +1,73 @@
-<view class="container">
-  <!-- Header -->
-  <view class="header">
-    <view class="family-name">{{family && family.name ? family.name : '加载中...'}}</view>
-    <view class="header-actions">
-      <view class="search-icon-btn" bindtap="goToSearch">
-        <text class="search-icon-text">🔍</text>
+<view class="container {{elderMode ? 'elder-mode' : ''}}">
+  <!-- Skeleton Loading -->
+  <view class="skeleton-wrap" wx:if="{{loading}}">
+    <view class="skeleton-title" style="width: 120px; margin-bottom: 16px;"></view>
+    <view class="skeleton-banner"></view>
+    <view style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
+    </view>
+  </view>
+
+  <!-- Real Content -->
+  <block wx:if="{{!loading}}">
+    <!-- Header -->
+    <view class="header">
+      <view class="family-name">{{family && family.name ? family.name : '加载中...'}}</view>
+      <view class="header-actions" wx:if="{{!elderMode}}">
+        <view class="search-icon-btn" bindtap="goToSearch">
+          <text class="search-icon-text">🔍</text>
+        </view>
+        <view class="add-icon-btn" bindtap="goToUpload">
+          <text class="add-icon-text">+</text>
+        </view>
       </view>
-      <view class="add-icon-btn" bindtap="goToUpload">
-        <text class="add-icon-text">+</text>
+    </view>
+
+    <!-- AI Daily Summary -->
+    <view class="ai-banner" wx:if="{{aiSummary}}">
+      <text class="ai-banner-text">{{aiSummary}}</text>
+      <view class="refresh-btn" bindtap="loadDashboard">
+        <text class="refresh-text">刷新</text>
       </view>
     </view>
-  </view>
 
-  <!-- AI Daily Summary -->
-  <view class="ai-banner" wx:if="{{aiSummary}}">
-    <text class="ai-banner-text">{{aiSummary}}</text>
-    <view class="refresh-btn" bindtap="loadDashboard">
-      <text class="refresh-text">刷新</text>
+    <!-- Elder Mode: Single Member Focus -->
+    <view class="elder-member-focus" wx:if="{{elderMode && members.length}}">
+      <view
+        class="elder-card"
+        wx:for="{{members}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="goToMemberDetail"
+      >
+        <view class="elder-avatar">
+          <text>{{item.name ? item.name[0] : '?'}}</text>
+        </view>
+        <text class="elder-name">{{item.name}}</text>
+        <text class="elder-type">{{item.type === 'child' ? '儿童' : item.type === 'elderly' ? '长辈' : '成人'}}</text>
+        <view class="elder-status {{item.latest_status}}" wx:if="{{item.latest_status && item.latest_status !== 'normal'}}">
+          <text>{{item.latest_status === 'critical' ? '需关注' : '有异常'}}</text>
+        </view>
+      </view>
     </view>
-  </view>
 
-  <!-- Member Cards Grid -->
-  <view class="member-grid">
-    <view
-      class="member-card"
-      wx:for="{{members}}"
-      wx:key="id"
-      data-id="{{item.id}}"
-      bindtap="goToMemberDetail"
-    >
-      <member-card member="{{item}}" hospitalActive="{{!!hospitalMap[item.id]}}" />
-    </view>
+    <!-- Member Cards Grid (normal mode) -->
+    <view class="member-grid" wx:if="{{!elderMode}}">
+      <view
+        class="member-card"
+        wx:for="{{members}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="goToMemberDetail"
+      >
+        <member-card member="{{item}}" hospitalActive="{{!!hospitalMap[item.id]}}" />
+      </view>
 
-    <!-- Add Member Card -->
-    <view class="member-card add-card" bindtap="goToAddMember">
-      <view class="add-icon">+</view>
-      <text class="add-text">添加成员</text>
+      <!-- Add Member Card -->
+      <view class="member-card add-card" bindtap="goToAddMember">
+        <view class="add-icon">+</view>
+        <text class="add-text">添加成员</text>
+      </view>
     </view>
-  </view>
+  </block>
 </view>
