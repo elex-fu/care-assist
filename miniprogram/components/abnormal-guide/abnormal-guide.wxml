@@ -1,0 +1,31 @@
+<view class="guide-overlay {{visible ? 'show' : ''}}" catchtap="onOverlayTap">
+  <view class="guide-panel {{visible ? 'slide-up' : ''}}" catchtap="noop">
+    <view class="guide-header">
+      <view class="guide-icon-wrap" style="background: {{indicator.status === 'critical' ? '#FEF2F2' : '#FFFBEB'}};">
+        <text class="guide-icon">{{indicator.status === 'critical' ? '⚠️' : '⚡'}}</text>
+      </view>
+      <text class="guide-title">{{title}}</text>
+      <text class="guide-subtitle">{{subtitle}}</text>
+      <view class="guide-close" bindtap="onClose">
+        <text>✕</text>
+      </view>
+    </view>
+
+    <view class="guide-actions">
+      <view
+        class="action-item {{item.highlight ? 'highlight' : ''}}"
+        wx:for="{{actions}}"
+        wx:key="action"
+        data-action="{{item.action}}"
+        bindtap="onAction"
+      >
+        <text class="action-icon">{{item.icon}}</text>
+        <view class="action-body">
+          <text class="action-text">{{item.text}}</text>
+          <text class="action-desc">{{item.desc}}</text>
+        </view>
+        <text class="action-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

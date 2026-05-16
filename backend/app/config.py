@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     WECHAT_APPID: str = ""
     WECHAT_SECRET: str = ""
 
+    OSS_ACCESS_KEY: str = ""
+    OSS_SECRET_KEY: str = ""
+    OSS_BUCKET: str = ""
+    OSS_ENDPOINT: str = ""
+
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30  # 30 days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 60  # 60 days
 

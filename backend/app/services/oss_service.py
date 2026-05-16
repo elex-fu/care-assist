@@ -3,7 +3,7 @@
 Production: integrate Aliyun OSS STS or generate signed POST policy.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from app.config import settings
@@ -24,7 +24,7 @@ class OSSService:
             "access_key_id": settings.OSS_ACCESS_KEY,
             "access_key_secret": settings.OSS_SECRET_KEY,
             "security_token": "sts-token-placeholder",
-            "expiration": (datetime.utcnow() + timedelta(hours=1)).isoformat(),
+            "expiration": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(),
             "bucket": settings.OSS_BUCKET,
             "endpoint": settings.OSS_ENDPOINT,
             "region": "cn-hangzhou",

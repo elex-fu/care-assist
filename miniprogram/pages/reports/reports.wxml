@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="header">
+    <text class="header-title">{{memberName}}的报告</text>
+    <text class="header-count" wx:if="{{reports.length}}">共 {{reports.length}} 份</text>
+  </view>
+
+  <view class="report-list" wx:if="{{reports.length}}">
+    <view class="report-card" wx:for="{{reports}}" wx:key="id" data-id="{{item.id}}" bindtap="goToReportDetail">
+      <view class="report-main">
+        <view class="report-type-badge {{item.type}}">
+          <text>{{getTypeLabel(item.type)}}</text>
+        </view>
+        <view class="report-info">
+          <text class="report-hospital" wx:if="{{item.hospital}}">{{item.hospital}}</text>
+          <text class="report-date">{{formatDateFull(item.report_date)}}</text>
+        </view>
+      </view>
+      <view class="report-meta">
+        <view class="report-status {{getStatusClass(item.ocr_status)}}">
+          <text>{{getStatusLabel(item.ocr_status)}}</text>
+        </view>
+        <text class="extracted-count" wx:if="{{item.extracted_indicators && item.extracted_indicators.length}}">
+          {{item.extracted_indicators.length}} 项指标
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loading && !reports.length}}">
+    <text class="empty-icon">📄</text>
+    <text class="empty-title">暂无报告</text>
+    <text class="empty-subtitle">上传检查报告，AI 自动识别指标</text>
+    <view class="empty-btn" bindtap="goToUpload">
+      <text>去上传</text>
+    </view>
+  </view>
+
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

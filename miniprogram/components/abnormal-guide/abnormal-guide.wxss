@@ -1,0 +1,127 @@
+.guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.guide-overlay.show {
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.guide-panel {
+  background: #FFFFFF;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 32px;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.guide-panel.slide-up {
+  transform: translateY(0);
+}
+
+.guide-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.guide-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.guide-icon {
+  font-size: 28px;
+}
+
+.guide-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 6px;
+}
+
+.guide-subtitle {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.guide-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  font-size: 16px;
+}
+
+.guide-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.action-item.highlight {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+
+.action-icon {
+  font-size: 22px;
+  width: 28px;
+  text-align: center;
+}
+
+.action-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.action-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.action-desc {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.action-arrow {
+  font-size: 18px;
+  color: #CBD5E1;
+}

@@ -33,6 +33,10 @@ Page({
     aiMessages: [],
     aiInput: '',
     aiConversationId: null,
+
+    // Abnormal guide
+    showAbnormalGuide: false,
+    selectedIndicator: null,
   },
 
   onLoad(options) {
@@ -171,6 +175,15 @@ Page({
     })
   },
 
+  goToReportsPage() {
+    const memberId = this.data.member && this.data.member.id
+    const memberName = this.data.member && this.data.member.name
+    if (!memberId) return
+    wx.navigateTo({
+      url: `/pages/reports/reports?member_id=${memberId}&member_name=${memberName}`,
+    })
+  },
+
   goToReportDetail(e) {
     const reportId = e.currentTarget.dataset.id
     const memberId = this.data.member && this.data.member.id
@@ -299,4 +312,47 @@ Page({
   formatDateFull,
   getStatusColor,
   getStatusLabel,
+
+  onIndicatorTap(e) {
+    const id = e.currentTarget.dataset.id
+    const indicator = this.data.indicators.find(i => i.id === id)
+    if (!indicator) return
+    if (indicator.status === 'normal') {
+      wx.navigateTo({
+        url: `/pages/indicators/indicators?member_id=${this.data.member.id}&indicator_key=${indicator.indicator_key}`,
+      })
+      return
+    }
+    this.setData({
+      selectedIndicator: indicator,
+      showAbnormalGuide: true,
+    })
+  },
+
+  onGuideClose() {
+    this.setData({ showAbnormalGuide: false, selectedIndicator: null })
+  },
+
+  onGuideAction(e) {
+    const { action, indicator } = e.detail
+    const memberId = this.data.member && this.data.member.id
+    if (action === 'book_checkup') {
+      wx.navigateTo({ url: `/pkg-system/pages/reminder-add/reminder-add?member_id=${memberId}&type=checkup` })
+    } else if (action === 'ai_chat') {
+      this.setData({ activeTab: 'ai', showAbnormalGuide: false })
+    } else if (action === 'hospital') {
+      wx.navigateTo({ url: `/pkg-hospital/pages/hospital-add/hospital-add?member_id=${memberId}` })
+    } else if (action === 'medication') {
+      wx.navigateTo({ url: `/pkg-medication/pages/medication/medication?member_id=${memberId}` })
+    } else if (action === 'diet' || action === 'exercise') {
+      this.setData({ activeTab: 'ai', showAbnormalGuide: false })
+      setTimeout(() => {
+        this.setData({
+          aiInput: `${indicator.indicator_name} ${action === 'diet' ? '饮食' : '运动'}建议`,
+        })
+        this.sendAiMessage()
+      }, 300)
+    }
+    this.setData({ showAbnormalGuide: false })
+  },
 })

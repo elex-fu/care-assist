@@ -103,7 +103,7 @@
   <!-- Indicators Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'indicators'}}">
     <view class="indicator-grid" wx:if="{{indicators.length}}">
-      <view class="indicator-card" wx:for="{{indicators}}" wx:key="id">
+      <view class="indicator-card {{item.status !== 'normal' ? 'abnormal' : ''}}" wx:for="{{indicators}}" wx:key="id" data-id="{{item.id}}" bindtap="onIndicatorTap">
         <text class="card-name">{{item.indicator_name}}</text>
         <view class="card-value-row">
           <text class="card-value">{{item.value}}</text>
@@ -113,6 +113,9 @@
           <text>{{getStatusLabel(item.status)}}</text>
         </view>
         <text class="card-date">{{formatDateFull(item.record_date)}}</text>
+        <view class="abnormal-hint" wx:if="{{item.status !== 'normal'}}">
+          <text>查看建议 ›</text>
+        </view>
       </view>
     </view>
     <view class="empty-state" wx:else>
@@ -123,6 +126,10 @@
 
   <!-- Reports Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'reports'}}">
+    <view class="section-header" wx:if="{{reports.length}}">
+      <text class="section-title">最近报告</text>
+      <text class="section-link" bindtap="goToReportsPage">查看全部 ›</text>
+    </view>
     <view class="report-list" wx:if="{{reports.length}}">
       <view class="report-card" wx:for="{{reports}}" wx:key="id" data-id="{{item.id}}" bindtap="goToReportDetail">
         <view class="report-header">
@@ -143,6 +150,14 @@
       <text class="empty-subtitle" bindtap="goToUploadPage">去上传报告 ›</text>
     </view>
   </view>
+
+  <!-- Abnormal Guide -->
+  <abnormal-guide
+    visible="{{showAbnormalGuide}}"
+    indicator="{{selectedIndicator}}"
+    bind:close="onGuideClose"
+    bind:action="onGuideAction"
+  />
 
   <!-- AI Tab -->
   <view class="tab-content ai-tab" wx:if="{{activeTab === 'ai'}}">
