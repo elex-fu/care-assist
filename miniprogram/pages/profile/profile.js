@@ -46,6 +46,10 @@ Page({
     wx.navigateTo({ url: '/pages/profile-edit/profile-edit' })
   },
 
+  goToExport() {
+    wx.navigateTo({ url: '/pages/export/export' })
+  },
+
   goToMemberDetail(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })

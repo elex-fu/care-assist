@@ -1,0 +1,46 @@
+<view class="container">
+  <view class="header-row">
+    <text class="header-title">数据导出</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">选择成员</text>
+    <picker bindchange="onMemberChange" value="{{members.findIndex(m => m.id === memberId)}}" range="{{members}}" range-key="name">
+      <view class="picker-card">
+        <text class="picker-text">{{members.find(m => m.id === memberId) ? members.find(m => m.id === memberId).name : '选择成员'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section" wx:if="{{!showResult}}">
+    <text class="section-title">导出内容</text>
+    <view class="info-list">
+      <text class="info-item">· 基本信息</text>
+      <text class="info-item">· 指标记录</text>
+      <text class="info-item">· 报告记录</text>
+      <text class="info-item">· 健康事件</text>
+      <text class="info-item">· 住院记录</text>
+      <text class="info-item">· 疫苗记录</text>
+      <text class="info-item">· 提醒记录</text>
+    </view>
+    <button class="export-btn" bindtap="doExport" loading="{{exporting}}">{{exporting ? '导出中...' : '开始导出'}}</button>
+  </view>
+
+  <view class="result-section" wx:if="{{showResult}}">
+    <view class="result-header">
+      <text class="result-title">导出结果</text>
+      <view class="result-actions">
+        <view class="action-btn" bindtap="copyData">
+          <text>复制</text>
+        </view>
+        <view class="action-btn back" bindtap="goBack">
+          <text>返回</text>
+        </view>
+      </view>
+    </view>
+    <view class="json-card">
+      <text class="json-text">{{exportData ? JSON.stringify(exportData, null, 2) : ''}}</text>
+    </view>
+  </view>
+</view>

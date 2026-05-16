@@ -11,6 +11,7 @@ Page({
     // Timeline
     events: [],
     showEventForm: false,
+    editEventId: '',
     eventForm: {
       type: 'visit',
       event_date: '',
@@ -166,9 +167,19 @@ Page({
     })
   },
 
-  // Timeline event creation
+  // Timeline event creation and editing
   toggleEventForm() {
-    this.setData({ showEventForm: !this.data.showEventForm })
+    const { showEventForm } = this.data
+    if (showEventForm) {
+      // Cancel edit
+      this.setData({
+        showEventForm: false,
+        editEventId: '',
+        eventForm: { type: 'visit', event_date: '', hospital: '', diagnosis: '', notes: '' },
+      })
+    } else {
+      this.setData({ showEventForm: true })
+    }
   },
 
   onEventInput(e) {
@@ -186,31 +197,90 @@ Page({
   },
 
   async submitEvent() {
-    const { member, eventForm } = this.data
+    const { member, eventForm, editEventId } = this.data
     if (!member) return
     if (!eventForm.event_date) {
       wx.showToast({ title: '请选择日期', icon: 'none' })
       return
     }
 
+    const payload = {
+      type: eventForm.type,
+      event_date: eventForm.event_date,
+      hospital: eventForm.hospital.trim() || undefined,
+      diagnosis: eventForm.diagnosis.trim() || undefined,
+      notes: eventForm.notes.trim() || undefined,
+    }
+
     try {
-      await api.post('/api/health-events', {
-        member_id: member.id,
-        type: eventForm.type,
-        event_date: eventForm.event_date,
-        hospital: eventForm.hospital.trim() || undefined,
-        diagnosis: eventForm.diagnosis.trim() || undefined,
-        notes: eventForm.notes.trim() || undefined,
-      })
-      wx.showToast({ title: '添加成功', icon: 'success' })
+      if (editEventId) {
+        await api.patch(`/api/health-events/${editEventId}`, payload)
+        wx.showToast({ title: '更新成功', icon: 'success' })
+      } else {
+        await api.post('/api/health-events', { ...payload, member_id: member.id })
+        wx.showToast({ title: '添加成功', icon: 'success' })
+      }
       this.setData({
         showEventForm: false,
+        editEventId: '',
         eventForm: { type: 'visit', event_date: '', hospital: '', diagnosis: '', notes: '' },
       })
       this.loadTimeline(member.id)
     } catch (err) {
-      wx.showToast({ title: err.message || '添加失败', icon: 'none' })
+      wx.showToast({ title: err.message || '操作失败', icon: 'none' })
     }
+  },
+
+  onTimelineCardTap(e) {
+    const eventId = e.currentTarget.dataset.id
+    const item = e.currentTarget.dataset.item
+    if (!eventId || !item) return
+
+    wx.showActionSheet({
+      itemList: ['编辑', '删除'],
+      itemColor: '#1E293B',
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.startEditEvent(eventId, item)
+        } else if (res.tapIndex === 1) {
+          this.deleteEvent(eventId)
+        }
+      },
+    })
+  },
+
+  startEditEvent(eventId, item) {
+    this.setData({
+      editEventId: eventId,
+      showEventForm: true,
+      eventForm: {
+        type: item.type || 'visit',
+        event_date: item.event_date || '',
+        hospital: item.hospital || '',
+        diagnosis: item.diagnosis || '',
+        notes: item.notes || '',
+      },
+    })
+  },
+
+  deleteEvent(eventId) {
+    const { member } = this.data
+    wx.showModal({
+      title: '删除事件',
+      content: '确认删除此时间轴事件？',
+      confirmColor: '#EF4444',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await api.del(`/api/health-events/${eventId}`)
+            wx.showToast({ title: '已删除', icon: 'success' })
+            if (member) this.loadTimeline(member.id)
+          } catch (err) {
+            wx.showToast({ title: err.message || '删除失败', icon: 'none' })
+          }
+        }
+      },
+    })
   },
 
   formatDateFull,

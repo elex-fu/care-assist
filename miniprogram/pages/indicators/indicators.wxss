@@ -131,11 +131,19 @@
   color: #94A3B8;
 }
 
-/* FAB */
-.fab {
+/* FAB Bar */
+.fab-bar {
   position: fixed;
   right: 20px;
   bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 10;
+}
+
+.fab {
   width: 56px;
   height: 56px;
   border-radius: 28px;
@@ -144,7 +152,6 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-  z-index: 10;
 }
 
 .fab-icon {
@@ -152,6 +159,24 @@
   font-size: 28px;
   font-weight: 300;
   line-height: 1;
+}
+
+.fab-secondary {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E2E8F0;
+}
+
+.fab-secondary-text {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
 }
 
 /* Form Overlay */

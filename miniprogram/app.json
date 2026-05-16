@@ -19,7 +19,10 @@
     "pages/vaccine-add/vaccine-add",
     "pages/reminder/reminder",
     "pages/reminder-add/reminder-add",
-    "pages/profile-edit/profile-edit"
+    "pages/profile-edit/profile-edit",
+    "pages/export/export",
+    "pages/join/join",
+    "pages/indicator-batch/indicator-batch"
   ],
   "window": {
     "backgroundTextStyle": "light",

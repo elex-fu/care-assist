@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="welcome-card" wx:if="{{hasToken}}">
+    <text class="welcome-icon">🏠</text>
+    <text class="welcome-title">邀请您加入家庭</text>
+    <text class="welcome-desc">输入您的姓名，即可加入家庭健康助手，与家人共享健康数据。</text>
+  </view>
+
+  <view class="error-card" wx:if="{{!hasToken}}">
+    <text class="error-icon">⚠️</text>
+    <text class="error-title">邀请链接无效</text>
+    <text class="error-desc">链接可能已过期或被删除，请联系家庭创建者重新发送邀请。</text>
+    <view class="action-btn" bindtap="goToLogin">
+      <text>返回首页</text>
+    </view>
+  </view>
+
+  <view class="form-card" wx:if="{{hasToken}}">
+    <view class="form-group">
+      <text class="label">您的姓名 *</text>
+      <input class="input" placeholder="请输入姓名" bindinput="onInput" value="{{name}}" />
+    </view>
+    <button class="join-btn" bindtap="join" loading="{{loading}}">{{loading ? '加入中...' : '加入家庭'}}</button>
+  </view>
+</view>

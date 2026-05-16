@@ -50,9 +50,14 @@
     <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- Floating Add Button -->
-  <view class="fab" bindtap="openAddForm" wx:if="{{!showAddForm}}">
-    <text class="fab-icon">+</text>
+  <!-- Floating Actions -->
+  <view class="fab-bar" wx:if="{{!showAddForm}}">
+    <view class="fab-secondary" bindtap="goToBatch">
+      <text class="fab-secondary-text">批量</text>
+    </view>
+    <view class="fab" bindtap="openAddForm">
+      <text class="fab-icon">+</text>
+    </view>
   </view>
 
   <!-- Add Form Overlay -->

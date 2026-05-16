@@ -1,0 +1,50 @@
+<view class="container">
+  <!-- Shared Date -->
+  <view class="date-bar">
+    <text class="date-label">记录日期</text>
+    <picker mode="date" value="{{recordDate}}" bindchange="onDateChange">
+      <view class="date-picker">
+        <text>{{recordDate}}</text>
+        <text class="picker-arrow">›</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- Rows -->
+  <view class="row-list">
+    <view class="row-card" wx:for="{{rows}}" wx:key="index">
+      <view class="row-header">
+        <text class="row-num">第 {{index + 1}} 项</text>
+        <text class="row-delete" wx:if="{{rows.length > 1}}" data-idx="{{index}}" bindtap="removeRow">删除</text>
+      </view>
+      <view class="row-body">
+        <picker mode="selector" range="{{indicatorNames}}" value="{{item.index}}" data-idx="{{index}}" bindchange="onRowIndicatorChange">
+          <view class="row-picker">
+            <text>{{indicatorNames[item.index]}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+        <input
+          class="row-input"
+          type="digit"
+          placeholder="数值 ({{COMMON_INDICATORS[item.index].unit}})"
+          value="{{item.value}}"
+          data-idx="{{index}}"
+          bindinput="onRowValueInput"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- Add Row -->
+  <view class="add-row-btn" bindtap="addRow">
+    <text>+ 添加一项</text>
+  </view>
+
+  <!-- Submit -->
+  <view class="submit-bar">
+    <button class="btn-submit {{submitting ? 'disabled' : ''}}" bindtap="submitBatch">
+      <text>{{submitting ? '保存中...' : '保存'}}</text>
+    </button>
+  </view>
+</view>

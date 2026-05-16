@@ -80,7 +80,7 @@
     <view class="timeline" wx:if="{{events.length}}">
       <view class="timeline-item" wx:for="{{events}}" wx:key="id">
         <view class="timeline-node"></view>
-        <view class="timeline-card">
+        <view class="timeline-card" data-id="{{item.id}}" bindtap="onTimelineCardTap">
           <view class="timeline-header">
             <text class="timeline-type">{{item.type === 'visit' ? '就诊' : item.type === 'lab' ? '检验' : item.type === 'medication' ? '用药' : item.type === 'symptom' ? '症状' : item.type === 'hospital' ? '住院' : item.type === 'vaccine' ? '疫苗' : item.type === 'checkup' ? '体检' : item.type === 'milestone' ? '里程碑' : '事件'}}</text>
             <text class="timeline-date">{{item.event_date}}</text>

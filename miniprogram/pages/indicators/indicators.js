@@ -120,6 +120,15 @@ Page({
     })
   },
 
+  goToBatch() {
+    const memberId = this.data.currentMemberId
+    if (!memberId) {
+      wx.showToast({ title: '请先选择成员', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: `/pages/indicator-batch/indicator-batch?member_id=${memberId}` })
+  },
+
   closeAddForm() {
     this.setData({ showAddForm: false })
   },
