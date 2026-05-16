@@ -63,6 +63,12 @@ Page({
     })
   },
 
+  goToSettings() {
+    wx.navigateTo({
+      url: '/pkg-system/pages/reminder-settings/reminder-settings',
+    })
+  },
+
   goToEdit(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({

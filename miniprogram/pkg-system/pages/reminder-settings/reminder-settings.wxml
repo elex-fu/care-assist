@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="settings-card">
+    <view class="setting-row" data-field="daily_digest" bindtap="onToggle">
+      <view class="setting-info">
+        <text class="setting-title">每日健康摘要</text>
+        <text class="setting-desc">每天 8:00 推送全家健康概况</text>
+      </view>
+      <view class="switch {{settings.daily_digest ? 'on' : 'off'}}">
+        <view class="switch-knob"></view>
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-row" data-field="urgent_alert" bindtap="onToggle">
+      <view class="setting-info">
+        <text class="setting-title">紧急异常提醒</text>
+        <text class="setting-desc">指标严重异常时立即推送</text>
+      </view>
+      <view class="switch {{settings.urgent_alert ? 'on' : 'off'}}">
+        <view class="switch-knob"></view>
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-row" data-field="review_reminder" bindtap="onToggle">
+      <view class="setting-info">
+        <text class="setting-title">复查提醒</text>
+        <text class="setting-desc">到期复查前 1 天推送</text>
+      </view>
+      <view class="switch {{settings.review_reminder ? 'on' : 'off'}}">
+        <view class="switch-knob"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="hint-card">
+    <text class="hint-icon">ℹ️</text>
+    <text class="hint-text">提醒通过微信订阅消息推送，首次使用需在小程序内授权订阅。</text>
+  </view>
+
+  <view class="save-bar">
+    <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="saveSettings">
+      <text>{{saving ? '保存中...' : '保存设置'}}</text>
+    </view>
+  </view>
+
+  <view class="loading-mask" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

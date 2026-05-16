@@ -46,6 +46,7 @@
       "pages": [
         "pages/reminder/reminder",
         "pages/reminder-add/reminder-add",
+        "pages/reminder-settings/reminder-settings",
         "pages/export/export",
         "pages/report-detail/report-detail",
         "pages/indicator-batch/indicator-batch"

@@ -1,8 +1,13 @@
 <view class="container">
   <view class="header-row">
     <text class="header-title">提醒管理</text>
-    <view class="add-btn" bindtap="goToAdd">
-      <text class="add-btn-text">+ 新增</text>
+    <view class="header-actions">
+      <view class="settings-btn" bindtap="goToSettings">
+        <text>⚙️</text>
+      </view>
+      <view class="add-btn" bindtap="goToAdd">
+        <text class="add-btn-text">+ 新增</text>
+      </view>
     </view>
   </view>
 

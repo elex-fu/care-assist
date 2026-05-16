@@ -17,6 +17,17 @@
   color: #1E293B;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-btn {
+  padding: 6px;
+  font-size: 18px;
+}
+
 .add-btn {
   background: #2563EB;
   padding: 6px 14px;
