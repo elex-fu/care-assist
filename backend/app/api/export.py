@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
@@ -34,10 +35,11 @@ async def export_excel_endpoint(
     target = await _verify_member_in_family(member_id, current, db)
     output = await export_excel(db, target, start_date, end_date)
     filename = f"{target.name}_health_data_{date.today()}.xlsx"
+    encoded = quote(filename)
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded}"},
     )
 
 
@@ -50,8 +52,9 @@ async def export_pdf_endpoint(
     target = await _verify_member_in_family(member_id, current, db)
     output = await export_pdf(db, target)
     filename = f"{target.name}_health_report_{date.today()}.pdf"
+    encoded = quote(filename)
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded}"},
     )
