@@ -8,6 +8,25 @@ from fastapi.staticfiles import StaticFiles
 from app.db.session import engine
 from app.core.exceptions import BusinessException
 from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export, summary
+from app.config import settings
+
+# Initialize Sentry if DSN is configured
+if settings.SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        release="care-assist@0.1.0",
+        traces_sample_rate=1.0 if settings.DEBUG else 0.1,
+        profiles_sample_rate=1.0 if settings.DEBUG else 0.1,
+        integrations=[
+            StarletteIntegration(transaction_style="endpoint"),
+            FastApiIntegration(transaction_style="endpoint"),
+        ],
+    )
 
 
 @asynccontextmanager

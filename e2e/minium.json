@@ -1,0 +1,11 @@
+{
+  "project_path": "../miniprogram",
+  "dev_tool_path": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli",
+  "debug_mode": "warn",
+  "platform": "ide",
+  "device_desire": {
+    "width": 375,
+    "height": 812,
+    "dpi": 400
+  }
+}
