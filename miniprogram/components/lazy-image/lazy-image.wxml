@@ -1,0 +1,13 @@
+<view class="lazy-image-wrap" style="width: {{width}}; height: {{height}}; border-radius: {{radius}}; background: {{placeholder}};"
+>
+  <image
+    wx:if="{{showImage && src}}"
+    class="lazy-image {{loaded ? 'fade-in' : ''}}"
+    src="{{src}}"
+    mode="{{mode}}"
+    style="width: {{width}}; height: {{height}}; border-radius: {{radius}};"
+    bindload="onLoad"
+    binderror="onError"
+    lazy-load="{{true}}"
+  />
+</view>

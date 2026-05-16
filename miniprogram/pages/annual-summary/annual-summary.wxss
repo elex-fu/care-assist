@@ -1,0 +1,207 @@
+.container {
+  min-height: 100vh;
+  background: #F8FAFC;
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px;
+  background: #2563EB;
+}
+
+.header-year {
+  font-size: 14px;
+  color: #BFDBFE;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.summary-cards {
+  padding: 16px;
+  margin-top: -12px;
+}
+
+.stat-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stat-card {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 16px 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.stat-num {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.section {
+  padding: 0 16px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12px;
+}
+
+.achievement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.achievement-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.achievement-icon {
+  font-size: 28px;
+}
+
+.achievement-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.achievement-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.achievement-desc {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-row {
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.member-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.member-type {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.member-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.m-stat {
+  text-align: center;
+}
+
+.m-num {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.m-num.abnormal {
+  color: #EF4444;
+}
+
+.m-label {
+  font-size: 11px;
+  color: #94A3B8;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80px;
+  gap: 10px;
+}
+
+.empty-icon {
+  font-size: 48px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.empty-subtitle {
+  font-size: 13px;
+  color: #94A3B8;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.share-btn {
+  margin: 8px 16px 0;
+  background: #2563EB;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+}

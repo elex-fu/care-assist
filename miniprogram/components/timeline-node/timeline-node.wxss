@@ -1,0 +1,86 @@
+.node-row {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+
+.node-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.node-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.node-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.node-line {
+  flex: 1;
+  width: 2px;
+  background: #E2E8F0;
+  margin-top: 6px;
+  min-height: 20px;
+}
+
+.node-row:last-child .node-line {
+  display: none;
+}
+
+.node-card {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.node-type {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.node-date {
+  font-size: 11px;
+  color: #94A3B8;
+}
+
+.node-hospital {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1E293B;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.node-diagnosis {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.node-notes {
+  font-size: 12px;
+  color: #94A3B8;
+  display: block;
+}

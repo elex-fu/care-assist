@@ -81,18 +81,7 @@
     </view>
 
     <view class="timeline" wx:if="{{events.length}}">
-      <view class="timeline-item" wx:for="{{events}}" wx:key="id">
-        <view class="timeline-node"></view>
-        <view class="timeline-card" data-id="{{item.id}}" bindtap="onTimelineCardTap">
-          <view class="timeline-header">
-            <text class="timeline-type">{{item.type === 'visit' ? '就诊' : item.type === 'lab' ? '检验' : item.type === 'medication' ? '用药' : item.type === 'symptom' ? '症状' : item.type === 'hospital' ? '住院' : item.type === 'vaccine' ? '疫苗' : item.type === 'checkup' ? '体检' : item.type === 'milestone' ? '里程碑' : '事件'}}</text>
-            <text class="timeline-date">{{item.event_date}}</text>
-          </view>
-          <text class="timeline-hospital" wx:if="{{item.hospital}}">{{item.hospital}}</text>
-          <text class="timeline-diagnosis" wx:if="{{item.diagnosis}}">{{item.diagnosis}}</text>
-          <text class="timeline-notes" wx:if="{{item.notes}}">{{item.notes}}</text>
-        </view>
-      </view>
+      <timeline-node wx:for="{{events}}" wx:key="id" event="{{item}}" bind:tap="onTimelineCardTap" />
     </view>
     <view class="empty-state" wx:else>
       <text class="empty-title">暂无时间轴记录</text>

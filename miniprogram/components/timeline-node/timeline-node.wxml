@@ -1,0 +1,17 @@
+<view class="node-row" data-id="{{event.id}}" bindtap="onTap">
+  <view class="node-left">
+    <view class="node-dot" style="background: {{typeMeta.color}}; box-shadow: 0 0 0 4px {{typeMeta.bg}};">
+      <text class="node-icon">{{typeMeta.icon}}</text>
+    </view>
+    <view class="node-line"></view>
+  </view>
+  <view class="node-card" style="border-left: 3px solid {{typeMeta.color}};">
+    <view class="node-header">
+      <text class="node-type" style="color: {{typeMeta.color}};">{{typeMeta.label}}</text>
+      <text class="node-date">{{event.event_date}}</text>
+    </view>
+    <text class="node-hospital" wx:if="{{event.hospital}}">{{event.hospital}}</text>
+    <text class="node-diagnosis" wx:if="{{event.diagnosis}}">{{event.diagnosis}}</text>
+    <text class="node-notes" wx:if="{{event.notes}}">{{event.notes}}</text>
+  </view>
+</view>

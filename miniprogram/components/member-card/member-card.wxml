@@ -1,10 +1,13 @@
 <view class="card">
   <view class="card-top">
-    <view class="avatar {{statusClass}}">
-      <text class="avatar-text">{{member.name ? member.name[0] : '?'}}</text>
-    </view>
-    <view class="status-badge {{statusClass}}">
-      <text>{{statusIcon}}</text>
+    <view class="avatar-wrap">
+      <lazy-image wx:if="{{member.avatar_url}}" src="{{member.avatar_url}}" width="56px" height="56px" radius="50%" />
+      <view wx:else class="avatar {{statusClass}}">
+        <text class="avatar-text">{{member.name ? member.name[0] : '?'}}</text>
+      </view>
+      <view class="status-badge {{statusClass}}">
+        <text>{{statusIcon}}</text>
+      </view>
     </view>
   </view>
   <view class="card-body">

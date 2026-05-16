@@ -1,3 +1,6 @@
 {
-  "component": true
+  "component": true,
+  "usingComponents": {
+    "lazy-image": "/components/lazy-image/lazy-image"
+  }
 }

@@ -14,7 +14,8 @@
     "pages/join/join",
     "pages/profile-edit/profile-edit",
     "pages/search/search",
-    "pages/reports/reports"
+    "pages/reports/reports",
+    "pages/annual-summary/annual-summary"
   ],
   "subpackages": [
     {

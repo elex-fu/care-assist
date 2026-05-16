@@ -258,8 +258,8 @@ Page({
   },
 
   onTimelineCardTap(e) {
-    const eventId = e.currentTarget.dataset.id
-    const item = e.currentTarget.dataset.item
+    const item = e.detail && e.detail.event ? e.detail.event : null
+    const eventId = item ? item.id : null
     if (!eventId || !item) return
 
     wx.showActionSheet({

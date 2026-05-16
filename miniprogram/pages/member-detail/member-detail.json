@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "成员详情",
   "usingComponents": {
-    "abnormal-guide": "/components/abnormal-guide/abnormal-guide"
+    "abnormal-guide": "/components/abnormal-guide/abnormal-guide",
+    "timeline-node": "/components/timeline-node/timeline-node"
   }
 }

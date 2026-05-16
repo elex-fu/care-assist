@@ -1,0 +1,91 @@
+<view class="container">
+  <view class="header">
+    <text class="header-year">{{year}}</text>
+    <text class="header-title">年度健康总结</text>
+  </view>
+
+  <view class="summary-cards" wx:if="{{summary}}">
+    <view class="stat-row">
+      <view class="stat-card">
+        <text class="stat-num">{{summary.indicator_count}}</text>
+        <text class="stat-label">指标记录</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{summary.report_count}}</text>
+        <text class="stat-label">上传报告</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{summary.event_count}}</text>
+        <text class="stat-label">健康事件</text>
+      </view>
+    </view>
+
+    <view class="stat-row">
+      <view class="stat-card">
+        <text class="stat-num">{{summary.total_members}}</text>
+        <text class="stat-label">家庭成员</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{summary.abnormal_count}}</text>
+        <text class="stat-label">异常指标</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{summary.hospital_count}}</text>
+        <text class="stat-label">住院次数</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{achievements.length}}">
+    <text class="section-title">🏆 年度成就</text>
+    <view class="achievement-list">
+      <view class="achievement-card" wx:for="{{achievements}}" wx:key="title">
+        <text class="achievement-icon">{{item.icon}}</text>
+        <view class="achievement-body">
+          <text class="achievement-title">{{item.title}}</text>
+          <text class="achievement-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{members.length}}">
+    <text class="section-title">👨‍👩‍👧‍👦 成员健康概况</text>
+    <view class="member-list">
+      <view class="member-row" wx:for="{{members}}" wx:key="id">
+        <view class="member-info">
+          <text class="member-name">{{item.name}}</text>
+          <text class="member-type">{{item.type === 'child' ? '儿童' : item.type === 'elderly' ? '长辈' : '成人'}}</text>
+        </view>
+        <view class="member-stats">
+          <view class="m-stat">
+            <text class="m-num">{{item.indicator_count}}</text>
+            <text class="m-label">指标</text>
+          </view>
+          <view class="m-stat">
+            <text class="m-num">{{item.report_count}}</text>
+            <text class="m-label">报告</text>
+          </view>
+          <view class="m-stat">
+            <text class="m-num {{item.abnormal_count > 0 ? 'abnormal' : ''}}">{{item.abnormal_count}}</text>
+            <text class="m-label">异常</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loading && !summary}}">
+    <text class="empty-icon">📭</text>
+    <text class="empty-title">暂无年度数据</text>
+    <text class="empty-subtitle">记录健康指标后将生成年度总结</text>
+  </view>
+
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <button class="share-btn" open-type="share" wx:if="{{summary}}">
+    <text>分享给家人</text>
+  </button>
+</view>

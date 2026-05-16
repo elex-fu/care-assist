@@ -5,16 +5,20 @@
 }
 
 .card-top {
-  display: flex;
-  align-items: center;
   margin-bottom: 12px;
+}
+
+.avatar-wrap {
   position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 56px;
 }
 
 .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
   background: #E2E8F0;
   display: flex;
   align-items: center;
@@ -22,18 +26,18 @@
 }
 
 .avatar-text {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #475569;
 }
 
 .status-badge {
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  right: -4px;
+  top: -4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
