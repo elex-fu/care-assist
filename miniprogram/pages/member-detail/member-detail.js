@@ -320,17 +320,13 @@ Page({
 
   onIndicatorTap(e) {
     const id = e.currentTarget.dataset.id
-    const indicator = this.data.indicators.find(i => i.id === id)
-    if (!indicator) return
-    if (indicator.status === 'normal') {
-      wx.navigateTo({
-        url: `/pages/indicators/indicators?member_id=${this.data.member.id}&indicator_key=${indicator.indicator_key}`,
-      })
-      return
-    }
-    this.setData({
-      selectedIndicator: indicator,
-      showAbnormalGuide: true,
+    const key = e.currentTarget.dataset.key
+    const name = e.currentTarget.dataset.name
+    const unit = e.currentTarget.dataset.unit
+    const memberId = this.data.member && this.data.member.id
+    if (!memberId || !key) return
+    wx.navigateTo({
+      url: `/pages/indicator-detail/indicator-detail?member_id=${memberId}&indicator_key=${key}&indicator_name=${name}&unit=${unit || ''}`,
     })
   },
 

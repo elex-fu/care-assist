@@ -15,7 +15,8 @@
     "pages/profile-edit/profile-edit",
     "pages/search/search",
     "pages/reports/reports",
-    "pages/annual-summary/annual-summary"
+    "pages/annual-summary/annual-summary",
+    "pages/indicator-detail/indicator-detail"
   ],
   "subpackages": [
     {

@@ -106,6 +106,15 @@ Page({
     }
   },
 
+  goToDetail(e) {
+    const { key, name, unit } = e.currentTarget.dataset
+    const memberId = this.data.currentMemberId
+    if (!memberId || !key) return
+    wx.navigateTo({
+      url: `/pages/indicator-detail/indicator-detail?member_id=${memberId}&indicator_key=${key}&indicator_name=${name}&unit=${unit || ''}`,
+    })
+  },
+
   closeTrendPopup() {
     this.setData({ showTrendPopup: false, trendData: null })
   },

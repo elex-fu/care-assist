@@ -1,0 +1,83 @@
+<view class="container">
+  <!-- Header -->
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <text class="page-title">{{indicatorName}}</text>
+    <view class="spacer"></view>
+  </view>
+
+  <!-- Hero Section -->
+  <view class="hero-card" wx:if="{{current}}">
+    <view class="hero-main">
+      <view class="hero-value-wrap">
+        <text class="hero-value">{{current.value}}</text>
+        <text class="hero-unit">{{unit}}</text>
+      </view>
+      <view class="hero-range-wrap" wx:if="{{thresholdLower != null || thresholdUpper != null}}">
+        <text class="hero-range-label">参考范围</text>
+        <text class="hero-range">{{thresholdLower != null ? thresholdLower : '--'}} - {{thresholdUpper != null ? thresholdUpper : '--'}}</text>
+      </view>
+    </view>
+    <view class="hero-side">
+      <view class="hero-status {{current.status}}">
+        <text>{{getStatusLabel(current.status)}}</text>
+      </view>
+      <text class="hero-date">{{formatDate(current.record_date)}}</text>
+    </view>
+  </view>
+
+  <!-- Trend Chart -->
+  <view class="chart-section" wx:if="{{history.length > 1}}">
+    <view class="section-header">
+      <text class="section-title">趋势图</text>
+      <view class="time-filters">
+        <view class="time-filter {{chartRange === 'all' ? 'active' : ''}}" data-range="all" bindtap="setChartRange">
+          <text>全部</text>
+        </view>
+        <view class="time-filter {{chartRange === '7' ? 'active' : ''}}" data-range="7" bindtap="setChartRange">
+          <text>近7天</text>
+        </view>
+        <view class="time-filter {{chartRange === '30' ? 'active' : ''}}" data-range="30" bindtap="setChartRange">
+          <text>近30天</text>
+        </view>
+      </view>
+    </view>
+    <view class="chart-wrap">
+      <canvas type="2d" id="trendCanvas" class="chart-canvas" bindtouchstart="onChartTouch"></canvas>
+    </view>
+  </view>
+
+  <!-- History List -->
+  <view class="history-section">
+    <view class="section-header">
+      <text class="section-title">历史记录</text>
+      <text class="section-count" wx:if="{{history.length}}">共 {{history.length}} 条</text>
+    </view>
+    <view class="history-list" wx:if="{{history.length}}">
+      <view class="history-row" wx:for="{{history}}" wx:key="id">
+        <view class="history-left">
+          <text class="history-date">{{formatDate(item.record_date)}}</text>
+          <text class="history-time" wx:if="{{item.record_time}}">{{item.record_time}}</text>
+        </view>
+        <view class="history-center">
+          <text class="history-value">{{item.value}} {{unit}}</text>
+        </view>
+        <view class="history-right">
+          <view class="history-status {{item.status}}">
+            <text>{{getStatusLabel(item.status)}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <empty-state wx:else title="暂无历史记录" subtitle="添加指标后将自动展示趋势" />
+  </view>
+
+  <!-- Source Report -->
+  <view class="footer-actions" wx:if="{{current && current.source_report_id}}">
+    <view class="source-btn" bindtap="goToSourceReport">
+      <text>查看来源报告 ›</text>
+    </view>
+  </view>
+</view>

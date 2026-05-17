@@ -18,9 +18,11 @@
       wx:for="{{indicators}}"
       wx:key="id"
       indicator="{{item}}"
+      data-id="{{item.id}}"
       data-key="{{item.indicator_key}}"
       data-name="{{item.indicator_name}}"
-      bindtap="showTrend"
+      data-unit="{{item.unit}}"
+      bindtap="goToDetail"
     />
   </view>
 

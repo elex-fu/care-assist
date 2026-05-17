@@ -89,7 +89,7 @@
   <!-- Indicators Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'indicators'}}">
     <view class="indicator-list" wx:if="{{indicators.length}}">
-      <indicator-row wx:for="{{indicators}}" wx:key="id" indicator="{{item}}" data-id="{{item.id}}" bindtap="onIndicatorTap" />
+      <indicator-row wx:for="{{indicators}}" wx:key="id" indicator="{{item}}" data-id="{{item.id}}" data-key="{{item.indicator_key}}" data-name="{{item.indicator_name}}" data-unit="{{item.unit}}" bindtap="onIndicatorTap" />
     </view>
     <empty-state wx:else title="暂无指标记录" subtitle="去添加指标 ›" bind:action="goToIndicatorsPage" />
   </view>
