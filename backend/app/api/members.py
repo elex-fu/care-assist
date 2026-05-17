@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException, ConflictException
 from app.core.permissions import PermissionChecker
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.family import Family
 from app.models.indicator import IndicatorData
@@ -25,6 +26,7 @@ from app.schemas.common import ResponseWrapper
 from sqlalchemy import select, desc
 
 router = APIRouter(prefix="/members", tags=["成员管理"])
+logger = get_logger("app.api.members")
 
 
 @router.get("/me", response_model=ResponseWrapper[MemberOut])
@@ -75,6 +77,7 @@ async def create_member(
     db: AsyncSession = Depends(get_db),
 ):
     if not PermissionChecker.is_creator(current):
+        logger.warning(f"create_member denied: member_id={current.id} is not creator")
         raise ForbiddenException("仅家庭创建者可添加成员")
 
     import uuid
@@ -93,6 +96,7 @@ async def create_member(
     db.add(member)
     await db.commit()
     await db.refresh(member)
+    logger.info(f"Member created: id={member.id} name={member.name} family_id={current.family_id} by={current.id}")
     return ResponseWrapper(data=MemberOut.model_validate(member))
 
 
@@ -222,7 +226,10 @@ async def export_member_health(
     if not target:
         raise NotFoundException("成员不存在")
     if target.family_id != current.family_id:
+        logger.warning(f"export denied: target family_id={target.family_id} != current family_id={current.family_id}")
         raise ForbiddenException("无权限导出其他家庭成员的数据")
+
+    logger.info(f"Exporting health data for member_id={member_id} requested by={current.id}")
 
     # Indicators
     stmt = select(IndicatorData).where(IndicatorData.member_id == member_id).order_by(desc(IndicatorData.record_date))
@@ -274,9 +281,11 @@ async def delete_member(
     db: AsyncSession = Depends(get_db),
 ):
     if not PermissionChecker.is_creator(current):
+        logger.warning(f"delete_member denied: member_id={current.id} is not creator")
         raise ForbiddenException("仅家庭创建者可删除成员")
 
     if current.id == member_id:
+        logger.warning(f"delete_member denied: member_id={current.id} attempted self-deletion")
         raise ForbiddenException("无法删除自己")
 
     target = await db.get(Member, member_id)
@@ -284,9 +293,11 @@ async def delete_member(
         raise NotFoundException("成员不存在")
 
     if target.family_id != current.family_id:
+        logger.warning(f"delete_member denied: target family_id={target.family_id} != current family_id={current.family_id}")
         raise ForbiddenException("无法删除其他家庭的成员")
 
     await db.delete(target)
     await db.commit()
+    logger.info(f"Member deleted: id={member_id} name={target.name} by={current.id}")
 
     return ResponseWrapper(data={"deleted": True})

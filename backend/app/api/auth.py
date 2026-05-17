@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.core.security import create_jwt, decode_jwt, get_db
 from app.core.exceptions import UnauthorizedException, NotFoundException
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.family import Family
 from app.schemas.auth import WechatLoginRequest, TokenResponse, RefreshTokenRequest
@@ -13,6 +14,7 @@ from app.schemas.common import ResponseWrapper
 from app.schemas.member import MemberOut
 
 router = APIRouter(prefix="/auth", tags=["认证"])
+logger = get_logger("app.api.auth")
 
 
 async def _get_wx_openid(code: str) -> str:
@@ -20,7 +22,9 @@ async def _get_wx_openid(code: str) -> str:
     if not settings.WECHAT_APPID or not settings.WECHAT_SECRET:
         # Dev mock: deterministic openid from code hash
         import hashlib
-        return f"mock_openid_{hashlib.sha256(code.encode()).hexdigest()[:16]}"
+        openid = f"mock_openid_{hashlib.sha256(code.encode()).hexdigest()[:16]}"
+        logger.debug(f"Dev mock openid generated: {openid[:16]}...")
+        return openid
 
     url = "https://api.weixin.qq.com/sns/jscode2session"
     params = {
@@ -29,13 +33,16 @@ async def _get_wx_openid(code: str) -> str:
         "js_code": code,
         "grant_type": "authorization_code",
     }
+    logger.info("Calling WeChat jscode2session API")
     async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.get(url, params=params)
         data = resp.json()
 
     if "openid" not in data:
+        logger.warning(f"WeChat login failed: {data.get('errmsg', '未知错误')}")
         raise UnauthorizedException(f"微信登录失败: {data.get('errmsg', '未知错误')}")
 
+    logger.info(f"WeChat openid obtained successfully")
     return data["openid"]
 
 
@@ -50,11 +57,13 @@ async def wechat_login(
     member = result.scalar_one_or_none()
 
     if not member:
+        logger.warning(f"Login failed: member not found for openid {openid[:8]}...")
         raise NotFoundException("用户未注册，请先创建家庭")
 
     access_token = create_jwt(str(member.id), token_type="access")
     refresh_token = create_jwt(str(member.id), token_type="refresh")
 
+    logger.info(f"Member logged in: id={member.id} name={member.name}")
     return ResponseWrapper(
         data=TokenResponse(
             access_token=access_token,
@@ -77,6 +86,7 @@ async def wechat_register(
     # Check if already exists
     result = await db.execute(select(Member).where(Member.wx_openid == openid))
     if result.scalar_one_or_none():
+        logger.warning(f"Register failed: member already exists for openid {openid[:8]}...")
         raise UnauthorizedException("用户已存在，请直接登录")
 
     # Create family
@@ -108,6 +118,8 @@ async def wechat_register(
     await db.commit()
     await db.refresh(member)
 
+    logger.info(f"New member registered: id={member.id} name={member.name} family_id={family.id}")
+
     access_token = create_jwt(str(member.id), token_type="access")
     refresh_token = create_jwt(str(member.id), token_type="refresh")
 
@@ -129,15 +141,18 @@ async def refresh_token(
     payload = decode_jwt(req.refresh_token)
 
     if payload.get("type") != "refresh":
+        logger.warning("Refresh token failed: invalid token type")
         raise UnauthorizedException("Token 类型错误")
 
     member_id = payload.get("sub")
     result = await db.execute(select(Member).where(Member.id == member_id))
     member = result.scalar_one_or_none()
     if not member:
+        logger.warning(f"Refresh token failed: member not found id={member_id}")
         raise UnauthorizedException("用户不存在")
 
     access_token = create_jwt(str(member.id), token_type="access")
+    logger.info(f"Token refreshed for member_id={member.id}")
 
     return ResponseWrapper(
         data={

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.core.indicator_engine import IndicatorEngine
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.indicator import IndicatorData
 from app.schemas.indicator import IndicatorCreate, IndicatorOut, IndicatorTrendOut, IndicatorTrendPoint
@@ -16,6 +17,7 @@ from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
+logger = get_logger("app.api.indicators")
 
 
 def _calculate_age_months(birth_date: date | None) -> int | None:
@@ -77,6 +79,10 @@ async def create_indicator(
     db.add(indicator)
     await db.commit()
     await db.refresh(indicator)
+    logger.info(
+        f"Indicator created: id={indicator.id} member_id={payload.member_id} "
+        f"key={payload.indicator_key} value={payload.value} status={status}"
+    )
     return ResponseWrapper(data=IndicatorOut.model_validate(indicator))
 
 
@@ -113,6 +119,7 @@ async def delete_indicator(
 
     await db.delete(indicator)
     await db.commit()
+    logger.info(f"Indicator deleted: id={indicator_id} member_id={indicator.member_id} key={indicator.indicator_key}")
     return ResponseWrapper(data={"deleted": True})
 
 
@@ -160,6 +167,7 @@ async def batch_create_indicators(
     await db.commit()
     for ind in created:
         await db.refresh(ind)
+    logger.info(f"Batch indicators created: count={len(created)} member_id={payload.member_id}")
     return ResponseWrapper(data=[IndicatorOut.model_validate(i) for i in created])
 
 

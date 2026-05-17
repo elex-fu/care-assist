@@ -7,8 +7,16 @@ from fastapi.staticfiles import StaticFiles
 
 from app.db.session import engine
 from app.core.exceptions import BusinessException
+from app.core.logging import configure_logging, get_logger
+from app.middleware.logging import RequestLoggingMiddleware
 from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export, summary
 from app.config import settings
+
+# Initialize logging system before anything else
+configure_logging()
+
+# Application logger
+app_logger = get_logger("app.main")
 
 # Initialize Sentry if DSN is configured
 if settings.SENTRY_DSN:
@@ -44,6 +52,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Request logging middleware must be added before CORS so it can capture
+# the original request details and timing.
+app.add_middleware(RequestLoggingMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,9 +67,29 @@ app.add_middleware(
 
 @app.exception_handler(BusinessException)
 async def business_exception_handler(request: Request, exc: BusinessException):
+    request_id = getattr(request.state, "request_id", "-")
+    app_logger.warning(
+        f"BusinessException: code={exc.biz_code} status={exc.status_code} detail={exc.detail} path={request.url.path}",
+        extra={"request_id": request_id},
+    )
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": exc.biz_code, "message": exc.detail, "data": None},
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """捕获所有未处理的异常，记录为 ERROR 并返回统一错误响应。"""
+    request_id = getattr(request.state, "request_id", "-")
+    app_logger.error(
+        f"Unhandled exception: {type(exc).__name__}: {exc} path={request.url.path}",
+        exc_info=True,
+        extra={"request_id": request_id},
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"code": "INTERNAL_ERROR", "message": "服务器内部错误", "data": None},
     )
 
 

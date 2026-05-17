@@ -13,6 +13,7 @@ from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.core.ocr_service import get_ocr_service
 from app.core.indicator_engine import IndicatorEngine
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.report import Report
 from app.models.indicator import IndicatorData
@@ -20,6 +21,7 @@ from app.schemas.report import ReportCreate, ReportOut, ReportListOut, OCRTrigge
 from app.schemas.common import ResponseWrapper
 
 router = APIRouter(prefix="/reports", tags=["报告管理"])
+logger = get_logger("app.api.reports")
 
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "uploads/reports"))
 
@@ -91,6 +93,10 @@ async def create_report(
     report.images = saved_urls
     await db.commit()
     await db.refresh(report)
+    logger.info(
+        f"Report created: id={report.id} member_id={member_id} type={type} "
+        f"images={len(saved_urls)}"
+    )
     return ResponseWrapper(data=ReportOut.model_validate(report))
 
 
@@ -147,6 +153,7 @@ async def delete_report(
 
     await db.delete(report)
     await db.commit()
+    logger.info(f"Report deleted: id={report_id} member_id={report.member_id}")
     return ResponseWrapper(data={"deleted": True})
 
 
@@ -207,6 +214,10 @@ async def trigger_ocr(
 
     await db.commit()
 
+    logger.info(
+        f"OCR completed: report_id={report_id} extracted={len(all_extracted)} "
+        f"indicators_created={len(all_extracted)}"
+    )
     return ResponseWrapper(
         data=OCRTriggerOut(
             report_id=report.id,

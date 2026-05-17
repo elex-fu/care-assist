@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.ai_service import AIService
 from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.ai_conversation import AIConversation
 from app.models.indicator import IndicatorData
@@ -22,6 +23,7 @@ from app.schemas.ai_conversation import (
 from app.schemas.common import ResponseWrapper
 
 router = APIRouter(prefix="/ai-conversations", tags=["AI对话"])
+logger = get_logger("app.api.ai_conversations")
 
 
 async def _verify_member_in_family(member_id: str, current: Member, db: AsyncSession) -> Member:
@@ -90,6 +92,7 @@ async def create_conversation(
     db.add(conv)
     await db.commit()
     await db.refresh(conv)
+    logger.info(f"AI conversation created: id={conv.id} member_id={target.id} context={payload.page_context}")
     return ResponseWrapper(data=AIConversationOut.model_validate(conv))
 
 
@@ -172,6 +175,12 @@ async def send_message(
     await db.commit()
     await db.refresh(conv)
 
+    logger.info(
+        f"AI message sent: conversation_id={conversation_id} member_id={target.id} "
+        f"msg_len={len(payload.user_message)} reply_len={len(reply)} "
+        f"context={conv.page_context}"
+    )
+
     return ResponseWrapper(
         data=AIReplyOut(
             conversation_id=conv.id,
@@ -195,4 +204,5 @@ async def delete_conversation(
 
     await db.delete(conv)
     await db.commit()
+    logger.info(f"AI conversation deleted: id={conversation_id} member_id={conv.member_id}")
     return ResponseWrapper(data={"deleted": True})

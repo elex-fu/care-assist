@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.core.indicator_engine import IndicatorEngine
+from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.hospital import HospitalEvent
 from app.schemas.hospital import HospitalEventCreate, HospitalEventUpdate, HospitalEventOut
@@ -16,6 +17,7 @@ from app.schemas.common import ResponseWrapper
 from app.models.indicator import IndicatorData
 
 router = APIRouter(prefix="/hospital-events", tags=["住院管理"])
+logger = get_logger("app.api.hospitals")
 
 
 async def _verify_member_in_family(member_id: str, current: Member, db: AsyncSession) -> Member:
@@ -52,6 +54,10 @@ async def create_hospital_event(
     db.add(event)
     await db.commit()
     await db.refresh(event)
+    logger.info(
+        f"Hospital event created: id={event.id} member_id={target.id} "
+        f"hospital={payload.hospital} status={status}"
+    )
     return ResponseWrapper(data=HospitalEventOut.model_validate(event))
 
 
@@ -99,6 +105,7 @@ async def update_hospital_event(
 
     await db.commit()
     await db.refresh(event)
+    logger.info(f"Hospital event updated: id={event_id} status={event.status}")
     return ResponseWrapper(data=HospitalEventOut.model_validate(event))
 
 
@@ -116,6 +123,7 @@ async def delete_hospital_event(
 
     await db.delete(event)
     await db.commit()
+    logger.info(f"Hospital event deleted: id={event_id} member_id={event.member_id}")
     return ResponseWrapper(data={"deleted": True})
 
 
