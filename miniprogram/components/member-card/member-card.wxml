@@ -3,9 +3,7 @@
   <view class="card-top">
     <view class="avatar-wrap">
       <lazy-image wx:if="{{member.avatar_url}}" src="{{member.avatar_url}}" width="56px" height="56px" radius="50%" />
-      <view wx:else class="avatar {{statusClass}}">
-        <text class="avatar-text">{{member.name ? member.name[0] : '?'}}</text>
-      </view>
+      <image wx:else class="avatar {{statusClass}}" src="/assets/images/default-avatar.png" mode="aspectFill" />
       <view class="status-badge {{statusClass}}">
         <text>{{statusIcon}}</text>
       </view>
@@ -23,9 +21,7 @@
 
 <!-- list variant -->
 <view wx:elif="{{variant === 'list'}}" class="list-item">
-  <view class="list-avatar">
-    <text>{{member.name ? member.name[0] : '?'}}</text>
-  </view>
+  <image class="list-avatar" src="/assets/images/default-avatar.png" mode="aspectFill" />
   <view class="list-info">
     <text class="list-name">{{member.name}}</text>
     <text class="list-type">{{typeLabel}}</text>
