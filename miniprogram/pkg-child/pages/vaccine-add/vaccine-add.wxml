@@ -25,9 +25,9 @@
 
   <view class="form-group">
     <text class="label">状态</text>
-    <picker bindchange="onStatusChange" value="{{statuses.indexOf(form.status)}}" range="{{['待接种', '已完成', '即将接种', '已逾期']}}">
+    <picker bindchange="onStatusChange" value="{{statuses.indexOf(form.status)}}" range="{{statusLabels}}">
       <view class="picker">
-        {{form.status === 'pending' ? '待接种' : form.status === 'completed' ? '已完成' : form.status === 'upcoming' ? '即将接种' : form.status === 'overdue' ? '已逾期' : '待接种'}}
+        {{getVaccineStatusLabel(form.status)}}
       </view>
     </picker>
   </view>

@@ -6,7 +6,7 @@
     variant="header"
   >
     <view slot="meta" class="meta-row">
-      <text class="meta">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}}</text>
+      <text class="meta">{{getMemberTypeLabel(member.type)}}</text>
       <text class="meta-dot">·</text>
       <text class="meta">{{member.gender === 'male' ? '男' : '女'}}</text>
       <text class="meta-dot" wx:if="{{member.blood_type}}">·</text>

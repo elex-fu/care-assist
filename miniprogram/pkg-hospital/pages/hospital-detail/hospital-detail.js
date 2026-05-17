@@ -1,5 +1,5 @@
 const api = require('../../../utils/api')
-const { getEventTypeLabel, getOcrStatusLabel, getStatusColor } = require('../../../utils/format')
+const { getEventTypeLabel, getOcrStatusLabel, getStatusColor, getHospitalStatusLabel } = require('../../../utils/format')
 
 Page({
   data: {
@@ -89,6 +89,8 @@ Page({
     const diff = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
     return diff > 0 ? diff : 1
   },
+
+  getHospitalStatusLabel,
 
   getStatusColor(status) {
     const map = { normal: '#10B981', low: '#F59E0B', high: '#F59E0B', critical: '#EF4444' }

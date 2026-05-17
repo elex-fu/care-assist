@@ -1,4 +1,5 @@
 const api = require('../../../utils/api')
+const { getVaccineStatusLabel } = require('../../../utils/format')
 
 Page({
   data: {
@@ -16,6 +17,7 @@ Page({
       reaction: '',
     },
     statuses: ['pending', 'completed', 'upcoming', 'overdue'],
+    statusLabels: ['pending', 'completed', 'upcoming', 'overdue'].map(getVaccineStatusLabel),
   },
 
   onLoad(options) {
@@ -133,4 +135,6 @@ Page({
       },
     })
   },
+
+  getVaccineStatusLabel,
 })

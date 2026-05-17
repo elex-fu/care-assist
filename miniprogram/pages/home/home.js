@@ -1,5 +1,6 @@
 const api = require('../../utils/api')
 const { store, setMembers } = require('../../utils/store')
+const { getMemberTypeLabel, getLatestStatusLabel } = require('../../utils/format')
 
 Page({
   data: {
@@ -110,4 +111,7 @@ Page({
 
     wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
   },
+
+  getMemberTypeLabel,
+  getLatestStatusLabel,
 })

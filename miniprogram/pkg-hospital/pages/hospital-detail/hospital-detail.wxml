@@ -4,7 +4,7 @@
     <view class="header-top">
       <text class="hospital-name">{{event.hospital}}</text>
       <view class="status-tag {{event.status}}">
-        <text>{{event.status === 'active' ? '住院中' : '已出院'}}</text>
+        <text>{{getHospitalStatusLabel(event.status)}}</text>
       </view>
     </view>
     <text class="department" wx:if="{{event.department}}">{{event.department}}</text>
@@ -36,10 +36,7 @@
     <view class="timeline" wx:if="{{dailyEvents.length}}">
       <timeline-node wx:for="{{dailyEvents}}" wx:key="id" event="{{item}}" />
     </view>
-    <view class="empty-state" wx:else>
-      <text class="empty-title">暂无每日记录</text>
-      <text class="empty-subtitle">时间轴事件会自动展示在这里</text>
-    </view>
+    <empty-state wx:else title="暂无每日记录" subtitle="时间轴事件会自动展示在这里" />
   </view>
 
   <!-- Watch Tab -->
@@ -65,10 +62,7 @@
         </view>
       </view>
     </view>
-    <view class="empty-state" wx:else>
-      <text class="empty-title">暂无盯盘指标</text>
-      <text class="empty-subtitle">在「对比变化」Tab查看趋势</text>
-    </view>
+    <empty-state wx:else title="暂无盯盘指标" subtitle="在「对比变化」Tab查看趋势" />
   </view>
 
   <!-- Compare Tab -->
@@ -112,16 +106,10 @@
         </view>
       </view>
 
-      <view class="empty-state" wx:if="{{!compareData.indicators || !compareData.indicators.length}}">
-        <text class="empty-title">暂无对比数据</text>
-        <text class="empty-subtitle">需要连续两天的指标记录</text>
-      </view>
+      <empty-state wx:if="{{!compareData.indicators || !compareData.indicators.length}}" title="暂无对比数据" subtitle="需要连续两天的指标记录" />
     </view>
 
-    <view class="empty-state" wx:else>
-      <text class="empty-title">暂无对比数据</text>
-      <text class="empty-subtitle">需要连续两天的指标记录</text>
-    </view>
+    <empty-state wx:else title="暂无对比数据" subtitle="需要连续两天的指标记录" />
   </view>
 
   <!-- Discharge Button -->

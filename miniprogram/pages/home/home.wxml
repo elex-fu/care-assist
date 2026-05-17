@@ -44,9 +44,9 @@
           <text>{{item.name ? item.name[0] : '?'}}</text>
         </view>
         <text class="elder-name">{{item.name}}</text>
-        <text class="elder-type">{{item.type === 'child' ? '儿童' : item.type === 'elderly' ? '长辈' : '成人'}}</text>
+        <text class="elder-type">{{getMemberTypeLabel(item.type)}}</text>
         <view class="elder-status {{item.latest_status}}" wx:if="{{item.latest_status && item.latest_status !== 'normal'}}">
-          <text>{{item.latest_status === 'critical' ? '需关注' : '有异常'}}</text>
+          <text>{{getLatestStatusLabel(item.latest_status)}}</text>
         </view>
       </view>
     </view>

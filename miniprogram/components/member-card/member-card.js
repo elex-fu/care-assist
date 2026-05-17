@@ -1,3 +1,5 @@
+const { getMemberTypeLabel } = require('../../utils/format')
+
 Component({
   properties: {
     member: Object,
@@ -18,7 +20,7 @@ Component({
   observers: {
     'member, hospitalActive, variant': function(member, hospitalActive, variant) {
       if (!member) return
-      const typeLabel = member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'
+      const typeLabel = getMemberTypeLabel(member.type)
       this.setData({ typeLabel })
       if (variant === 'list') {
         return

@@ -1,5 +1,5 @@
 const api = require('../../../utils/api')
-const { formatDateFull } = require('../../../utils/format')
+const { formatDateFull, getVaccineStatusLabel } = require('../../../utils/format')
 
 const AGE_LAYOUTS = {
   infant: { label: '0-3 个月', focus: '黄疸观察、母乳喂养、体重增长', todos: ['乙肝疫苗第2针（1月龄）', '卡介苗接种'] },
@@ -98,4 +98,6 @@ Page({
     if (!id) return
     wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
   },
+
+  getVaccineStatusLabel,
 })

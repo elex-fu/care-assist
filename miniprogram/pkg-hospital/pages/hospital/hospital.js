@@ -1,4 +1,5 @@
 const api = require('../../../utils/api')
+const { getHospitalStatusLabel } = require('../../../utils/format')
 
 Page({
   data: {
@@ -46,4 +47,6 @@ Page({
     const diff = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
     return diff > 0 ? diff : 1
   },
+
+  getHospitalStatusLabel,
 })

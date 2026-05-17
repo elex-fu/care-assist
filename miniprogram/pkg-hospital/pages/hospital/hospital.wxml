@@ -11,7 +11,7 @@
       <view class="event-header">
         <text class="event-hospital">{{item.hospital}}</text>
         <view class="status-tag {{item.status}}">
-          <text>{{item.status === 'active' ? '住院中' : '已出院'}}</text>
+          <text>{{getHospitalStatusLabel(item.status)}}</text>
         </view>
       </view>
       <text class="event-dept" wx:if="{{item.department}}">{{item.department}}</text>

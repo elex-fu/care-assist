@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "住院详情",
   "usingComponents": {
-    "timeline-node": "/components/timeline-node/timeline-node"
+    "timeline-node": "/components/timeline-node/timeline-node",
+    "empty-state": "/components/empty-state/empty-state"
   }
 }

@@ -55,7 +55,7 @@
       <view class="vaccine-list">
         <view class="vaccine-item {{item.status}}" wx:for="{{vaccines}}" wx:key="id">
           <text class="vaccine-name">{{item.vaccine_name}}</text>
-          <text class="vaccine-status">{{item.status === 'completed' ? '已完成' : item.status === 'pending' ? '待接种' : item.status === 'upcoming' ? '即将接种' : '已逾期'}}</text>
+          <text class="vaccine-status">{{getVaccineStatusLabel(item.status)}}</text>
         </view>
       </view>
     </view>

@@ -1,6 +1,6 @@
 const api = require('../../utils/api')
 const { store, setMembers } = require('../../utils/store')
-const { formatDateFull, getStatusColor, getStatusLabel, getEventTypeLabel, getOcrStatusLabel } = require('../../utils/format')
+const { formatDateFull, getStatusColor, getStatusLabel, getEventTypeLabel, getOcrStatusLabel, getMemberTypeLabel } = require('../../utils/format')
 
 Page({
   data: {
@@ -312,6 +312,7 @@ Page({
   formatDateFull,
   getStatusColor,
   getStatusLabel,
+  getMemberTypeLabel,
 
   onIndicatorTap(e) {
     const id = e.currentTarget.dataset.id

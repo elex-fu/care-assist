@@ -123,6 +123,22 @@ function getVaccineStatusLabel(status) {
   return map[status] || '待接种'
 }
 
+function getMemberTypeLabel(type) {
+  const map = {
+    child: '儿童',
+    elderly: '长辈',
+  }
+  return map[type] || '成人'
+}
+
+function getLatestStatusLabel(status) {
+  return status === 'critical' ? '需关注' : '有异常'
+}
+
+function getHospitalStatusLabel(status) {
+  return status === 'active' ? '住院中' : '已出院'
+}
+
 module.exports = {
   formatDate,
   formatDateFull,
@@ -139,4 +155,7 @@ module.exports = {
   getReminderTypeLabel,
   getReminderPriorityLabel,
   getVaccineStatusLabel,
+  getMemberTypeLabel,
+  getLatestStatusLabel,
+  getHospitalStatusLabel,
 }
