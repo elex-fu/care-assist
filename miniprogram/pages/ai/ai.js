@@ -81,7 +81,12 @@ Page({
     })
 
     this.ws.on('chat_done', () => {
-      this.setData({ loading: false })
+      const messages = this.data.messages
+      const lastIdx = messages.length - 1
+      if (lastIdx >= 0 && messages[lastIdx].role === 'assistant') {
+        messages[lastIdx]._blocks = this.parseStructuredContent(messages[lastIdx].content)
+      }
+      this.setData({ messages: [...messages], loading: false })
     })
 
     this.ws.on('chat_error', (data) => {
@@ -105,9 +110,13 @@ Page({
 
       if (conversations.length > 0) {
         const conv = conversations[0]
+        const messages = (conv.messages || []).map(m => ({
+          ...m,
+          _blocks: m.role === 'assistant' ? this.parseStructuredContent(m.content) : null,
+        }))
         this.setData({
           conversationId: conv.id,
-          messages: conv.messages || [],
+          messages,
           conversations,
           loading: false,
         })
@@ -180,8 +189,12 @@ Page({
       const res = await api.post(`/api/ai-conversations/${conversationId}/messages`, {
         user_message: text,
       })
+      const messages = (res.data.messages || []).map(m => ({
+        ...m,
+        _blocks: m.role === 'assistant' ? this.parseStructuredContent(m.content) : null,
+      }))
       this.setData({
-        messages: res.data.messages || [],
+        messages,
         loading: false,
       })
     } catch (err) {
@@ -197,6 +210,17 @@ Page({
   onQuickQuestion(e) {
     const q = e.currentTarget.dataset.q
     this.sendMessage(q)
+  },
+
+  onAiAction(e) {
+    const action = e.currentTarget.dataset.action
+    if (action === 'view_summary') {
+      wx.showToast({ title: '查看摘要功能开发中', icon: 'none' })
+    } else if (action === 'add_reminder') {
+      wx.navigateTo({ url: '/pkg-system/pages/reminder-add/reminder-add' })
+    } else if (action === 'view_trend') {
+      wx.switchTab({ url: '/pages/indicators/indicators' })
+    }
   },
 
   toggleHistory() {
@@ -245,5 +269,90 @@ Page({
 
   preventClose() {
     // catch tap on sheet to prevent overlay close
+  },
+
+  // Parse assistant message into structured blocks for rich rendering
+  parseStructuredContent(content) {
+    if (!content || content.length < 20) return null
+
+    const blocks = []
+    const lines = content.split('\n')
+
+    // Detect indicator rows: 名称 + 数值 + 单位 + optional arrow/status
+    const indicatorRegex = /^([一-龥a-zA-Z]+)\s+([\d.]+)\s*(g\/L|mmol\/L|U\/L|μmol\/L|umol\/L|10\^\d+\/L|10\*\*\d+\/L|mmHg|bpm|kg|cm|mg\/dL|%|°C|个\/μL|×10\^\d+\/L|×10\*\*\d+\/L|\/L|μL|ml|mL|L)?\s*([↑↓→]|正常|偏高|偏低|异常|高|低)?/
+    const questionRegex = /^(\d+)\.\s*(.+)/
+
+    let currentText = ''
+    let indicatorRows = []
+    let questionList = []
+    let actions = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line) continue
+
+      const indMatch = line.match(indicatorRegex)
+      const qMatch = line.match(questionRegex)
+
+      if (indMatch && indMatch[2]) {
+        // Flush pending text before table
+        if (currentText) {
+          blocks.push({ type: 'text', content: currentText.trim() })
+          currentText = ''
+        }
+        indicatorRows.push({
+          name: indMatch[1],
+          value: indMatch[2],
+          unit: indMatch[3] || '',
+          status: indMatch[4] || '',
+        })
+      } else if (qMatch) {
+        if (currentText) {
+          blocks.push({ type: 'text', content: currentText.trim() })
+          currentText = ''
+        }
+        questionList.push({ num: qMatch[1], text: qMatch[2] })
+      } else {
+        if (indicatorRows.length > 0) {
+          blocks.push({ type: 'indicator_table', rows: indicatorRows })
+          indicatorRows = []
+        }
+        if (questionList.length > 0) {
+          blocks.push({ type: 'question_list', items: questionList })
+          questionList = []
+        }
+        currentText += line + '\n'
+      }
+    }
+
+    // Flush remaining
+    if (currentText) {
+      blocks.push({ type: 'text', content: currentText.trim() })
+    }
+    if (indicatorRows.length > 0) {
+      blocks.push({ type: 'indicator_table', rows: indicatorRows })
+    }
+    if (questionList.length > 0) {
+      blocks.push({ type: 'question_list', items: questionList })
+    }
+
+    // Detect action suggestions from keywords
+    if (content.includes('就诊摘要') || content.includes('摘要') || content.includes('报告')) {
+      actions.push({ label: '查看就诊摘要', action: 'view_summary' })
+    }
+    if (content.includes('提醒') || content.includes('添加')) {
+      actions.push({ label: '添加到提醒', action: 'add_reminder' })
+    }
+    if (content.includes('指标') || content.includes('趋势')) {
+      actions.push({ label: '查看指标趋势', action: 'view_trend' })
+    }
+
+    if (actions.length > 0) {
+      blocks.push({ type: 'actions', items: actions })
+    }
+
+    // Only return structured data if we found more than plain text
+    const hasStructure = blocks.some(b => b.type !== 'text')
+    return hasStructure ? blocks : null
   },
 })

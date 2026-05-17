@@ -203,6 +203,134 @@
   gap: 12px;
 }
 
+/* Structured AI Blocks */
+.struct-block {
+  margin-bottom: 10px;
+}
+
+.struct-block:last-child {
+  margin-bottom: 0;
+}
+
+.ai-indicator-table {
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.ai-indicator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.ai-indicator-row:last-child {
+  border-bottom: none;
+}
+
+.ai-indicator-name {
+  font-size: 14px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.ai-indicator-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-indicator-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.ai-indicator-unit {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.ai-indicator-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.ai-indicator-status.high {
+  background: #FECACA;
+  color: #EF4444;
+}
+
+.ai-indicator-status.low {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+.ai-question-card {
+  background: #F5F3FF;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 8px 0;
+}
+
+.ai-question-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7C3AED;
+  margin-bottom: 10px;
+}
+
+.ai-question-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.ai-question-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7C3AED;
+  flex-shrink: 0;
+  min-width: 18px;
+}
+
+.ai-question-text {
+  font-size: 14px;
+  color: #1E293B;
+  line-height: 1.4;
+}
+
+.ai-action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ai-action-btn {
+  height: 40px;
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-action-btn text {
+  font-size: 14px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
 /* AI Tab */
 .ai-tab {
   display: flex;

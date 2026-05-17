@@ -24,10 +24,16 @@
     </view>
 
     <!-- AI Daily Summary -->
-    <view class="ai-banner" wx:if="{{aiSummary}}">
-      <text class="ai-banner-text">{{aiSummary}}</text>
-      <view class="refresh-btn" bindtap="loadDashboard">
-        <text class="refresh-text">刷新</text>
+    <view class="ai-banner" wx:if="{{aiSummary}}" bindtap="goToAiDaily">
+      <view class="ai-banner-main">
+        <view class="ai-banner-title-row">
+          <text class="ai-banner-title">AI 健康日报</text>
+          <text class="ai-banner-arrow">›</text>
+        </view>
+        <text class="ai-banner-text">{{aiSummary}}</text>
+      </view>
+      <view class="ai-banner-action">
+        <text>查看详情</text>
       </view>
     </view>
 

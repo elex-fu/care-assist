@@ -75,6 +75,10 @@ Page({
     wx.navigateTo({ url: '/pages/search/search' })
   },
 
+  goToAiDaily() {
+    wx.switchTab({ url: '/pages/ai/ai' })
+  },
+
   async checkHospitalStatus(members) {
     const hospitalMap = {}
     await Promise.all(

@@ -34,7 +34,45 @@
         id="msg-{{index}}"
       >
         <view class="bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
-          <text class="bubble-text" wx:if="{{item.content}}">{{item.content}}</text>
+          <!-- Structured assistant message -->
+          <block wx:if="{{item.role === 'assistant' && item._blocks && item._blocks.length}}">
+            <view class="struct-block" wx:for="{{item._blocks}}" wx:for-item="block" wx:key="index">
+              <!-- Text block -->
+              <text class="bubble-text" wx:if="{{block.type === 'text'}}">{{block.content}}</text>
+
+              <!-- Indicator table block -->
+              <view class="ai-indicator-table" wx:if="{{block.type === 'indicator_table'}}">
+                <view class="ai-indicator-row" wx:for="{{block.rows}}" wx:for-item="row" wx:key="name">
+                  <text class="ai-indicator-name">{{row.name}}</text>
+                  <view class="ai-indicator-value-wrap">
+                    <text class="ai-indicator-value">{{row.value}}</text>
+                    <text class="ai-indicator-unit" wx:if="{{row.unit}}">{{row.unit}}</text>
+                    <text class="ai-indicator-status {{row.status === '↑' || row.status === '偏高' || row.status === '高' ? 'high' : row.status === '↓' || row.status === '偏低' || row.status === '低' ? 'low' : ''}}">{{row.status}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- Question list block -->
+              <view class="ai-question-card" wx:if="{{block.type === 'question_list'}}">
+                <text class="ai-question-title">建议问医生的问题</text>
+                <view class="ai-question-item" wx:for="{{block.items}}" wx:for-item="q" wx:key="num">
+                  <text class="ai-question-num">{{q.num}}</text>
+                  <text class="ai-question-text">{{q.text}}</text>
+                </view>
+              </view>
+
+              <!-- Actions block -->
+              <view class="ai-action-row" wx:if="{{block.type === 'actions'}}">
+                <view class="ai-action-btn" wx:for="{{block.items}}" wx:for-item="act" wx:key="action" data-action="{{act.action}}" bindtap="onAiAction">
+                  <text>{{act.label}}</text>
+                </view>
+              </view>
+            </view>
+          </block>
+
+          <!-- Plain text fallback -->
+          <text class="bubble-text" wx:elif="{{item.content}}">{{item.content}}</text>
+
           <view class="typing" wx:if="{{!item.content && item.role === 'assistant'}}">
             <view class="dot"></view>
             <view class="dot"></view>

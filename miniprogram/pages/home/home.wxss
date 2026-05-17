@@ -55,33 +55,61 @@
 }
 
 .ai-banner {
-  background: linear-gradient(90deg, #EFF6FF, #F5F3FF);
-  border-radius: 12px;
-  padding: 12px 16px;
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  border-radius: 16px;
+  padding: 20px 16px;
   margin-bottom: 16px;
-  border-left: 4px solid #6366F1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.ai-banner-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-banner-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ai-banner-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.ai-banner-arrow {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 300;
+  margin-left: 8px;
 }
 
 .ai-banner-text {
   font-size: 14px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1.5;
+  display: block;
 }
 
-.refresh-btn {
-  margin-top: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 12px;
-  background: #FFFFFF;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
+.ai-banner-action {
+  flex-shrink: 0;
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
 }
 
-.refresh-text {
-  font-size: 12px;
-  color: #64748B;
+.ai-banner-action text {
+  font-size: 13px;
+  color: #FFFFFF;
+  font-weight: 500;
 }
 
 .member-grid {
