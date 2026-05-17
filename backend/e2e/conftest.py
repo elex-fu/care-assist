@@ -31,7 +31,7 @@ async def api_context(browser):
     await context.close()
 
 
-@pytest_asyncio.fixture(loop_scope="function")
+@pytest_asyncio.fixture(loop_scope="session")
 async def registered_user(api_context):
     """Register a new user and return auth info."""
     code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
@@ -53,7 +53,7 @@ async def registered_user(api_context):
     }
 
 
-@pytest_asyncio.fixture(loop_scope="function")
+@pytest_asyncio.fixture(loop_scope="session")
 async def auth_headers(registered_user):
     return {
         "Authorization": f"Bearer {registered_user['token']}",
@@ -61,7 +61,7 @@ async def auth_headers(registered_user):
     }
 
 
-@pytest_asyncio.fixture(loop_scope="function")
+@pytest_asyncio.fixture(loop_scope="session")
 async def swagger_page(browser):
     """Provide a fresh browser page for Swagger UI screenshots."""
     page = await browser.new_page(viewport={"width": 1280, "height": 800})

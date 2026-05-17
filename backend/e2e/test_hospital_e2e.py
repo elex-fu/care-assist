@@ -24,7 +24,7 @@ async def test_swagger_docs_show_hospital_events():
         assert "delete" in paths["/api/hospital-events/{event_id}"]
 
         await page.goto(f"{BASE_URL}/docs")
-        await page.wait_for_load_state("networkidle")
+        await page.wait_for_load_state("domcontentloaded")
         await page.wait_for_timeout(1000)
         await page.screenshot(path="e2e/screenshots/swagger_hospitals.png", full_page=False)
 
