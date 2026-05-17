@@ -8,7 +8,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-os.environ.setdefault("DATABASE_URL", "mysql+aiomysql://care:carepass@localhost:3307/care_assist")
+os.environ.setdefault("DATABASE_URL", "mysql+aiomysql://root@localhost:3308/care_assist")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
 os.environ.setdefault("DEBUG", "true")
 
