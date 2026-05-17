@@ -55,20 +55,22 @@ Component({
     },
   },
 
-  computeAge(birthDate) {
-    if (!birthDate) return ''
-    const birth = new Date(birthDate)
-    const now = new Date()
-    let years = now.getFullYear() - birth.getFullYear()
-    const m = now.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
-      years--
-    }
-    if (years < 0) return ''
-    if (years < 1) {
-      const months = Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth())
-      return months + '个月'
-    }
-    return years + '岁'
+  methods: {
+    computeAge(birthDate) {
+      if (!birthDate) return ''
+      const birth = new Date(birthDate)
+      const now = new Date()
+      let years = now.getFullYear() - birth.getFullYear()
+      const m = now.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+        years--
+      }
+      if (years < 0) return ''
+      if (years < 1) {
+        const months = Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth())
+        return months + '个月'
+      }
+      return years + '岁'
+    },
   },
 })
