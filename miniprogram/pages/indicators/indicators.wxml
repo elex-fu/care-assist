@@ -14,36 +14,23 @@
 
   <!-- Indicator List -->
   <view class="indicator-list" wx:if="{{!loading && indicators.length}}">
-    <view
-      class="indicator-item"
+    <indicator-row
       wx:for="{{indicators}}"
       wx:key="id"
+      indicator="{{item}}"
       data-key="{{item.indicator_key}}"
       data-name="{{item.indicator_name}}"
       bindtap="showTrend"
-    >
-      <view class="indicator-main">
-        <text class="indicator-name">{{item.indicator_name}}</text>
-        <view class="indicator-value-wrap">
-          <text class="indicator-value">{{item.value}}</text>
-          <text class="indicator-unit">{{item.unit}}</text>
-        </view>
-      </view>
-      <view class="indicator-meta">
-        <view class="status-badge" style="background: {{getStatusColor(item.status)}};">
-          <text>{{getStatusLabel(item.status)}}</text>
-        </view>
-        <text class="indicator-date">{{formatDateLabel(item.record_date)}}</text>
-      </view>
-    </view>
+    />
   </view>
 
   <!-- Empty State -->
-  <view class="empty-state" wx:if="{{!loading && !indicators.length}}">
-    <text class="empty-icon">📊</text>
-    <text class="empty-title">还没有记录</text>
-    <text class="empty-subtitle">点击右下角按钮添加第一条指标</text>
-  </view>
+  <empty-state
+    wx:if="{{!loading && !indicators.length}}"
+    icon="📊"
+    title="还没有记录"
+    subtitle="点击右下角按钮添加第一条指标"
+  />
 
   <!-- Skeleton Loading -->
   <view class="skeleton-wrap" wx:if="{{loading}}" style="padding: 12px 16px;">

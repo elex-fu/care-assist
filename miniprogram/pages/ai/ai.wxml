@@ -85,9 +85,10 @@
           <text class="conv-preview">{{item.last_message_preview || '无消息'}}</text>
           <text class="conv-count">{{item.message_count}} 条</text>
         </view>
-        <view class="empty-state" wx:if="{{!conversations.length}}">
-          <text>暂无历史对话</text>
-        </view>
+        <empty-state
+          wx:if="{{!conversations.length}}"
+          title="暂无历史对话"
+        />
       </view>
       <view class="popup-footer">
         <button class="btn-new" bindtap="startNewConversation">新建对话</button>

@@ -25,16 +25,12 @@
   <view class="section" wx:if="{{report && report.extracted_indicators && report.extracted_indicators.length}}">
     <text class="section-title">识别指标</text>
     <view class="indicator-list">
-      <view class="indicator-row" wx:for="{{report.extracted_indicators}}" wx:key="index">
-        <text class="indicator-name">{{item.name || item.indicator_name || '未知指标'}}</text>
-        <view class="indicator-value-wrap">
-          <text class="indicator-value {{item.status === 'high' || item.status === 'critical' || item.status === 'low' ? 'abnormal' : ''}}">
-            {{item.value}}
-          </text>
-          <text class="indicator-unit">{{item.unit}}</text>
-        </view>
-        <text class="indicator-status {{item.status || 'normal'}}">{{item.status === 'normal' ? '正常' : item.status === 'low' ? '偏低' : item.status === 'high' ? '偏高' : item.status === 'critical' ? '建议复查' : ''}}</text>
-      </view>
+      <indicator-row
+        wx:for="{{report.extracted_indicators}}"
+        wx:key="index"
+        indicator="{{item}}"
+        compact="{{true}}"
+      />
     </view>
   </view>
 
@@ -45,10 +41,11 @@
     </view>
   </view>
 
-  <view class="empty-state" wx:if="{{report && (!report.extracted_indicators || !report.extracted_indicators.length) && !report.ai_summary}}">
-    <text class="empty-title">暂无识别结果</text>
-    <text class="empty-subtitle">OCR 处理完成后将展示指标</text>
-  </view>
+  <empty-state
+    wx:if="{{report && (!report.extracted_indicators || !report.extracted_indicators.length) && !report.ai_summary}}"
+    title="暂无识别结果"
+    subtitle="OCR 处理完成后将展示指标"
+  />
 
   <view class="footer-actions" wx:if="{{report}}">
     <view class="delete-btn" bindtap="deleteReport">

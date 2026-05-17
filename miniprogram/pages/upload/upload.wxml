@@ -88,26 +88,19 @@
     </view>
 
     <view class="indicator-list" wx:if="{{extractedIndicators.length}}">
-      <view
-        class="indicator-item {{item.status === 'critical' || item.status === 'high' || item.status === 'low' ? 'abnormal' : ''}}"
+      <indicator-row
         wx:for="{{extractedIndicators}}"
         wx:key="index"
-      >
-        <view class="indicator-main">
-          <text class="indicator-name">{{item.indicator_name}}</text>
-          <text class="indicator-raw">{{item.raw_text}}</text>
-        </view>
-        <view class="indicator-value-wrap">
-          <text class="indicator-value">{{item.value}}</text>
-          <text class="indicator-unit">{{item.unit}}</text>
-        </view>
-      </view>
+        indicator="{{item}}"
+        compact="{{true}}"
+      />
     </view>
 
-    <view class="empty-state" wx:else>
-      <text class="empty-title">未识别到指标</text>
-      <text class="empty-subtitle">请检查图片清晰度后重试</text>
-    </view>
+    <empty-state
+      wx:else
+      title="未识别到指标"
+      subtitle="请检查图片清晰度后重试"
+    />
 
     <view class="action-bar">
       <button class="btn-secondary" bindtap="retry">再传一张</button>

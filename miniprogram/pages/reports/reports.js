@@ -1,5 +1,5 @@
 const api = require('../../utils/api')
-const { formatDateFull } = require('../../utils/format')
+const { formatDateFull, getReportTypeLabel, getOcrStatusLabel } = require('../../utils/format')
 
 Page({
   data: {
@@ -58,16 +58,8 @@ Page({
     wx.switchTab({ url: '/pages/upload/upload' })
   },
 
-  getTypeLabel(type) {
-    const map = { lab: '检验报告', diagnosis: '诊断报告', prescription: '处方', discharge: '出院小结' }
-    return map[type] || '报告'
-  },
-
-  getStatusLabel(status) {
-    const map = { completed: '已识别', pending: '待处理', processing: '识别中', failed: '失败' }
-    return map[status] || status
-  },
-
+  getTypeLabel: getReportTypeLabel,
+  getStatusLabel: getOcrStatusLabel,
   getStatusClass(status) {
     return status || ''
   },

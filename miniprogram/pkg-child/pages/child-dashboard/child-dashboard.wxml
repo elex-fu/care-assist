@@ -5,18 +5,7 @@
 
   <view wx:if="{{!loading && member}}">
     <!-- Header -->
-    <view class="header">
-      <view class="avatar">
-        <text>{{member.name ? member.name[0] : '?'}}</text>
-      </view>
-      <view class="header-info">
-        <text class="name">{{member.name}}</text>
-        <text class="age">{{months}} 个月 · {{segmentInfo.label}}</text>
-      </view>
-      <view class="detail-link" bindtap="goToMemberDetail">
-        <text>查看档案 ›</text>
-      </view>
-    </view>
+    <member-card member="{{member}}" variant="header" />
 
     <!-- Focus Card -->
     <view class="focus-card">
@@ -53,6 +42,11 @@
           <text class="todo-text">{{item}}</text>
         </view>
       </view>
+      <empty-state
+        wx:else
+        title="暂无待办"
+        subtitle="本阶段没有特别需要关注的事项"
+      />
     </view>
 
     <!-- Vaccines -->
@@ -70,14 +64,12 @@
     <view class="section" wx:if="{{indicators.length}}">
       <text class="section-title">最近生长指标</text>
       <view class="indicator-list">
-        <view class="indicator-item" wx:for="{{indicators}}" wx:key="id">
-          <text class="indicator-name">{{item.indicator_name}}</text>
-          <view class="indicator-value-wrap">
-            <text class="indicator-value">{{item.value}}</text>
-            <text class="indicator-unit">{{item.unit}}</text>
-          </view>
-          <text class="indicator-date">{{item.record_date}}</text>
-        </view>
+        <indicator-row
+          wx:for="{{indicators}}"
+          wx:key="id"
+          indicator="{{item}}"
+          compact="{{true}}"
+        />
       </view>
     </view>
 
@@ -89,4 +81,10 @@
       </view>
     </view>
   </view>
+
+  <empty-state
+    wx:if="{{!loading && !member}}"
+    title="加载失败"
+    subtitle="请稍后重试"
+  />
 </view>

@@ -58,8 +58,10 @@
     </view>
   </view>
 
-  <view class="empty-state" wx:else>
-    <text class="empty-title">暂无提醒</text>
-    <text class="empty-subtitle" bindtap="goToAdd">添加提醒 +</text>
-  </view>
+  <empty-state
+    wx:else
+    title="暂无提醒"
+    actionText="添加提醒 +"
+    bind:action="goToAdd"
+  />
 </view>

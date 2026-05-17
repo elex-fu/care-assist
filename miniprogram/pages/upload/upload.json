@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "上传报告"
+  "navigationBarTitleText": "上传报告",
+  "usingComponents": {
+    "indicator-row": "/components/indicator-row/indicator-row",
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

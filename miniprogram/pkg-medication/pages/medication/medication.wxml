@@ -33,11 +33,12 @@
   </view>
 
   <!-- Empty State -->
-  <view class="empty-state" wx:if="{{!loading && !medications.length}}">
-    <text class="empty-icon">💊</text>
-    <text class="empty-title">暂无用药记录</text>
-    <text class="empty-subtitle">点击右下角添加用药</text>
-  </view>
+  <empty-state
+    wx:if="{{!loading && !medications.length}}"
+    icon="💊"
+    title="暂无用药记录"
+    subtitle="点击右下角添加用药"
+  />
 
   <!-- Loading -->
   <view class="loading-wrap" wx:if="{{loading}}">

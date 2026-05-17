@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "疫苗记录"
+  "navigationBarTitleText": "疫苗记录",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "住院记录"
+  "navigationBarTitleText": "住院记录",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

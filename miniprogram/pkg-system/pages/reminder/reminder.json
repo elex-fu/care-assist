@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "提醒管理"
+  "navigationBarTitleText": "提醒管理",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

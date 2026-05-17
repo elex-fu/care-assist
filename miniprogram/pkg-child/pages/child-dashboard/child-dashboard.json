@@ -1,4 +1,8 @@
 {
   "navigationBarTitleText": "儿童健康看板",
-  "usingComponents": {}
+  "usingComponents": {
+    "member-card": "/components/member-card/member-card",
+    "indicator-row": "/components/indicator-row/indicator-row",
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

@@ -1,5 +1,9 @@
 {
   "navigationBarTitleText": "指标中心",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "indicator-row": "/components/indicator-row/indicator-row",
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

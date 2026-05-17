@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "年度健康总结"
+  "navigationBarTitleText": "年度健康总结",
+  "usingComponents": {
+    "member-card": "/components/member-card/member-card",
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }
