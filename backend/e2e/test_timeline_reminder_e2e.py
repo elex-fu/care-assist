@@ -1,9 +1,11 @@
+"""E2E tests for timeline and reminder endpoints."""
+
 import json
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -28,185 +30,145 @@ async def test_swagger_docs_show_timeline_and_reminders():
 
 
 @pytest.mark.asyncio
-async def test_api_reminder_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_reminder_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EReminderUser"
+    # Create reminder
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/reminders",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "type": "checkup",
+            "title": "年度体检",
+            "description": "记得空腹，带身份证",
+            "scheduled_date": "2024-08-01",
+            "status": "pending",
+            "priority": "high",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    reminder_id = data["data"]["id"]
+    assert data["data"]["type"] == "checkup"
+    assert data["data"]["priority"] == "high"
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # List reminders
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/reminders?member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]) >= 1
 
-        # Create reminder
-        resp = await context.request.post(
-            f"{BASE_URL}/api/reminders",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "type": "checkup",
-                "title": "年度体检",
-                "description": "记得空腹，带身份证",
-                "scheduled_date": "2024-08-01",
-                "status": "pending",
-                "priority": "high",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        reminder_id = data["data"]["id"]
-        assert data["data"]["type"] == "checkup"
-        assert data["data"]["priority"] == "high"
+    # Filter pending
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/reminders?member_id={member_id}&status=pending",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert all(r["status"] == "pending" for r in data["data"])
 
-        # List reminders
-        resp = await context.request.get(
-            f"{BASE_URL}/api/reminders?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]) >= 1
+    # Complete reminder
+    resp = await api_context.request.patch(
+        f"{BASE_URL}/api/reminders/{reminder_id}",
+        headers=auth_headers,
+        data=json.dumps({
+            "status": "completed",
+            "completed_date": "2024-08-01",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert data["data"]["status"] == "completed"
 
-        # Filter pending
-        resp = await context.request.get(
-            f"{BASE_URL}/api/reminders?member_id={member_id}&status=pending",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert all(r["status"] == "pending" for r in data["data"])
-
-        # Complete reminder
-        resp = await context.request.patch(
-            f"{BASE_URL}/api/reminders/{reminder_id}",
-            headers=headers,
-            data=json.dumps({
-                "status": "completed",
-                "completed_date": "2024-08-01",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert data["data"]["status"] == "completed"
-
-        # Delete reminder
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/reminders/{reminder_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete reminder
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/reminders/{reminder_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True
 
 
 @pytest.mark.asyncio
-async def test_api_health_timeline_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_health_timeline_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2ETimelineUser"
+    # Create visit event
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/health-events",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "type": "visit",
+            "event_date": "2024-06-15",
+            "hospital": "协和医院",
+            "department": "心内科",
+            "doctor": "李医生",
+            "diagnosis": "高血压",
+            "notes": "开了降压药",
+            "status": "abnormal",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    event_id = data["data"]["id"]
+    assert data["data"]["type"] == "visit"
+    assert data["data"]["status"] == "abnormal"
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # Create milestone event
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/health-events",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "type": "milestone",
+            "event_date": "2024-06-01",
+            "notes": "第一次独立行走",
+            "status": "normal",
+        }),
+    )
+    assert resp.ok
 
-        # Create visit event
-        resp = await context.request.post(
-            f"{BASE_URL}/api/health-events",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "type": "visit",
-                "event_date": "2024-06-15",
-                "hospital": "协和医院",
-                "department": "心内科",
-                "doctor": "李医生",
-                "diagnosis": "高血压",
-                "notes": "开了降压药",
-                "status": "abnormal",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        event_id = data["data"]["id"]
-        assert data["data"]["type"] == "visit"
-        assert data["data"]["status"] == "abnormal"
+    # List all events
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/health-events?member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]) >= 2
 
-        # Create milestone event
-        resp = await context.request.post(
-            f"{BASE_URL}/api/health-events",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "type": "milestone",
-                "event_date": "2024-06-01",
-                "notes": "第一次独立行走",
-                "status": "normal",
-            }),
-        )
-        assert resp.ok
+    # Filter by type
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/health-events?member_id={member_id}&type=milestone",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert all(e["type"] == "milestone" for e in data["data"])
 
-        # List all events
-        resp = await context.request.get(
-            f"{BASE_URL}/api/health-events?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]) >= 2
+    # Update event
+    resp = await api_context.request.patch(
+        f"{BASE_URL}/api/health-events/{event_id}",
+        headers=auth_headers,
+        data=json.dumps({
+            "notes": "开了降压药，每日一片",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert data["data"]["notes"] == "开了降压药，每日一片"
 
-        # Filter by type
-        resp = await context.request.get(
-            f"{BASE_URL}/api/health-events?member_id={member_id}&type=milestone",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert all(e["type"] == "milestone" for e in data["data"])
-
-        # Update event
-        resp = await context.request.patch(
-            f"{BASE_URL}/api/health-events/{event_id}",
-            headers=headers,
-            data=json.dumps({
-                "notes": "开了降压药，每日一片",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert data["data"]["notes"] == "开了降压药，每日一片"
-
-        # Delete event
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/health-events/{event_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete event
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/health-events/{event_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True

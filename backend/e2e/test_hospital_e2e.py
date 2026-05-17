@@ -1,9 +1,12 @@
+"""E2E tests for hospital events endpoints."""
+
 import json
+from datetime import datetime, timedelta
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -32,191 +35,150 @@ async def test_swagger_docs_show_hospital_events():
 
 
 @pytest.mark.asyncio
-async def test_api_hospital_event_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_hospital_event_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EHospitalUser"
+    # Create active hospital event
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/hospital-events",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "hospital": "协和医院",
+            "department": "心内科",
+            "admission_date": "2024-06-01",
+            "diagnosis": "高血压观察",
+            "doctor": "李医生",
+            "key_nodes": [
+                {"date": "2024-06-01", "event": "入院", "notes": "血压180/110"},
+            ],
+            "watch_indicators": ["systolic_bp", "diastolic_bp"],
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    event_id = data["data"]["id"]
+    assert data["data"]["hospital"] == "协和医院"
+    assert data["data"]["status"] == "active"
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # List events
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/hospital-events?member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]) >= 1
 
-        # Create active hospital event
-        resp = await context.request.post(
-            f"{BASE_URL}/api/hospital-events",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "hospital": "协和医院",
-                "department": "心内科",
-                "admission_date": "2024-06-01",
-                "diagnosis": "高血压观察",
-                "doctor": "李医生",
-                "key_nodes": [
-                    {"date": "2024-06-01", "event": "入院", "notes": "血压180/110"},
-                ],
-                "watch_indicators": ["systolic_bp", "diastolic_bp"],
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        event_id = data["data"]["id"]
-        assert data["data"]["hospital"] == "协和医院"
-        assert data["data"]["status"] == "active"
+    # Filter by active status
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/hospital-events?member_id={member_id}&status=active",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert all(e["status"] == "active" for e in data["data"])
 
-        # List events
-        resp = await context.request.get(
-            f"{BASE_URL}/api/hospital-events?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]) >= 1
+    # Update with discharge date
+    resp = await api_context.request.patch(
+        f"{BASE_URL}/api/hospital-events/{event_id}",
+        headers=auth_headers,
+        data=json.dumps({
+            "discharge_date": "2024-06-10",
+            "diagnosis": "高血压，已稳定",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert data["data"]["status"] == "discharged"
+    assert data["data"]["discharge_date"] == "2024-06-10"
 
-        # Filter by active status
-        resp = await context.request.get(
-            f"{BASE_URL}/api/hospital-events?member_id={member_id}&status=active",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert all(e["status"] == "active" for e in data["data"])
-
-        # Update with discharge date
-        resp = await context.request.patch(
-            f"{BASE_URL}/api/hospital-events/{event_id}",
-            headers=headers,
-            data=json.dumps({
-                "discharge_date": "2024-06-10",
-                "diagnosis": "高血压，已稳定",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert data["data"]["status"] == "discharged"
-        assert data["data"]["discharge_date"] == "2024-06-10"
-
-        # Delete event
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/hospital-events/{event_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete event
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/hospital-events/{event_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True
 
 
 @pytest.mark.asyncio
-async def test_api_hospital_watch_and_compare_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_hospital_watch_and_compare_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EWatchUser"
+    # Create hospital event with watch indicators
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/hospital-events",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "hospital": "同仁医院",
+            "department": "心内科",
+            "admission_date": "2024-06-01",
+            "diagnosis": "高血压观察",
+            "watch_indicators": ["systolic_bp", "diastolic_bp"],
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    event_id = data["data"]["id"]
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # Create indicators for yesterday and today
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
 
-        # Create hospital event with watch indicators
-        resp = await context.request.post(
-            f"{BASE_URL}/api/hospital-events",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "hospital": "同仁医院",
-                "department": "心内科",
-                "admission_date": "2024-06-01",
-                "diagnosis": "高血压观察",
-                "watch_indicators": ["systolic_bp", "diastolic_bp"],
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        event_id = data["data"]["id"]
+    # Yesterday indicator
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/indicators",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "indicator_key": "systolic_bp",
+            "indicator_name": "收缩压",
+            "value": 120.0,
+            "unit": "mmHg",
+            "record_date": yesterday.isoformat(),
+            "source_hospital_id": event_id,
+        }),
+    )
+    assert resp.ok
 
-        # Create indicators for yesterday and today
-        from datetime import datetime, timedelta
-        today = datetime.now().date()
-        yesterday = today - timedelta(days=1)
+    # Today indicator
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/indicators",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "indicator_key": "systolic_bp",
+            "indicator_name": "收缩压",
+            "value": 130.0,
+            "unit": "mmHg",
+            "record_date": today.isoformat(),
+            "source_hospital_id": event_id,
+        }),
+    )
+    assert resp.ok
 
-        # Yesterday indicator
-        resp = await context.request.post(
-            f"{BASE_URL}/api/indicators",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "indicator_key": "systolic_bp",
-                "indicator_name": "收缩压",
-                "value": 120.0,
-                "unit": "mmHg",
-                "record_date": yesterday.isoformat(),
-                "source_hospital_id": event_id,
-            }),
-        )
-        assert resp.ok
+    # Get watch indicators
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/hospital-events/{event_id}/watch",
+        headers=auth_headers,
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert len(data["data"]) >= 1
+    watch_item = data["data"][0]
+    assert watch_item["indicator_key"] == "systolic_bp"
+    assert watch_item["value"] == 130.0
+    assert watch_item["previous_value"] == 120.0
 
-        # Today indicator
-        resp = await context.request.post(
-            f"{BASE_URL}/api/indicators",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "indicator_key": "systolic_bp",
-                "indicator_name": "收缩压",
-                "value": 130.0,
-                "unit": "mmHg",
-                "record_date": today.isoformat(),
-                "source_hospital_id": event_id,
-            }),
-        )
-        assert resp.ok
-
-        # Get watch indicators
-        resp = await context.request.get(
-            f"{BASE_URL}/api/hospital-events/{event_id}/watch",
-            headers=headers,
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert len(data["data"]) >= 1
-        watch_item = data["data"][0]
-        assert watch_item["indicator_key"] == "systolic_bp"
-        assert watch_item["value"] == 130.0
-        assert watch_item["previous_value"] == 120.0
-
-        # Get comparison
-        resp = await context.request.get(
-            f"{BASE_URL}/api/hospital-events/{event_id}/compare",
-            headers=headers,
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert data["data"]["event_id"] == event_id
-        assert data["data"]["total"] >= 1
-
-        await context.close()
-        await browser.close()
+    # Get comparison
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/hospital-events/{event_id}/compare",
+        headers=auth_headers,
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert data["data"]["event_id"] == event_id
+    assert data["data"]["total"] >= 1

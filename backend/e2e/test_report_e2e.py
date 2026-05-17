@@ -1,9 +1,9 @@
-import json
+"""E2E tests for reports endpoints."""
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -33,76 +33,61 @@ async def test_swagger_docs_show_reports():
 
 
 @pytest.mark.asyncio
-async def test_api_report_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_report_flow_via_playwright(api_context, registered_user):
+    member_id = registered_user["member_id"]
+    token = registered_user["token"]
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EReportUser"
-
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
-        # Create report with a fake image
-        resp = await context.request.post(
-            f"{BASE_URL}/api/reports",
-            headers={"Authorization": f"Bearer {token}"},
-            multipart={
-                "member_id": member_id,
-                "type": "lab",
-                "hospital": "测试医院",
-                "department": "内科",
-                "report_date": "2024-06-15",
-                "images": {
-                    "name": "bp_report.jpg",
-                    "mimeType": "image/jpeg",
-                    "buffer": b"fake image bytes for ocr",
-                },
+    # Create report with a fake image
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/reports",
+        headers={"Authorization": f"Bearer {token}"},
+        multipart={
+            "member_id": member_id,
+            "type": "lab",
+            "hospital": "测试医院",
+            "department": "内科",
+            "report_date": "2024-06-15",
+            "images": {
+                "name": "bp_report.jpg",
+                "mimeType": "image/jpeg",
+                "buffer": b"fake image bytes for ocr",
             },
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        report_id = data["data"]["id"]
-        assert data["data"]["type"] == "lab"
-        assert data["data"]["ocr_status"] == "pending"
+        },
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    report_id = data["data"]["id"]
+    assert data["data"]["type"] == "lab"
+    assert data["data"]["ocr_status"] == "pending"
 
-        # List reports
-        resp = await context.request.get(
-            f"{BASE_URL}/api/reports?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]["reports"]) >= 1
+    # List reports
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/reports?member_id={member_id}",
+        headers=headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]["reports"]) >= 1
 
-        # Trigger OCR on a report with a mock image path
-        resp = await context.request.post(
-            f"{BASE_URL}/api/reports/{report_id}/ocr",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["ocr_status"] == "completed"
-        assert len(data["data"]["extracted"]) > 0
+    # Trigger OCR on a report with a mock image path
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/reports/{report_id}/ocr",
+        headers=headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["ocr_status"] == "completed"
+    assert len(data["data"]["extracted"]) > 0
 
-        # Delete report
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/reports/{report_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete report
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/reports/{report_id}",
+        headers=headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True

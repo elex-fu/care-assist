@@ -1,9 +1,11 @@
+"""E2E tests for indicators endpoints."""
+
 import json
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -34,128 +36,86 @@ async def test_swagger_docs_show_indicators():
 
 
 @pytest.mark.asyncio
-async def test_api_indicator_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_indicator_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2E测试用户"
+    # Create indicator
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/indicators",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "indicator_key": "systolic_bp",
+            "indicator_name": "收缩压",
+            "value": 135.0,
+            "unit": "mmHg",
+            "record_date": "2024-06-15",
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert data["data"]["status"] == "normal"
+    assert data["data"]["indicator_key"] == "systolic_bp"
+    indicator_id = data["data"]["id"]
 
-        # Register first
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
+    # List indicators
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/indicators?member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]) >= 1
 
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # Get trend
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/indicators/trend?member_id={member_id}&indicator_key=systolic_bp",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert "trend" in data["data"]
 
-        # Create indicator
-        resp = await context.request.post(
-            f"{BASE_URL}/api/indicators",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "indicator_key": "systolic_bp",
-                "indicator_name": "收缩压",
-                "value": 135.0,
-                "unit": "mmHg",
-                "record_date": "2024-06-15",
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert data["data"]["status"] == "normal"
-        assert data["data"]["indicator_key"] == "systolic_bp"
-        indicator_id = data["data"]["id"]
-
-        # List indicators
-        resp = await context.request.get(
-            f"{BASE_URL}/api/indicators?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]) >= 1
-
-        # Get trend
-        resp = await context.request.get(
-            f"{BASE_URL}/api/indicators/trend?member_id={member_id}&indicator_key=systolic_bp",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert "trend" in data["data"]
-
-        # Delete indicator
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/indicators/{indicator_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete indicator
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/indicators/{indicator_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True
 
 
 @pytest.mark.asyncio
-async def test_api_batch_indicator_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_batch_indicator_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EBatchUser"
-
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
-        # Batch create indicators
-        resp = await context.request.post(
-            f"{BASE_URL}/api/indicators/batch",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "items": [
-                    {
-                        "indicator_key": "systolic_bp",
-                        "indicator_name": "收缩压",
-                        "value": 120.0,
-                        "unit": "mmHg",
-                        "record_date": "2024-06-15",
-                    },
-                    {
-                        "indicator_key": "diastolic_bp",
-                        "indicator_name": "舒张压",
-                        "value": 80.0,
-                        "unit": "mmHg",
-                        "record_date": "2024-06-15",
-                    },
-                ],
-            }),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert len(data["data"]) == 2
-        assert data["data"][0]["indicator_key"] == "systolic_bp"
-        assert data["data"][1]["indicator_key"] == "diastolic_bp"
-
-        await context.close()
-        await browser.close()
+    # Batch create indicators
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/indicators/batch",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "items": [
+                {
+                    "indicator_key": "systolic_bp",
+                    "indicator_name": "收缩压",
+                    "value": 120.0,
+                    "unit": "mmHg",
+                    "record_date": "2024-06-15",
+                },
+                {
+                    "indicator_key": "diastolic_bp",
+                    "indicator_name": "舒张压",
+                    "value": 80.0,
+                    "unit": "mmHg",
+                    "record_date": "2024-06-15",
+                },
+            ],
+        }),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert len(data["data"]) == 2
+    assert data["data"][0]["indicator_key"] == "systolic_bp"
+    assert data["data"][1]["indicator_key"] == "diastolic_bp"

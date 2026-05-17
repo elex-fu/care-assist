@@ -1,9 +1,11 @@
+"""E2E tests for search endpoints."""
+
 import json
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -28,99 +30,79 @@ async def test_swagger_docs_show_search():
 
 
 @pytest.mark.asyncio
-async def test_api_search_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_search_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2ESearchUser"
+    # Create an indicator
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/indicators",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "indicator_key": "systolic_bp",
+            "indicator_name": "收缩压",
+            "value": 125.0,
+            "unit": "mmHg",
+            "record_date": "2024-06-15",
+        }),
+    )
+    assert resp.ok
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # Create a reminder
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/reminders",
+        headers=auth_headers,
+        data=json.dumps({
+            "member_id": member_id,
+            "type": "checkup",
+            "title": "体检提醒",
+            "scheduled_date": "2024-08-01",
+            "status": "pending",
+        }),
+    )
+    assert resp.ok
 
-        # Create an indicator
-        resp = await context.request.post(
-            f"{BASE_URL}/api/indicators",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "indicator_key": "systolic_bp",
-                "indicator_name": "收缩压",
-                "value": 125.0,
-                "unit": "mmHg",
-                "record_date": "2024-06-15",
-            }),
-        )
-        assert resp.ok
+    # Search across all types
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/search?q=收缩压",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert any(r["entity_type"] == "indicator" for r in data["data"])
 
-        # Create a reminder
-        resp = await context.request.post(
-            f"{BASE_URL}/api/reminders",
-            headers=headers,
-            data=json.dumps({
-                "member_id": member_id,
-                "type": "checkup",
-                "title": "体检提醒",
-                "scheduled_date": "2024-08-01",
-                "status": "pending",
-            }),
-        )
-        assert resp.ok
+    # Search reminders
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/search?q=体检",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert any(r["entity_type"] == "reminder" for r in data["data"])
 
-        # Search across all types
-        resp = await context.request.get(
-            f"{BASE_URL}/api/search?q=收缩压",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert any(r["entity_type"] == "indicator" for r in data["data"])
+    # Filter by entity type
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/search?q=收缩压&entity_types=indicator",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert all(r["entity_type"] == "indicator" for r in data["data"])
 
-        # Search reminders
-        resp = await context.request.get(
-            f"{BASE_URL}/api/search?q=体检",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert any(r["entity_type"] == "reminder" for r in data["data"])
+    # Search with member filter
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/search?q=体检&member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert all(r["member_id"] == member_id for r in data["data"])
 
-        # Filter by entity type
-        resp = await context.request.get(
-            f"{BASE_URL}/api/search?q=收缩压&entity_types=indicator",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert all(r["entity_type"] == "indicator" for r in data["data"])
-
-        # Search with member filter
-        resp = await context.request.get(
-            f"{BASE_URL}/api/search?q=体检&member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert all(r["member_id"] == member_id for r in data["data"])
-
-        # No results search
-        resp = await context.request.get(
-            f"{BASE_URL}/api/search?q=xyz123不存在",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"] == []
-
-        await context.close()
-        await browser.close()
+    # No results search
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/search?q=xyz123不存在",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"] == []

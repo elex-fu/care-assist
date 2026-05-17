@@ -1,9 +1,11 @@
+"""E2E tests for AI conversation endpoints."""
+
 import json
+
 import pytest
-import uuid
 from playwright.async_api import async_playwright
 
-BASE_URL = "http://localhost:8000"
+from e2e.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -33,77 +35,57 @@ async def test_swagger_docs_show_ai_conversations():
 
 
 @pytest.mark.asyncio
-async def test_api_ai_conversation_flow_via_playwright():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+async def test_api_ai_conversation_flow_via_playwright(api_context, registered_user, auth_headers):
+    member_id = registered_user["member_id"]
 
-        code = f"mock_e2e_{uuid.uuid4().hex[:8]}"
-        creator_name = "E2EAIConvUser"
+    # Create conversation
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/ai-conversations",
+        headers=auth_headers,
+        data=json.dumps({"member_id": member_id, "page_context": "home"}),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    conv_id = data["data"]["id"]
+    assert data["data"]["member_id"] == member_id
+    assert data["data"]["messages"] == []
 
-        # Register
-        resp = await context.request.post(
-            f"{BASE_URL}/api/auth/register?creator_name={creator_name}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"code": code}),
-        )
-        assert resp.ok, await resp.text()
-        body = await resp.json()
-        token = body["data"]["access_token"]
-        member_id = body["data"]["member"]["id"]
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    # Send greeting message
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/ai-conversations/{conv_id}/messages",
+        headers=auth_headers,
+        data=json.dumps({"user_message": "你好"}),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert "reply" in data["data"]
+    assert len(data["data"]["messages"]) == 2
 
-        # Create conversation
-        resp = await context.request.post(
-            f"{BASE_URL}/api/ai-conversations",
-            headers=headers,
-            data=json.dumps({"member_id": member_id, "page_context": "home"}),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        conv_id = data["data"]["id"]
-        assert data["data"]["member_id"] == member_id
-        assert data["data"]["messages"] == []
+    # Send indicator question (no data yet)
+    resp = await api_context.request.post(
+        f"{BASE_URL}/api/ai-conversations/{conv_id}/messages",
+        headers=auth_headers,
+        data=json.dumps({"user_message": "血压怎么样"}),
+    )
+    assert resp.ok, await resp.text()
+    data = await resp.json()
+    assert "还没有记录" in data["data"]["reply"] or "建议定期记录" in data["data"]["reply"]
 
-        # Send greeting message
-        resp = await context.request.post(
-            f"{BASE_URL}/api/ai-conversations/{conv_id}/messages",
-            headers=headers,
-            data=json.dumps({"user_message": "你好"}),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert "reply" in data["data"]
-        assert len(data["data"]["messages"]) == 2
+    # List conversations
+    resp = await api_context.request.get(
+        f"{BASE_URL}/api/ai-conversations?member_id={member_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert len(data["data"]) >= 1
+    assert data["data"][0]["message_count"] == 4  # 2 user + 2 assistant
 
-        # Send indicator question (no data yet)
-        resp = await context.request.post(
-            f"{BASE_URL}/api/ai-conversations/{conv_id}/messages",
-            headers=headers,
-            data=json.dumps({"user_message": "血压怎么样"}),
-        )
-        assert resp.ok, await resp.text()
-        data = await resp.json()
-        assert "还没有记录" in data["data"]["reply"] or "建议定期记录" in data["data"]["reply"]
-
-        # List conversations
-        resp = await context.request.get(
-            f"{BASE_URL}/api/ai-conversations?member_id={member_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert len(data["data"]) >= 1
-        assert data["data"][0]["message_count"] == 4  # 2 user + 2 assistant
-
-        # Delete conversation
-        resp = await context.request.delete(
-            f"{BASE_URL}/api/ai-conversations/{conv_id}",
-            headers=headers,
-        )
-        assert resp.ok
-        data = await resp.json()
-        assert data["data"]["deleted"] is True
-
-        await context.close()
-        await browser.close()
+    # Delete conversation
+    resp = await api_context.request.delete(
+        f"{BASE_URL}/api/ai-conversations/{conv_id}",
+        headers=auth_headers,
+    )
+    assert resp.ok
+    data = await resp.json()
+    assert data["data"]["deleted"] is True
