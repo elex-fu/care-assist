@@ -9,6 +9,7 @@ Page({
     aiSummary: '',
     loading: true,
     hospitalMap: {},
+    hospitalDaysMap: {},
     elderMode: false,
   },
 
@@ -81,19 +82,25 @@ Page({
 
   async checkHospitalStatus(members) {
     const hospitalMap = {}
+    const hospitalDaysMap = {}
     await Promise.all(
       members.map(async (m) => {
         try {
           const res = await api.get(`/api/hospital-events?member_id=${m.id}&status=active`)
           if (res.data && res.data.length > 0) {
-            hospitalMap[m.id] = res.data[0]
+            const event = res.data[0]
+            hospitalMap[m.id] = event
+            const start = new Date(event.admission_date)
+            const end = event.discharge_date ? new Date(event.discharge_date) : new Date()
+            const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
+            hospitalDaysMap[m.id] = days > 0 ? days : 1
           }
         } catch (err) {
           // ignore
         }
       })
     )
-    this.setData({ hospitalMap })
+    this.setData({ hospitalMap, hospitalDaysMap })
   },
 
   goToMemberDetail(e) {

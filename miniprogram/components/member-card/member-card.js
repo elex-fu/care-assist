@@ -4,6 +4,7 @@ Component({
   properties: {
     member: Object,
     hospitalActive: Boolean,
+    hospitalDays: Number,
     variant: {
       type: String,
       value: 'grid',
@@ -15,13 +16,16 @@ Component({
     statusText: '',
     statusIcon: '',
     typeLabel: '',
+    ageText: '',
+    showTopBar: false,
   },
 
   observers: {
-    'member, hospitalActive, variant': function(member, hospitalActive, variant) {
+    'member, hospitalActive, hospitalDays, variant': function(member, hospitalActive, hospitalDays, variant) {
       if (!member) return
       const typeLabel = getMemberTypeLabel(member.type)
-      this.setData({ typeLabel })
+      const ageText = this.computeAge(member.birth_date)
+      this.setData({ typeLabel, ageText })
       if (variant === 'list') {
         return
       }
@@ -30,6 +34,7 @@ Component({
           statusClass: 'status-hospital',
           statusText: '住院中',
           statusIcon: 'H',
+          showTopBar: true,
         })
         return
       }
@@ -45,7 +50,25 @@ Component({
         statusClass: s.class,
         statusText: s.text,
         statusIcon: s.icon,
+        showTopBar: status === 'critical' || status === 'high' || status === 'low',
       })
     },
+  },
+
+  computeAge(birthDate) {
+    if (!birthDate) return ''
+    const birth = new Date(birthDate)
+    const now = new Date()
+    let years = now.getFullYear() - birth.getFullYear()
+    const m = now.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+      years--
+    }
+    if (years < 0) return ''
+    if (years < 1) {
+      const months = Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth())
+      return months + '个月'
+    }
+    return years + '岁'
   },
 })

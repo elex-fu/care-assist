@@ -3,6 +3,28 @@
   padding: 16px;
   background: #FFFFFF;
   border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.top-bar.status-critical {
+  background: #EF4444;
+}
+
+.top-bar.status-warning {
+  background: #F59E0B;
+}
+
+.top-bar.status-hospital {
+  background: #8B5CF6;
 }
 
 .card-top {
@@ -71,7 +93,13 @@
   font-size: 16px;
   font-weight: 600;
   color: #1E293B;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .type {
@@ -79,10 +107,19 @@
   color: #94A3B8;
 }
 
+.age-tag {
+  font-size: 11px;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .status-label {
@@ -91,6 +128,15 @@
   padding: 2px 8px;
   border-radius: 10px;
   color: #FFFFFF;
+}
+
+.hospital-days {
+  font-size: 11px;
+  color: #8B5CF6;
+  background: #F5F3FF;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
 }
 
 .abnormal {

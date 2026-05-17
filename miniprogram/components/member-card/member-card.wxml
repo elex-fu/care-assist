@@ -1,5 +1,6 @@
 <!-- grid variant (default) -->
-<view wx:if="{{variant === 'grid' || !variant}}" class="card">
+<view wx:if="{{variant === 'grid' || !variant}}" class="card {{showTopBar ? statusClass + '-border' : ''}}">
+  <view class="top-bar {{statusClass}}" wx:if="{{showTopBar}}"></view>
   <view class="card-top">
     <view class="avatar-wrap">
       <lazy-image wx:if="{{member.avatar_url}}" src="{{member.avatar_url}}" width="56px" height="56px" radius="50%" />
@@ -11,10 +12,14 @@
   </view>
   <view class="card-body">
     <text class="name">{{member.name}}</text>
-    <text class="type">{{typeLabel}}</text>
+    <view class="meta-tags">
+      <text class="type">{{typeLabel}}</text>
+      <text class="age-tag" wx:if="{{ageText}}">{{ageText}}</text>
+    </view>
   </view>
   <view class="card-footer">
     <text class="status-label {{statusClass}}">{{statusText}}</text>
+    <text class="hospital-days" wx:if="{{hospitalDays > 0}}">住院{{hospitalDays}}天</text>
     <text class="abnormal" wx:if="{{member.abnormal_count > 0}}">{{member.abnormal_count}}项异常</text>
   </view>
 </view>

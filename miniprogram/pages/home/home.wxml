@@ -66,7 +66,7 @@
         data-id="{{item.id}}"
         bindtap="goToMemberDetail"
       >
-        <member-card member="{{item}}" hospitalActive="{{!!hospitalMap[item.id]}}" />
+        <member-card member="{{item}}" hospitalActive="{{!!hospitalMap[item.id]}}" hospitalDays="{{hospitalDaysMap[item.id] || 0}}" />
       </view>
 
       <!-- Add Member Card -->
