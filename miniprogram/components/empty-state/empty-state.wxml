@@ -3,6 +3,6 @@
   <text class="empty-title" wx:if="{{title}}">{{title}}</text>
   <text class="empty-subtitle" wx:if="{{subtitle}}">{{subtitle}}</text>
   <view class="empty-action" wx:if="{{actionText}}" bindtap="onAction">
-    <text>{{actionText}}</text>
+    <text class="empty-action-text">{{actionText}}</text>
   </view>
 </view>

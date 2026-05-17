@@ -27,7 +27,7 @@
   border-radius: 20px;
 }
 
-.empty-action text {
+.empty-action .empty-action-text {
   font-size: 14px;
   color: #2563EB;
   font-weight: 500;

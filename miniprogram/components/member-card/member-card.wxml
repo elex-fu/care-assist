@@ -36,7 +36,7 @@
 <!-- header variant -->
 <view wx:elif="{{variant === 'header'}}" class="header">
   <view class="header-avatar">
-    <text>{{member.name ? member.name[0] : '?'}}</text>
+    <text class="header-avatar-text">{{member.name ? member.name[0] : '?'}}</text>
   </view>
   <text class="header-name">{{member.name}}</text>
   <slot name="meta"></slot>

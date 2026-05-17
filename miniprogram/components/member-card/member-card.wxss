@@ -159,7 +159,7 @@
   margin-bottom: 10px;
 }
 
-.header-avatar text {
+.header-avatar .header-avatar-text {
   font-size: 24px;
   font-weight: 600;
   color: #FFFFFF;
