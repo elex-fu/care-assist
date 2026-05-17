@@ -42,16 +42,26 @@
   <!-- Watch Tab -->
   <view class="tab-content" wx:if="{{activeTab === 'watch'}}">
     <view class="indicator-grid" wx:if="{{watchIndicators.length}}">
-      <view class="indicator-card" wx:for="{{watchIndicators}}" wx:key="indicator_key">
-        <text class="card-name">{{item.indicator_name}}</text>
+      <view class="indicator-card {{item.status}}" wx:for="{{watchIndicators}}" wx:key="indicator_key">
+        <view class="card-top">
+          <text class="card-name">{{item.indicator_name}}</text>
+          <view class="card-status-pill {{item.status}}">
+            <text>{{getStatusLabel(item.status)}}</text>
+          </view>
+        </view>
         <view class="card-value-row">
           <text class="card-value">{{item.value}}</text>
           <text class="card-unit">{{item.unit}}</text>
         </view>
-        <view class="card-status" style="background: {{getStatusColor(item.status)}};">
-          <text>{{getStatusLabel(item.status)}}</text>
+        <view class="card-range-bar" wx:if="{{item.lower_limit != null && item.upper_limit != null}}">
+          <view class="range-track">
+            <view class="range-fill" style="left: {{computeRangePercent(item.value, item.lower_limit, item.upper_limit).left}}%; width: {{computeRangePercent(item.value, item.lower_limit, item.upper_limit).width}}%;"></view>
+          </view>
+          <view class="range-labels">
+            <text class="range-label">{{item.lower_limit}}</text>
+            <text class="range-label">{{item.upper_limit}}</text>
+          </view>
         </view>
-        <text class="card-date">{{item.record_date}} {{item.record_time || ''}}</text>
         <view class="card-change" wx:if="{{item.change !== null && item.change !== undefined}}">
           <text class="change-text {{item.change > 0 ? 'up' : item.change < 0 ? 'down' : ''}}">
             {{item.change > 0 ? '↑' : item.change < 0 ? '↓' : '→'}} {{item.change}} {{item.unit}}
@@ -59,6 +69,10 @@
           <text class="change-percent" wx:if="{{item.change_percent !== null && item.change_percent !== undefined}}">
             ({{item.change_percent > 0 ? '+' : ''}}{{item.change_percent}}%)
           </text>
+        </view>
+        <text class="card-date">{{item.record_date}} {{item.record_time || ''}}</text>
+        <view class="card-action" data-key="{{item.indicator_key}}" data-name="{{item.indicator_name}}" data-unit="{{item.unit}}" bindtap="goToIndicatorTrend">
+          <text class="card-action-text">查看趋势 ›</text>
         </view>
       </view>
     </view>

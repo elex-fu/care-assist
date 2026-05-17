@@ -132,27 +132,66 @@
 
 .indicator-card {
   background: #FFFFFF;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid transparent;
+}
+
+.indicator-card.critical {
+  border-color: #FECACA;
+}
+
+.indicator-card.high,
+.indicator-card.low {
+  border-color: #FEF3C7;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .card-name {
-  display: block;
   font-size: 13px;
   color: #64748B;
-  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.card-status-pill {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.card-status-pill.normal {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.card-status-pill.high,
+.card-status-pill.low {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.card-status-pill.critical {
+  background: #FECACA;
+  color: #DC2626;
 }
 
 .card-value-row {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .card-value {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: #1E293B;
 }
@@ -162,27 +201,50 @@
   color: #94A3B8;
 }
 
-.card-status {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  color: #FFFFFF;
-  font-weight: 500;
-  margin-bottom: 6px;
+/* Range Bar */
+.card-range-bar {
+  margin-bottom: 8px;
+}
+
+.range-track {
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 3px;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.range-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB, #3B82F6);
+  border-radius: 3px;
+  min-width: 4px;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.range-label {
+  font-size: 10px;
+  color: #94A3B8;
 }
 
 .card-date {
   font-size: 11px;
   color: #94A3B8;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .card-change {
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-bottom: 6px;
 }
 
 .change-text {
@@ -201,6 +263,17 @@
 .change-percent {
   font-size: 11px;
   color: #94A3B8;
+}
+
+.card-action {
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.card-action-text {
+  font-size: 12px;
+  color: #2563EB;
+  font-weight: 500;
 }
 
 /* Compare */

@@ -97,6 +97,26 @@ Page({
     return map[status] || '#94A3B8'
   },
 
+  computeRangePercent(value, lower, upper) {
+    const v = Number(value)
+    const l = Number(lower)
+    const u = Number(upper)
+    if (isNaN(v) || isNaN(l) || isNaN(u) || u === l) return { left: 0, width: 0 }
+    const range = u - l
+    let left = ((v - l) / range) * 100
+    left = Math.max(0, Math.min(100, left))
+    return { left, width: 4 }
+  },
+
+  goToIndicatorTrend(e) {
+    const { key, name, unit } = e.currentTarget.dataset
+    const memberId = this.data.memberId
+    if (!memberId || !key) return
+    wx.navigateTo({
+      url: `/pages/indicator-detail/indicator-detail?member_id=${memberId}&indicator_key=${key}&indicator_name=${name}&unit=${unit || ''}`,
+    })
+  },
+
   async discharge() {
     const { eventId, event } = this.data
     if (!eventId || !event) return
