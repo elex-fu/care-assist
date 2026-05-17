@@ -25,5 +25,10 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
+    # Logging configuration
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE_PATH: str = "logs/care-assist.log"
+    LOG_FORMAT: str = "standard"  # "standard" or "json"
+
 
 settings = Settings()
