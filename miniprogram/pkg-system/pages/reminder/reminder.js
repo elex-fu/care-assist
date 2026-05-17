@@ -4,17 +4,29 @@ const { store } = require('../../../utils/store')
 Page({
   data: {
     memberId: '',
+    memberIndex: 0,
+    selectedMemberName: '选择成员',
     members: [],
     reminders: [],
-    statusFilter: '', // '' | 'pending' | 'completed' | 'overdue'
+    statusFilter: '',
     loading: false,
+  },
+
+  _computeMemberPickerData(members, memberId) {
+    const idx = members.findIndex(m => m.id === memberId)
+    const member = members[idx]
+    return {
+      memberIndex: idx >= 0 ? idx : 0,
+      selectedMemberName: member ? member.name : '选择成员',
+    }
   },
 
   onLoad() {
     const members = store.members || []
     const currentMember = store.currentMember
     const memberId = currentMember ? currentMember.id : (members[0] ? members[0].id : '')
-    this.setData({ members, memberId })
+    const picker = this._computeMemberPickerData(members, memberId)
+    this.setData({ members, memberId, ...picker })
     if (memberId) {
       this.loadReminders(memberId)
     }
@@ -47,7 +59,8 @@ Page({
     const idx = parseInt(e.detail.value)
     const member = this.data.members[idx]
     if (!member) return
-    this.setData({ memberId: member.id })
+    const picker = this._computeMemberPickerData(this.data.members, member.id)
+    this.setData({ memberId: member.id, ...picker })
     this.loadReminders(member.id)
   },
 

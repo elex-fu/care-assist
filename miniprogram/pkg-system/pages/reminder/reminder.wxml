@@ -12,9 +12,9 @@
   </view>
 
   <view class="filter-bar">
-    <picker bindchange="onMemberChange" value="{{members.findIndex(m => m.id === memberId)}}" range="{{members}}" range-key="name">
+    <picker bindchange="onMemberChange" value="{{memberIndex}}" range="{{members}}" range-key="name">
       <view class="filter-picker">
-        <text class="filter-text">{{members.find(m => m.id === memberId) ? members.find(m => m.id === memberId).name : '选择成员'}}</text>
+        <text class="filter-text">{{selectedMemberName}}</text>
         <text class="filter-arrow">▼</text>
       </view>
     </picker>

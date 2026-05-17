@@ -6,6 +6,8 @@ Page({
   data: {
     members: [],
     memberId: '',
+    memberIndex: 0,
+    selectedMemberName: '选择成员',
     formatIndex: 0,
     formats: ['JSON', 'Excel', 'PDF'],
     startDate: '',
@@ -16,20 +18,31 @@ Page({
     downloadedFile: '',
   },
 
+  _computeMemberPickerData(members, memberId) {
+    const idx = members.findIndex(m => m.id === memberId)
+    const member = members[idx]
+    return {
+      memberIndex: idx >= 0 ? idx : 0,
+      selectedMemberName: member ? member.name : '选择成员',
+    }
+  },
+
   onLoad() {
     const members = store.members || []
     const currentMember = store.currentMember
     const memberId = currentMember ? currentMember.id : (members[0] ? members[0].id : '')
     const today = formatDateFull(new Date())
     const thirtyDaysAgo = formatDateFull(new Date(Date.now() - 30 * 86400000))
-    this.setData({ members, memberId, startDate: thirtyDaysAgo, endDate: today })
+    const picker = this._computeMemberPickerData(members, memberId)
+    this.setData({ members, memberId, ...picker, startDate: thirtyDaysAgo, endDate: today })
   },
 
   onMemberChange(e) {
     const idx = parseInt(e.detail.value)
     const member = this.data.members[idx]
     if (!member) return
-    this.setData({ memberId: member.id, showResult: false, exportData: null, downloadedFile: '' })
+    const picker = this._computeMemberPickerData(this.data.members, member.id)
+    this.setData({ memberId: member.id, ...picker, showResult: false, exportData: null, downloadedFile: '' })
   },
 
   onFormatChange(e) {

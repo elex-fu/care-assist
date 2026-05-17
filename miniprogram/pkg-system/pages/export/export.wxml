@@ -5,9 +5,9 @@
 
   <view class="section">
     <text class="section-title">选择成员</text>
-    <picker bindchange="onMemberChange" value="{{members.findIndex(m => m.id === memberId)}}" range="{{members}}" range-key="name">
+    <picker bindchange="onMemberChange" value="{{memberIndex}}" range="{{members}}" range-key="name">
       <view class="picker-card">
-        <text class="picker-text">{{members.find(m => m.id === memberId) ? members.find(m => m.id === memberId).name : '选择成员'}}</text>
+        <text class="picker-text">{{selectedMemberName}}</text>
         <text class="picker-arrow">▼</text>
       </view>
     </picker>
