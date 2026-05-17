@@ -1,5 +1,11 @@
 const API_BASE = 'ws://localhost:8000'
 
+const env = (typeof wx !== 'undefined' && wx.getAccountInfoSync)
+  ? wx.getAccountInfoSync().miniProgram.envVersion
+  : 'release'
+const isDev = env === 'develop'
+const isLocalhost = API_BASE.includes('localhost')
+
 class WSClient {
   constructor() {
     this.ws = null
@@ -9,6 +15,8 @@ class WSClient {
     this.connected = false
     this.token = null
     this.shouldReconnect = true
+    this.reconnectCount = 0
+    this.maxReconnect = (isDev && isLocalhost) ? 0 : 5
   }
 
   connect(token) {
@@ -16,11 +24,17 @@ class WSClient {
     this.token = token
     this.shouldReconnect = true
 
+    if (isDev && isLocalhost && this.reconnectCount > this.maxReconnect) {
+      console.warn('[dev] WebSocket localhost 连接已跳过，避免开发环境报错刷屏')
+      return
+    }
+
     const url = `${API_BASE}/api/ws?token=${encodeURIComponent(token)}`
-    this.ws = wx.connectSocket({ url, protocols: ['health-protocol'] })
+    this.ws = wx.connectSocket({ url })
 
     this.ws.onOpen(() => {
       this.connected = true
+      this.reconnectCount = 0
       this._startHeartbeat()
       this._emit('open', {})
     })
@@ -40,12 +54,22 @@ class WSClient {
       this._stopHeartbeat()
       this._emit('close', {})
       if (this.shouldReconnect) {
-        this.reconnectTimer = setTimeout(() => this.connect(this.token), 3000)
+        this.reconnectCount++
+        if (this.reconnectCount <= this.maxReconnect) {
+          this.reconnectTimer = setTimeout(() => this.connect(this.token), 3000)
+        } else if (isDev && isLocalhost) {
+          console.warn('[dev] WebSocket localhost 重试已达上限，停止自动重连')
+        }
       }
     })
 
     this.ws.onError((err) => {
-      console.error('WS error', err)
+      if (isDev && isLocalhost) {
+        // 开发环境 localhost 预期会失败，降级为 warn 避免红色报错刷屏
+        console.warn('[dev] WebSocket localhost 连接失败（预期行为）', err.errMsg || '')
+      } else {
+        console.error('WS error', err)
+      }
       this._emit('error', err)
     })
   }
