@@ -42,6 +42,20 @@ Page({
     return status || ''
   },
 
+  addToIndicators() {
+    const { memberId, report } = this.data
+    if (!memberId) {
+      wx.showToast({ title: '无法获取成员信息', icon: 'none' })
+      return
+    }
+    wx.switchTab({
+      url: '/pages/indicators/indicators',
+      success: () => {
+        wx.showToast({ title: '指标已同步到指标中心', icon: 'success' })
+      },
+    })
+  },
+
   async deleteReport() {
     const { reportId, report } = this.data
     if (!reportId || !report) return

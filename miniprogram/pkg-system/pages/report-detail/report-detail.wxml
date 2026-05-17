@@ -35,8 +35,12 @@
   </view>
 
   <view class="section" wx:if="{{report && report.ai_summary}}">
-    <text class="section-title">AI 摘要</text>
+    <text class="section-title">AI 解读</text>
     <view class="ai-summary-card">
+      <view class="ai-summary-header">
+        <text class="ai-summary-icon">✦</text>
+        <text class="ai-summary-title">AI 智能分析</text>
+      </view>
       <text class="ai-summary-text">{{report.ai_summary}}</text>
     </view>
   </view>
@@ -48,6 +52,9 @@
   />
 
   <view class="footer-actions" wx:if="{{report}}">
+    <view class="primary-btn" bindtap="addToIndicators">
+      <text>加入指标中心</text>
+    </view>
     <view class="delete-btn" bindtap="deleteReport">
       <text>删除报告</text>
     </view>
