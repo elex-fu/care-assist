@@ -121,75 +121,7 @@
   padding: 0 16px;
 }
 
-/* Timeline (reused from member-detail) */
-.timeline {
-  padding-left: 12px;
-  border-left: 2px solid #E2E8F0;
-  margin-left: 8px;
-}
-
-.timeline-item {
-  position: relative;
-  padding-bottom: 20px;
-  padding-left: 20px;
-}
-
-.timeline-node {
-  position: absolute;
-  left: -17px;
-  top: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #2563EB;
-  border: 2px solid #FFFFFF;
-  box-shadow: 0 0 0 2px #2563EB;
-}
-
-.timeline-card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.timeline-type {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1E293B;
-}
-
-.timeline-date {
-  font-size: 12px;
-  color: #94A3B8;
-}
-
-.timeline-hospital {
-  font-size: 13px;
-  color: #475569;
-  margin-bottom: 2px;
-  display: block;
-}
-
-.timeline-diagnosis {
-  font-size: 13px;
-  color: #2563EB;
-  margin-bottom: 2px;
-  display: block;
-}
-
-.timeline-notes {
-  font-size: 12px;
-  color: #64748B;
-  display: block;
-}
+/* Timeline (uses timeline-node component) */
 
 /* Indicator Grid */
 .indicator-grid {

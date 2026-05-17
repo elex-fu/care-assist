@@ -1,6 +1,6 @@
 const api = require('../../utils/api')
 const { store, setMembers } = require('../../utils/store')
-const { formatDateFull, getStatusColor, getStatusLabel } = require('../../utils/format')
+const { formatDateFull, getStatusColor, getStatusLabel, getEventTypeLabel, getOcrStatusLabel } = require('../../utils/format')
 
 Page({
   data: {

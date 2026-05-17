@@ -4,40 +4,7 @@
   padding-bottom: 20px;
 }
 
-/* Header */
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 28px 16px 20px;
-  background: #FFFFFF;
-  margin-bottom: 12px;
-}
-
-.avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, #2563EB, #3B82F6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.avatar text {
-  font-size: 24px;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-.name {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1E293B;
-  margin-bottom: 6px;
-}
-
+/* Header (member-card component) */
 .meta-row {
   display: flex;
   align-items: center;
@@ -53,16 +20,6 @@
 .meta-dot {
   font-size: 13px;
   color: #CBD5E1;
-}
-
-.role-tag {
-  font-size: 12px;
-  color: #2563EB;
-  background: #EFF6FF;
-  padding: 3px 10px;
-  border-radius: 10px;
-  font-weight: 500;
-  margin-bottom: 10px;
 }
 
 .header-links {
@@ -214,107 +171,11 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.timeline-header {
+/* Indicator List (uses indicator-row component) */
+.indicator-list {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.timeline-type {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1E293B;
-}
-
-.timeline-date {
-  font-size: 12px;
-  color: #94A3B8;
-}
-
-.timeline-hospital {
-  font-size: 13px;
-  color: #475569;
-  margin-bottom: 2px;
-  display: block;
-}
-
-.timeline-diagnosis {
-  font-size: 13px;
-  color: #2563EB;
-  margin-bottom: 2px;
-  display: block;
-}
-
-.timeline-notes {
-  font-size: 12px;
-  color: #64748B;
-  display: block;
-}
-
-/* Indicator Grid */
-.indicator-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.indicator-card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.card-name {
-  display: block;
-  font-size: 13px;
-  color: #64748B;
-  margin-bottom: 6px;
-}
-
-.card-value-row {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.card-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1E293B;
-}
-
-.card-unit {
-  font-size: 12px;
-  color: #94A3B8;
-}
-
-.card-status {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  color: #FFFFFF;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.card-date {
-  font-size: 11px;
-  color: #94A3B8;
-}
-
-.indicator-card.abnormal {
-  border: 1px solid #FECACA;
-  background: #FEF2F2;
-}
-
-.abnormal-hint {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #DC2626;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .section-header {
@@ -335,100 +196,11 @@
   color: #2563EB;
 }
 
-/* Report List */
+/* Report List (uses report-card component) */
 .report-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.report-card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.report-type {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1E293B;
-}
-
-.report-status {
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.report-status.completed {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.report-status.pending {
-  background: #F1F5F9;
-  color: #64748B;
-}
-
-.report-status.processing {
-  background: #EFF6FF;
-  color: #2563EB;
-}
-
-.report-status.failed {
-  background: #FEF2F2;
-  color: #EF4444;
-}
-
-.report-hospital {
-  font-size: 13px;
-  color: #475569;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.report-date {
-  font-size: 12px;
-  color: #94A3B8;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.extracted-label {
-  font-size: 12px;
-  color: #2563EB;
-  background: #EFF6FF;
-  padding: 4px 10px;
-  border-radius: 8px;
-  display: inline-block;
-}
-
-/* Empty State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 80px;
-}
-
-.empty-title {
-  font-size: 15px;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-.empty-subtitle {
-  font-size: 13px;
-  color: #2563EB;
 }
 
 /* AI Tab */

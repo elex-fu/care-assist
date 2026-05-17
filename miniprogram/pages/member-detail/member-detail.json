@@ -2,6 +2,10 @@
   "navigationBarTitleText": "成员详情",
   "usingComponents": {
     "abnormal-guide": "/components/abnormal-guide/abnormal-guide",
-    "timeline-node": "/components/timeline-node/timeline-node"
+    "timeline-node": "/components/timeline-node/timeline-node",
+    "member-card": "/components/member-card/member-card",
+    "indicator-row": "/components/indicator-row/indicator-row",
+    "report-card": "/components/report-card/report-card",
+    "empty-state": "/components/empty-state/empty-state"
   }
 }

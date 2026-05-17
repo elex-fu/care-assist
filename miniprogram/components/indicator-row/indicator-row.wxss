@@ -1,0 +1,97 @@
+.indicator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.indicator-row.compact {
+  padding: 10px 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.indicator-row.compact:last-child {
+  border-bottom: none;
+}
+
+.indicator-row.abnormal {
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+}
+
+.indicator-row.abnormal.compact {
+  border: none;
+  background: transparent;
+}
+
+.row-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.indicator-name {
+  font-size: 14px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.indicator-date {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+.row-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.value-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.indicator-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.indicator-unit {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.status-badge {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.row-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.trend-arrow {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.trend-label {
+  font-size: 11px;
+  color: #94A3B8;
+}

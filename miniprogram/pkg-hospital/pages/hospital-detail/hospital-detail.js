@@ -1,4 +1,5 @@
 const api = require('../../../utils/api')
+const { getEventTypeLabel, getOcrStatusLabel, getStatusColor } = require('../../../utils/format')
 
 Page({
   data: {

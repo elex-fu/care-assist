@@ -1,0 +1,22 @@
+<view class="report-card {{variant}}" data-id="{{report.id}}" bindtap="onTap">
+  <view class="card-header">
+    <text class="report-type">{{typeLabel}}</text>
+    <view class="status-badge {{statusClass}}">
+      <text>{{statusLabel}}</text>
+    </view>
+  </view>
+
+  <text class="report-hospital" wx:if="{{report.hospital}}">{{report.hospital}}</text>
+  <text class="report-date" wx:if="{{report.report_date}}">{{report.report_date}}</text>
+
+  <view class="extracted-bar" wx:if="{{report.extracted_indicators && report.extracted_indicators.length}}">
+    <text class="extracted-label">识别到 {{report.extracted_indicators.length}} 项指标</text>
+  </view>
+
+  <view class="extracted-list" wx:if="{{variant === 'detail' && report.extracted_indicators && report.extracted_indicators.length}}">
+    <view class="extracted-item" wx:for="{{report.extracted_indicators}}" wx:key="indicator_key">
+      <text class="extracted-name">{{item.indicator_name}}</text>
+      <text class="extracted-value">{{item.value}} {{item.unit}}</text>
+    </view>
+  </view>
+</view>

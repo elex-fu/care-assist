@@ -58,6 +58,71 @@ function formatNumber(n, decimals = 1) {
   return Number(n).toFixed(decimals)
 }
 
+function getEventTypeLabel(type) {
+  const map = {
+    visit: '就诊',
+    lab: '检验',
+    medication: '用药',
+    symptom: '症状',
+    hospital: '住院',
+    vaccine: '疫苗',
+    checkup: '体检',
+    milestone: '里程碑',
+    ai: 'AI解读',
+  }
+  return map[type] || '事件'
+}
+
+function getReportTypeLabel(type) {
+  const map = {
+    lab: '检验报告',
+    diagnosis: '诊断报告',
+    prescription: '处方',
+    discharge: '出院小结',
+  }
+  return map[type] || '报告'
+}
+
+function getOcrStatusLabel(status) {
+  const map = {
+    completed: '已识别',
+    pending: '待处理',
+    processing: '识别中',
+    failed: '失败',
+  }
+  return map[status] || '待处理'
+}
+
+function getReminderTypeLabel(type) {
+  const map = {
+    vaccine: '疫苗',
+    checkup: '体检',
+    review: '复查',
+    medication: '用药',
+  }
+  return map[type] || '提醒'
+}
+
+function getReminderPriorityLabel(priority) {
+  const map = {
+    critical: '紧急',
+    high: '高',
+    normal: '普通',
+    low: '低',
+  }
+  return map[priority] || '普通'
+}
+
+function getVaccineStatusLabel(status) {
+  const map = {
+    completed: '已完成',
+    pending: '待接种',
+    upcoming: '即将接种',
+    overdue: '已逾期',
+  }
+  return map[status] || '待接种'
+}
+
 module.exports = {
   formatDate,
   formatDateFull,
@@ -68,4 +133,10 @@ module.exports = {
   getTrendArrow,
   getTrendLabel,
   formatNumber,
+  getEventTypeLabel,
+  getReportTypeLabel,
+  getOcrStatusLabel,
+  getReminderTypeLabel,
+  getReminderPriorityLabel,
+  getVaccineStatusLabel,
 }

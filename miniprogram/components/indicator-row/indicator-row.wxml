@@ -1,0 +1,23 @@
+<view class="indicator-row {{compact ? 'compact' : ''}} {{indicator.status !== 'normal' ? 'abnormal' : ''}}">
+  <view class="row-left">
+    <text class="indicator-name">{{indicator.indicator_name}}</text>
+    <text class="indicator-date" wx:if="{{indicator.record_date && !compact}}">{{indicator.record_date}}</text>
+  </view>
+
+  <view class="row-center">
+    <view class="value-wrap">
+      <text class="indicator-value">{{indicator.value}}</text>
+      <text class="indicator-unit">{{indicator.unit}}</text>
+    </view>
+    <view class="status-badge" style="background: {{statusColor}};" wx:if="{{!compact}}">
+      <text>{{statusLabel}}</text>
+    </view>
+  </view>
+
+  <view class="row-right" wx:if="{{showTrend && indicator.trend}}">
+    <text class="trend-arrow">{{indicator.trend.arrow}}</text>
+    <text class="trend-label">{{indicator.trend.label}}</text>
+  </view>
+
+  <slot name="extra"></slot>
+</view>

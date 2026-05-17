@@ -2,17 +2,27 @@ Component({
   properties: {
     member: Object,
     hospitalActive: Boolean,
+    variant: {
+      type: String,
+      value: 'grid',
+    },
   },
 
   data: {
     statusClass: '',
     statusText: '',
     statusIcon: '',
+    typeLabel: '',
   },
 
   observers: {
-    'member, hospitalActive': function(member, hospitalActive) {
+    'member, hospitalActive, variant': function(member, hospitalActive, variant) {
       if (!member) return
+      const typeLabel = member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'
+      this.setData({ typeLabel })
+      if (variant === 'list') {
+        return
+      }
       if (hospitalActive) {
         this.setData({
           statusClass: 'status-hospital',

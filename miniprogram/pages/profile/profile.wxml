@@ -1,16 +1,14 @@
 <view class="container {{elderMode ? 'elder-mode' : ''}}">
   <!-- User Card -->
-  <view class="user-card">
-    <view class="avatar">
-      <text class="avatar-text">{{member && member.name ? member.name[0] : '?'}}</text>
+  <member-card
+    wx:if="{{member}}"
+    member="{{member}}"
+    variant="header"
+  >
+    <view slot="role" class="role-tag {{creator ? 'creator' : ''}}">
+      <text>{{creator ? '创建者' : '成员'}}</text>
     </view>
-    <view class="user-info">
-      <text class="user-name">{{member && member.name ? member.name : '未登录'}}</text>
-      <view class="role-tag {{creator ? 'creator' : ''}}">
-        <text>{{creator ? '创建者' : '成员'}}</text>
-      </view>
-    </view>
-  </view>
+  </member-card>
 
   <!-- Family Section -->
   <view class="section" wx:if="{{family}}">
@@ -69,13 +67,7 @@
     <view class="member-list">
       <view class="member-row" wx:for="{{members}}" wx:key="id">
         <view class="member-info" data-id="{{item.id}}" bindtap="goToMemberDetail">
-          <view class="member-avatar">
-            <text>{{item.name ? item.name[0] : '?'}}</text>
-          </view>
-          <view class="member-meta">
-            <text class="member-name">{{item.name}}</text>
-            <text class="member-type">{{item.type === 'child' ? '儿童' : item.type === 'elderly' ? '长辈' : '成人'}}</text>
-          </view>
+          <member-card member="{{item}}" variant="list" />
         </view>
         <view
           class="delete-btn"

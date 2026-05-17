@@ -1,4 +1,5 @@
-<view class="card">
+<!-- grid variant (default) -->
+<view wx:if="{{variant === 'grid' || !variant}}" class="card">
   <view class="card-top">
     <view class="avatar-wrap">
       <lazy-image wx:if="{{member.avatar_url}}" src="{{member.avatar_url}}" width="56px" height="56px" radius="50%" />
@@ -12,10 +13,33 @@
   </view>
   <view class="card-body">
     <text class="name">{{member.name}}</text>
-    <text class="type">{{member.type === 'child' ? '儿童' : member.type === 'elderly' ? '长辈' : '成人'}}</text>
+    <text class="type">{{typeLabel}}</text>
   </view>
   <view class="card-footer">
     <text class="status-label {{statusClass}}">{{statusText}}</text>
     <text class="abnormal" wx:if="{{member.abnormal_count > 0}}">{{member.abnormal_count}}项异常</text>
   </view>
+</view>
+
+<!-- list variant -->
+<view wx:elif="{{variant === 'list'}}" class="list-item">
+  <view class="list-avatar">
+    <text>{{member.name ? member.name[0] : '?'}}</text>
+  </view>
+  <view class="list-info">
+    <text class="list-name">{{member.name}}</text>
+    <text class="list-type">{{typeLabel}}</text>
+  </view>
+  <slot name="right"></slot>
+</view>
+
+<!-- header variant -->
+<view wx:elif="{{variant === 'header'}}" class="header">
+  <view class="header-avatar">
+    <text>{{member.name ? member.name[0] : '?'}}</text>
+  </view>
+  <text class="header-name">{{member.name}}</text>
+  <slot name="meta"></slot>
+  <slot name="role"></slot>
+  <slot name="actions"></slot>
 </view>
