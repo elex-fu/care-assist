@@ -1,16 +1,23 @@
 import json
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
+from app.ai.factory import get_default_provider, chat_with_fallback
+from app.ai.provider import AIProvider
+from app.config import settings
 from app.core.indicator_engine import IndicatorEngine
 from app.models.member import Member
 
 
 class AIService:
-    """AI health assistant service with rule-based responses for MVP.
-    In production, this would call a real LLM API (OpenAI, Claude, etc.)
+    """AI health assistant service.
+
+    In production, calls are routed to the configured AI provider (e.g. kimi-code).
+    If the provider is unavailable or unconfigured, falls back to rule-based mock
+    responses for local development and testing.
     """
 
     SYSTEM_PROMPT = """你是一位家庭智能健康助手，擅长解读健康指标和医疗报告。
@@ -19,8 +26,20 @@ class AIService:
 
 免责声明：本助手的建议仅供参考，不能替代专业医生的诊断和治疗。如有严重不适，请及时就医。"""
 
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("AI_API_KEY")
+    def __init__(self, provider: Optional[AIProvider] = None):
+        self.provider = provider
+
+    def _get_provider(self) -> Optional[AIProvider]:
+        if self.provider is not None:
+            return self.provider
+        try:
+            # Skip provider if API key is not configured to avoid runtime errors
+            # in development environments.
+            if settings.KIMI_CODE_API_KEY:
+                return get_default_provider()
+        except Exception:
+            pass
+        return None
 
     async def generate_reply(
         self,
@@ -32,15 +51,19 @@ class AIService:
         recent_reports: Optional[list[dict]] = None,
     ) -> str:
         """Generate AI reply based on member health data and user message."""
-
-        # If real API key is configured, use it
-        if self.api_key:
-            return await self._call_llm_api(
-                member, conversation_history, user_message,
-                page_context, recent_indicators, recent_reports
+        provider = self._get_provider()
+        if provider is not None:
+            return await self._call_provider(
+                provider,
+                member,
+                conversation_history,
+                user_message,
+                page_context,
+                recent_indicators,
+                recent_reports,
             )
 
-        # Otherwise use rule-based mock responses
+        # Fallback to rule-based mock responses when no provider is configured
         return await self._generate_mock_reply(
             member, user_message, page_context, recent_indicators, recent_reports
         )
@@ -72,13 +95,33 @@ class AIService:
             yield sentence
             await asyncio.sleep(0.15)  # Simulate typing delay
 
-    async def _call_llm_api(
-        self, member, history, message, page_context, indicators, reports
+    async def _call_provider(
+        self,
+        provider: AIProvider,
+        member: Member,
+        history: list[dict],
+        message: str,
+        page_context: Optional[str],
+        indicators: Optional[list[dict]],
+        reports: Optional[list[dict]],
     ) -> str:
-        # Placeholder for real LLM integration
-        # In production: call OpenAI/Claude/ERNIE API
+        """Call the configured AI provider with built context."""
         context = self._build_context(member, indicators, reports)
-        return f"[AI] 收到您的问题：{message}。根据{member.name}的健康数据，{context}"
+        system_prompt = self.SYSTEM_PROMPT
+        if page_context:
+            system_prompt += f"\n当前页面上下文：{page_context}"
+
+        messages = [{"role": "system", "content": system_prompt}]
+        # Include last 10 messages of history to stay within context limits
+        for msg in (history or [])[-10:]:
+            role = msg.get("role")
+            content = msg.get("content")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": f"{context}\n用户问题：{message}"})
+
+        reply = await provider.chat(messages, stream=False, max_tokens=1024, temperature=0.7)
+        return self._append_disclaimer(reply)
 
     def _append_disclaimer(self, reply: str) -> str:
         disclaimer = "\n\n【免责声明】本助手的建议仅供参考，不能替代专业医生的诊断和治疗。如有严重不适，请及时就医。"
@@ -255,8 +298,14 @@ class AIService:
         member_cards: list[dict],
     ) -> str:
         """Generate AI daily summary for family dashboard."""
-        if self.api_key:
-            return f"[AI] 家庭健康概览：共{len(member_cards)}位成员，已生成智能摘要。"
+        provider = self._get_provider()
+        if provider is not None:
+            try:
+                reply = await provider.generate_summary({"member_cards": member_cards})
+                return self._append_disclaimer(reply)
+            except Exception:
+                # Fall back to rule-based summary on provider failure
+                pass
 
         total_abnormal = sum(c.get("abnormal_count", 0) for c in member_cards)
         critical_members = [c for c in member_cards if c.get("latest_status") == "critical"]

@@ -18,6 +18,11 @@ from app.models.member import Member
 from app.models.family import Family
 from app.models.indicator import IndicatorData
 from app.core.security import create_jwt
+from app.config import settings
+
+# Disable real AI providers during tests to ensure deterministic rule-based replies
+settings.KIMI_CODE_API_KEY = ""
+settings.DEFAULT_AI_PROVIDER = ""
 
 # Ensure all models are registered in Base.metadata before creating tables
 import app.models  # noqa: F401

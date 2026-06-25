@@ -30,5 +30,15 @@ class Settings(BaseSettings):
     LOG_FILE_PATH: str = "logs/care-assist.log"
     LOG_FORMAT: str = "standard"  # "standard" or "json"
 
+    # AI Provider configuration
+    DEFAULT_AI_PROVIDER: str = "kimi-code"
+    FALLBACK_AI_PROVIDERS: list[str] = []
+
+    # Kimi Code provider (Anthropic protocol via https://api.kimi.com/coding)
+    KIMI_CODE_API_KEY: str = ""
+    KIMI_CODE_BASE_URL: str = "https://api.kimi.com/coding"
+    KIMI_CODE_MODEL: str = "kimi-k2.6"
+    KIMI_CODE_TIMEOUT: float = 60.0
+
 
 settings = Settings()

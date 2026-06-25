@@ -1,7 +1,20 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.ai_service import AIService
+from app.ai.provider import AIProvider
+from app.config import settings
+
+
+@pytest.fixture(autouse=True)
+def disable_real_ai_provider(monkeypatch):
+    """Ensure unit tests use rule-based mock replies by default.
+
+    The real provider configuration is validated separately in integration tests
+    and the verify_kimi_code.py script.
+    """
+    monkeypatch.setattr(settings, "KIMI_CODE_API_KEY", "")
+    monkeypatch.setattr(settings, "DEFAULT_AI_PROVIDER", "")
 
 
 class TestAIServiceMockReplies:
@@ -150,9 +163,10 @@ class TestAIServiceMockReplies:
         )
         assert "分析" in reply or "了解" in reply
 
-    async def test_api_key_calls_llm(self, monkeypatch):
-        monkeypatch.setenv("AI_API_KEY", "fake-key")
-        svc = AIService()
+    async def test_provider_is_used_when_configured(self):
+        mock_provider = MagicMock(spec=AIProvider)
+        mock_provider.chat = AsyncMock(return_value="这是来自AI提供者的真实回复")
+        svc = AIService(provider=mock_provider)
         member = MagicMock()
         member.name = "张三"
         reply = await svc.generate_reply(
@@ -160,7 +174,21 @@ class TestAIServiceMockReplies:
             conversation_history=[],
             user_message="测试",
         )
-        assert "[AI]" in reply
+        assert "来自AI提供者" in reply
+        assert "免责声明" in reply
+        mock_provider.chat.assert_awaited_once()
+
+    async def test_family_summary_uses_provider_when_configured(self):
+        mock_provider = MagicMock(spec=AIProvider)
+        mock_provider.generate_summary = AsyncMock(return_value="AI生成的家庭摘要")
+        svc = AIService(provider=mock_provider)
+        cards = [
+            {"name": "张三", "latest_status": "normal", "abnormal_count": 0},
+        ]
+        summary = await svc.generate_family_summary(cards)
+        assert "AI生成的家庭摘要" in summary
+        assert "免责声明" in summary
+        mock_provider.generate_summary.assert_awaited_once()
 
     async def test_family_summary_normal(self):
         svc = AIService()
