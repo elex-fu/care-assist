@@ -1,4 +1,6 @@
-const API_BASE = 'http://localhost:8000'
+const { getApiBase } = require('./config')
+
+const API_BASE = getApiBase()
 
 let refreshingPromise = null
 const MAX_RETRIES = 3

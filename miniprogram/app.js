@@ -1,8 +1,9 @@
 const { store, clearAll } = require('./utils/store')
+const { getApiBase } = require('./utils/config')
 
 App({
   onLaunch() {
-    console.log('Care Assist App Launch')
+    console.log('Care Assist App Launch, env:', getApiBase())
 
     // Restore store from storage
     const token = wx.getStorageSync('access_token')
@@ -34,6 +35,6 @@ App({
   },
 
   globalData: {
-    apiBase: 'http://localhost:8000',
+    apiBase: getApiBase(),
   },
 })
