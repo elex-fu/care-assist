@@ -51,7 +51,8 @@
         "pages/export/export",
         "pages/report-detail/report-detail",
         "pages/indicator-batch/indicator-batch",
-        "pages/indicator-manual/indicator-manual"
+        "pages/indicator-manual/indicator-manual",
+        "pages/chronic/chronic"
       ]
     }
   ],

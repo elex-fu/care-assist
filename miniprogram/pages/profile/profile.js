@@ -53,6 +53,16 @@ Page({
     wx.navigateTo({ url: '/pkg-system/pages/reminder/reminder' })
   },
 
+  goToChronic() {
+    const member = this.data.member
+    const memberId = member ? member.id : (store.currentMemberId || '')
+    if (!memberId) {
+      wx.showToast({ title: '请先选择成员', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: `/pkg-system/pages/chronic/chronic?member_id=${memberId}` })
+  },
+
   goToMedications() {
     wx.navigateTo({ url: '/pkg-medication/pages/medication/medication' })
   },

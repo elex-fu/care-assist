@@ -1,0 +1,69 @@
+<view class="container">
+  <!-- List Mode -->
+  <block wx:if="{{!package}}">
+    <view class="page-header">
+      <text class="page-title">慢性病监测套餐</text>
+      <text class="page-subtitle" wx:if="{{memberName}}">成员：{{memberName}}</text>
+    </view>
+
+    <view class="package-list">
+      <view
+        class="package-card"
+        wx:for="{{packages}}"
+        wx:key="package"
+        data-package="{{item.package}}"
+        bindtap="goToDetail"
+      >
+        <view class="package-icon">{{item.icon}}</view>
+        <view class="package-info">
+          <text class="package-name">{{item.name}}</text>
+          <text class="package-desc">{{item.description}}</text>
+        </view>
+        <text class="package-arrow">›</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- Detail Mode -->
+  <block wx:if="{{package}}">
+    <view class="detail-header">
+      <text class="back-btn" bindtap="goBack">‹ 返回</text>
+      <text class="detail-title">{{packageName}}</text>
+    </view>
+
+    <view class="summary-card" wx:if="{{summary}}">
+      <text class="summary-label">病情简报</text>
+      <text class="summary-text">{{summary}}</text>
+    </view>
+
+    <view class="indicator-section">
+      <text class="section-title">相关指标</text>
+      <view class="indicator-list" wx:if="{{indicators.length}}">
+        <view
+          class="indicator-card {{item.status}}"
+          wx:for="{{indicators}}"
+          wx:key="key"
+        >
+          <view class="indicator-main">
+            <text class="indicator-name">{{item.name}}</text>
+            <text class="indicator-range" wx:if="{{item.ref_range}}">参考：{{item.ref_range}}</text>
+          </view>
+          <view class="indicator-value-wrap">
+            <text class="indicator-value" wx:if="{{item.value !== null && item.value !== undefined}}">{{item.value}}</text>
+            <text class="indicator-empty" wx:else>无数据</text>
+            <text class="indicator-unit">{{item.unit}}</text>
+          </view>
+          <view class="indicator-status {{item.status}}">{{item.status_label}}</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:else>
+        <text>近90天内无相关指标记录</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

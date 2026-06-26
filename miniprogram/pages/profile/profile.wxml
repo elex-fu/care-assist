@@ -38,6 +38,11 @@
         <text class="menu-label">提醒管理</text>
         <text class="menu-arrow">›</text>
       </view>
+      <view class="menu-item" bindtap="goToChronic">
+        <text class="menu-icon">🏥</text>
+        <text class="menu-label">慢性病专区</text>
+        <text class="menu-arrow">›</text>
+      </view>
       <view class="menu-item" bindtap="goToMedications">
         <text class="menu-icon">💊</text>
         <text class="menu-label">用药管理</text>
