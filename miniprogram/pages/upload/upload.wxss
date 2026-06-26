@@ -307,3 +307,37 @@
   background: #F1F5F9;
   color: #475569;
 }
+
+.manual-entry-bar {
+  position: fixed;
+  bottom: 88px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.manual-entry-hint {
+  color: #94A3B8;
+}
+
+.btn-text {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #2563EB;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  border: none;
+}
+
+.btn-text::after {
+  border: none;
+}

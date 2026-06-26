@@ -135,4 +135,15 @@ Page({
   goToIndicators() {
     wx.switchTab({ url: '/pages/indicators/indicators' })
   },
+
+  goToManualEntry() {
+    const memberId = this.data.currentMemberId
+    if (!memberId) {
+      wx.showToast({ title: '请先选择成员', icon: 'none' })
+      return
+    }
+    wx.navigateTo({
+      url: `/pkg-system/pages/indicator-manual/indicator-manual?member_id=${memberId}`,
+    })
+  },
 })

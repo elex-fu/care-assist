@@ -70,6 +70,11 @@
       <button class="btn-secondary" bindtap="retry">重选</button>
       <button class="btn-primary" bindtap="startUpload">开始识别</button>
     </view>
+
+    <view class="manual-entry-bar" wx:if="{{errorMsg}}">
+      <text class="manual-entry-hint">识别失败？</text>
+      <button class="btn-text" bindtap="goToManualEntry">手动录入指标</button>
+    </view>
   </block>
 
   <!-- Step 3: Uploading -->
@@ -99,12 +104,17 @@
     <empty-state
       wx:else
       title="未识别到指标"
-      subtitle="请检查图片清晰度后重试"
+      subtitle="请检查图片清晰度后重试，或直接手动录入"
     />
 
     <view class="action-bar">
       <button class="btn-secondary" bindtap="retry">再传一张</button>
       <button class="btn-primary" bindtap="goToIndicators">查看指标</button>
+    </view>
+
+    <view class="manual-entry-bar" wx:if="{{!extractedIndicators.length}}">
+      <text class="manual-entry-hint">没有识别到？</text>
+      <button class="btn-text" bindtap="goToManualEntry">手动录入指标</button>
     </view>
   </block>
 </view>
