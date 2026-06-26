@@ -1,4 +1,3 @@
-import pytest
 
 from app.models.report import Report
 

@@ -82,12 +82,12 @@ class BaiduOCRProvider(OCRProvider):
         words = [item.get("words", "") for item in data.get("words_result", [])]
         return "\n".join(words)
 
-    async def extract_indicators(self, image_url: str) -> list[dict]:
+    async def extract_indicators(self, image_url: str) -> list[dict[str, Any]]:
         text = await self.extract_text(image_url)
         return self._parse_indicators(text)
 
-    def _parse_indicators(self, text: str) -> list[dict]:
-        results: list[dict] = []
+    def _parse_indicators(self, text: str) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
         seen: set[str] = set()
 
         lines = text.splitlines()

@@ -1,6 +1,9 @@
-import pytest
 
-from app.core.milestone_data import get_all_milestones, get_milestones_for_age, get_milestone_categories
+from app.core.milestone_data import (
+    get_all_milestones,
+    get_milestone_categories,
+    get_milestones_for_age,
+)
 
 
 class TestMilestoneData:

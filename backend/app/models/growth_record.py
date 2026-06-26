@@ -1,10 +1,14 @@
 import uuid
-from datetime import datetime, timezone, date
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import String, ForeignKey, Date, Float, Index
+from sqlalchemy import Date, Float, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+if TYPE_CHECKING:
+    from app.models.member import Member
 
 
 class GrowthRecord(Base):
@@ -19,7 +23,7 @@ class GrowthRecord(Base):
     unit: Mapped[str] = mapped_column(String(20), nullable=False)
     recorded_at: Mapped[date] = mapped_column(Date, nullable=False)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
 
     member: Mapped["Member"] = relationship("Member", back_populates="growth_records")
 

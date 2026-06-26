@@ -1,7 +1,5 @@
 from datetime import date
 
-import pytest
-
 from app.models.growth_record import GrowthRecord
 
 
@@ -56,7 +54,9 @@ class TestChildGrowth:
         ))
         await db.commit()
 
-        resp = await auth_client.get(f"/api/child/growth?member_id={test_member.id}&record_type=height")
+        resp = await auth_client.get(
+            f"/api/child/growth?member_id={test_member.id}&record_type=height"
+        )
         assert resp.status_code == 200
         data = resp.json()["data"]
         assert all(r["record_type"] == "height" for r in data)

@@ -1,4 +1,6 @@
-from app.ai.factory import ocr_with_fallback, get_ocr_provider
+from typing import Any
+
+from app.ai.factory import get_ocr_provider, ocr_with_fallback
 from app.core.indicator_search import search_indicators
 from app.core.logging import get_logger
 from app.schemas.ocr import OCRPipelineResult, OCRResultItem
@@ -6,7 +8,7 @@ from app.schemas.ocr import OCRPipelineResult, OCRResultItem
 logger = get_logger("app.services.ocr_pipeline")
 
 
-def _normalize_indicator(raw: dict) -> OCRResultItem | None:
+def _normalize_indicator(raw: dict[str, Any]) -> OCRResultItem | None:
     """Normalize a raw OCR indicator dict to a structured item."""
     name = raw.get("name") or raw.get("indicator_name", "")
     value = raw.get("value")

@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.services.ocr_pipeline import run_ocr_pipeline
 
@@ -17,9 +18,11 @@ class TestOCRPipeline:
         mock_provider.extract_text = AsyncMock(return_value="收缩压 120\n舒张压 80")
         mock_provider.name = MagicMock(return_value="baidu")
 
-        with patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider):
-            with patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items):
-                result = await run_ocr_pipeline(["/tmp/report.png"])
+        with (
+            patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider),
+            patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items),
+        ):
+            result = await run_ocr_pipeline(["/tmp/report.png"])
 
         assert result.provider == "baidu"
         assert len(result.extracted) == 2
@@ -39,9 +42,11 @@ class TestOCRPipeline:
         mock_provider.extract_text = AsyncMock(return_value="")
         mock_provider.name = MagicMock(return_value="baidu")
 
-        with patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider):
-            with patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items):
-                result = await run_ocr_pipeline(["/tmp/report.png"])
+        with (
+            patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider),
+            patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items),
+        ):
+            result = await run_ocr_pipeline(["/tmp/report.png"])
 
         assert len(result.extracted) == 1
         assert result.extracted[0].indicator_key == "systolic_bp"
@@ -58,8 +63,10 @@ class TestOCRPipeline:
         mock_provider.extract_text = AsyncMock(return_value="")
         mock_provider.name = MagicMock(return_value="baidu")
 
-        with patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider):
-            with patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items):
-                result = await run_ocr_pipeline(["/tmp/report.png"])
+        with (
+            patch("app.services.ocr_pipeline.get_ocr_provider", return_value=mock_provider),
+            patch("app.services.ocr_pipeline.ocr_with_fallback", return_value=mock_items),
+        ):
+            result = await run_ocr_pipeline(["/tmp/report.png"])
 
         assert len(result.extracted) == 1

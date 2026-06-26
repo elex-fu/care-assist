@@ -5,12 +5,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.db.session import engine
+from app.api import (
+    ai_conversations,
+    auth,
+    child,
+    export,
+    health_events,
+    home,
+    hospitals,
+    indicators,
+    medications,
+    members,
+    reminders,
+    reports,
+    search,
+    summary,
+    vaccines,
+    ws,
+)
+from app.config import settings
 from app.core.exceptions import BusinessException
 from app.core.logging import configure_logging, get_logger
+from app.db.session import engine
 from app.middleware.logging import RequestLoggingMiddleware
-from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export, summary, child
-from app.config import settings
 
 # Initialize logging system before anything else
 configure_logging()

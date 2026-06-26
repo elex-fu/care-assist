@@ -1,8 +1,6 @@
 from datetime import date
 from decimal import Decimal
 
-import pytest
-
 from app.models.indicator import IndicatorData
 
 
@@ -36,7 +34,9 @@ class TestChronic:
         )
         await db.commit()
 
-        resp = await auth_client.get(f"/api/indicators/chronic/hypertension?member_id={test_member.id}")
+        resp = await auth_client.get(
+            f"/api/indicators/chronic/hypertension?member_id={test_member.id}"
+        )
         assert resp.status_code == 200
         data = resp.json()["data"]
         assert data["package"] == "hypertension"

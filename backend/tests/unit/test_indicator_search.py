@@ -1,5 +1,3 @@
-import pytest
-
 from app.core.indicator_search import get_indicator_metadata, search_indicators
 
 

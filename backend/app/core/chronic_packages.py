@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import TypedDict
 
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,14 @@ from app.schemas.chronic import ChronicIndicatorItem, ChronicPackageListItem, Ch
 
 logger = get_logger("app.core.chronic_packages")
 
-CHRONIC_PACKAGES = {
+
+class _ChronicPackageConfig(TypedDict):
+    name: str
+    description: str
+    indicator_keys: list[str]
+
+
+CHRONIC_PACKAGES: dict[str, _ChronicPackageConfig] = {
     "hypertension": {
         "name": "高血压",
         "description": "监测收缩压、舒张压等血压相关指标",
