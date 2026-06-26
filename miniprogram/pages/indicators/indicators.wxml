@@ -12,8 +12,26 @@
     </view>
   </scroll-view>
 
+  <!-- View Toggle -->
+  <view class="view-toggle">
+    <view
+      class="toggle-item {{viewMode === 'list' ? 'active' : ''}}"
+      data-mode="list"
+      bindtap="switchViewMode"
+    >
+      <text>列表</text>
+    </view>
+    <view
+      class="toggle-item {{viewMode === 'matrix' ? 'active' : ''}}"
+      data-mode="matrix"
+      bindtap="switchViewMode"
+    >
+      <text>表单</text>
+    </view>
+  </view>
+
   <!-- Indicator List -->
-  <view class="indicator-list" wx:if="{{!loading && indicators.length}}">
+  <view class="indicator-list" wx:if="{{viewMode === 'list' && !loading && indicators.length}}">
     <indicator-row
       wx:for="{{indicators}}"
       wx:key="id"
@@ -26,9 +44,58 @@
     />
   </view>
 
+  <!-- Matrix View -->
+  <view class="matrix-view" wx:if="{{viewMode === 'matrix' && !loading}}">
+    <scroll-view class="matrix-scroll" scroll-x="true" scroll-y="true">
+      <view class="matrix-table" wx:if="{{matrix && matrix.dates.length}}">
+        <view class="matrix-row header-row">
+          <view class="matrix-cell header-cell fixed-cell">日期</view>
+          <view
+            class="matrix-cell header-cell"
+            wx:for="{{matrix.indicator_keys}}"
+            wx:key="*this"
+          >
+            <text>{{matrix.indicator_names[item]}}</text>
+            <text class="unit">({{matrix.units[item]}})</text>
+          </view>
+        </view>
+
+        <view
+          class="matrix-row"
+          wx:for="{{matrix.dates}}"
+          wx:for-item="date"
+          wx:key="*this"
+        >
+          <view class="matrix-cell fixed-cell">{{date}}</view>
+          <view
+            class="matrix-cell {{matrix.cells[date][key].status || ''}}"
+            wx:for="{{matrix.indicator_keys}}"
+            wx:for-item="key"
+            wx:key="*this"
+            data-date="{{date}}"
+            data-key="{{key}}"
+            data-id="{{matrix.cells[date][key].indicator_id}}"
+            bindtap="onMatrixCellTap"
+          >
+            <block wx:if="{{matrix.cells[date][key]}}">
+              <text>{{matrix.cells[date][key].value}}</text>
+            </block>
+            <text wx:else class="empty-cell">-</text>
+          </view>
+        </view>
+      </view>
+      <empty-state
+        wx:if="{{!matrix || !matrix.dates.length}}"
+        icon="📊"
+        title="还没有记录"
+        subtitle="点击右下角按钮添加第一条指标"
+      />
+    </scroll-view>
+  </view>
+
   <!-- Empty State -->
   <empty-state
-    wx:if="{{!loading && !indicators.length}}"
+    wx:if="{{viewMode === 'list' && !loading && !indicators.length}}"
     icon="📊"
     title="还没有记录"
     subtitle="点击右下角按钮添加第一条指标"

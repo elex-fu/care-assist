@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from decimal import Decimal
 from typing import Optional
 
@@ -15,6 +15,7 @@ from app.models.indicator import IndicatorData
 from app.schemas.indicator import IndicatorCreate, IndicatorOut, IndicatorTrendOut, IndicatorTrendPoint
 from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
+from app.schemas.indicator_matrix import IndicatorMatrixResponse, MatrixCell
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
 logger = get_logger("app.api.indicators")
@@ -225,3 +226,61 @@ async def get_indicator_trend(
         previous=previous_point,
         trend=trend,
     ))
+
+
+@router.get("/matrix", response_model=ResponseWrapper[IndicatorMatrixResponse])
+async def get_indicator_matrix(
+    member_id: str = Query(...),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    target = await _verify_member_in_family(member_id, current, db)
+
+    if end_date is None:
+        end_date = date.today()
+    if start_date is None:
+        start_date = end_date - timedelta(days=30)
+
+    result = await db.execute(
+        select(IndicatorData)
+        .where(
+            IndicatorData.member_id == member_id,
+            IndicatorData.record_date >= start_date,
+            IndicatorData.record_date <= end_date,
+        )
+        .order_by(desc(IndicatorData.record_date), desc(IndicatorData.created_at))
+    )
+    records = result.scalars().all()
+
+    # Build matrix
+    dates = sorted({str(r.record_date) for r in records if start_date <= r.record_date <= end_date})
+    keys = sorted({r.indicator_key for r in records})
+    names = {r.indicator_key: r.indicator_name for r in records}
+    units = {r.indicator_key: r.unit for r in records}
+
+    cells: dict[str, dict[str, Optional[MatrixCell]]] = {}
+    for d in dates:
+        cells[d] = {k: None for k in keys}
+
+    for r in records:
+        d = str(r.record_date)
+        if d not in cells:
+            continue
+        # Keep latest record per date/key
+        if cells[d][r.indicator_key] is None:
+            cells[d][r.indicator_key] = MatrixCell(
+                value=r.value,
+                status=r.status,
+                indicator_id=r.id,
+            )
+
+    matrix = IndicatorMatrixResponse(
+        dates=dates,
+        indicator_keys=keys,
+        indicator_names=names,
+        units=units,
+        cells=cells,
+    )
+    return ResponseWrapper(data=matrix)
