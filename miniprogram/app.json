@@ -32,7 +32,9 @@
       "pages": [
         "pages/child-dashboard/child-dashboard",
         "pages/vaccine/vaccine",
-        "pages/vaccine-add/vaccine-add"
+        "pages/vaccine-add/vaccine-add",
+        "pages/growth/growth",
+        "pages/milestone/milestone"
       ]
     },
     {

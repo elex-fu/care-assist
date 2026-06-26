@@ -83,6 +83,37 @@
   margin-bottom: 10px;
 }
 
+.milestone-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.milestone-main {
+  flex: 1;
+}
+
+.milestone-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 4px;
+}
+
+.milestone-subtitle {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.milestone-arrow {
+  font-size: 20px;
+  color: #94A3B8;
+}
+
 /* Todo List */
 .todo-list {
   background: #FFFFFF;

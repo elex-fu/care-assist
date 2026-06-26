@@ -86,7 +86,18 @@ Page({
     const id = this.data.member && this.data.member.id
     if (!id) return
     wx.switchTab({ url: '/pages/indicators/indicators' })
-    // Note: indicators page will show current member
+  },
+
+  goToGrowth() {
+    const id = this.data.member && this.data.member.id
+    if (!id) return
+    wx.navigateTo({ url: `/pkg-child/pages/growth/growth?member_id=${id}` })
+  },
+
+  goToMilestones() {
+    const id = this.data.member && this.data.member.id
+    if (!id) return
+    wx.navigateTo({ url: `/pkg-child/pages/milestone/milestone?member_id=${id}` })
   },
 
   goToUpload() {

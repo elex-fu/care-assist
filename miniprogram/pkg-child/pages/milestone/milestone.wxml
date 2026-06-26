@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="page-header">
+    <text class="page-title">发育里程碑</text>
+    <text class="page-subtitle">根据年龄展示已达成或可期待的里程碑</text>
+  </view>
+
+  <view class="milestone-list" wx:if="{{milestones.length}}">
+    <view class="milestone-card" wx:for="{{milestones}}" wx:key="title">
+      <view class="milestone-header">
+        <text class="milestone-age">{{item.age_months}} 个月</text>
+        <text class="milestone-category">{{item.categoryLabel}}</text>
+      </view>
+      <text class="milestone-title">{{item.title}}</text>
+      <text class="milestone-desc">{{item.description}}</text>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:else>
+    <text wx:if="{{!loading}}">暂无里程碑数据</text>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

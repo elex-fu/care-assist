@@ -19,7 +19,7 @@
         <text class="quick-icon">💉</text>
         <text class="quick-label">疫苗</text>
       </view>
-      <view class="quick-item" bindtap="goToIndicators">
+      <view class="quick-item" bindtap="goToGrowth">
         <text class="quick-icon">📊</text>
         <text class="quick-label">生长</text>
       </view>
@@ -30,6 +30,16 @@
       <view class="quick-item" bindtap="goToMemberDetail">
         <text class="quick-icon">📋</text>
         <text class="quick-label">档案</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="milestone-card" bindtap="goToMilestones">
+        <view class="milestone-main">
+          <text class="milestone-title">发育里程碑</text>
+          <text class="milestone-subtitle">查看各阶段大运动、语言、认知发展</text>
+        </view>
+        <text class="milestone-arrow">›</text>
       </view>
     </view>
 

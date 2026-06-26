@@ -1,0 +1,62 @@
+<view class="container">
+  <view class="type-bar">
+    <text class="type-label">指标类型：</text>
+    <picker mode="selector" range="{{typeOptions}}" range-key="name" value="{{typeIndex}}" bindchange="onTypeChange">
+      <view class="type-picker">
+        <text>{{typeOptions[typeIndex].name}} ({{typeOptions[typeIndex].unit}})</text>
+        <text class="picker-arrow">›</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="record-list" wx:if="{{records.length}}">
+    <view class="record-item" wx:for="{{records}}" wx:key="id">
+      <view class="record-main">
+        <text class="record-date">{{item.recorded_at}}</text>
+        <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
+      </view>
+      <view class="record-value-wrap">
+        <text class="record-value">{{item.value}}</text>
+        <text class="record-unit">{{item.unit}}</text>
+      </view>
+      <text class="delete-btn" data-id="{{item.id}}" bindtap="deleteRecord">删除</text>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:else>
+    <text>暂无{{typeOptions[typeIndex].name}}记录</text>
+  </view>
+
+  <view class="action-bar">
+    <button class="btn-secondary" bindtap="goToMilestones">发育里程碑</button>
+    <button class="btn-primary" bindtap="openAddForm">添加记录</button>
+  </view>
+
+  <view class="form-overlay" wx:if="{{showAddForm}}" bindtap="closeAddForm">
+    <view class="form-sheet" catchtap="preventClose">
+      <view class="form-header">
+        <text class="form-title">添加{{typeOptions[typeIndex].name}}</text>
+        <text class="form-close" bindtap="closeAddForm">✕</text>
+      </view>
+
+      <view class="form-row">
+        <text class="form-label">数值 ({{typeOptions[typeIndex].unit}})</text>
+        <input class="form-input" type="digit" placeholder="请输入数值" value="{{value}}" bindinput="onValueInput" />
+      </view>
+
+      <view class="form-row">
+        <text class="form-label">记录日期</text>
+        <picker mode="date" value="{{recordedAt}}" bindchange="onDateChange">
+          <view class="form-picker">
+            <text>{{recordedAt}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <button class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
+        {{submitting ? '保存中...' : '保存'}}
+      </button>
+    </view>
+  </view>
+</view>
