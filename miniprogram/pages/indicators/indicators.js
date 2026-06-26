@@ -23,6 +23,9 @@ Page({
     showTrendPopup: false,
     trendData: null,
     elderMode: false,
+    viewMode: 'list',
+    matrix: null,
+    matrixLoading: false,
 
     // Add form fields
     indicatorIndex: 0,
@@ -45,13 +48,22 @@ Page({
   onShow() {
     this.setData({ elderMode: store.elderMode || false })
     const id = this.data.currentMemberId
-    if (id) this.loadIndicators(id)
+    if (id) {
+      this.loadIndicators(id)
+      if (this.data.viewMode === 'matrix') {
+        this.loadMatrix()
+      }
+    }
   },
 
   onPullDownRefresh() {
     const id = this.data.currentMemberId
     if (id) {
-      this.loadIndicators(id).finally(() => wx.stopPullDownRefresh())
+      const promises = [this.loadIndicators(id)]
+      if (this.data.viewMode === 'matrix') {
+        promises.push(this.loadMatrix())
+      }
+      Promise.all(promises).finally(() => wx.stopPullDownRefresh())
     } else {
       wx.stopPullDownRefresh()
     }
@@ -89,6 +101,52 @@ Page({
     const id = e.currentTarget.dataset.id
     this.setData({ currentMemberId: id })
     this.loadIndicators(id)
+    if (this.data.viewMode === 'matrix') {
+      this.loadMatrix()
+    }
+  },
+
+  switchViewMode(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (!mode || mode === this.data.viewMode) return
+    this.setData({ viewMode: mode })
+    if (mode === 'matrix' && this.data.currentMemberId) {
+      this.loadMatrix()
+    }
+  },
+
+  async loadMatrix() {
+    const memberId = this.data.currentMemberId
+    if (!memberId) return
+    this.setData({ matrixLoading: true })
+    try {
+      const end = new Date()
+      const start = new Date()
+      start.setDate(start.getDate() - 29)
+      const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      const res = await api.get(`/api/indicators/matrix?member_id=${memberId}&start_date=${fmt(start)}&end_date=${fmt(end)}`)
+      this.setData({
+        matrix: res.data || null,
+        matrixLoading: false,
+      })
+    } catch (err) {
+      console.error('loadMatrix failed', err)
+      wx.showToast({ title: err.message || '加载表单失败', icon: 'none' })
+      this.setData({ matrixLoading: false })
+    }
+  },
+
+  onMatrixCellTap(e) {
+    const { date, key } = e.currentTarget.dataset
+    const cell = this.data.matrix && this.data.matrix.cells && this.data.matrix.cells[date] && this.data.matrix.cells[date][key]
+    if (!cell) return
+    const name = (this.data.matrix.indicator_names && this.data.matrix.indicator_names[key]) || key
+    const unit = (this.data.matrix.units && this.data.matrix.units[key]) || ''
+    wx.showModal({
+      title: `${date} ${name}`,
+      content: `数值：${cell.value} ${unit}\n状态：${getStatusLabel(cell.status || 'normal')}`,
+      showCancel: false,
+    })
   },
 
   async showTrend(e) {
