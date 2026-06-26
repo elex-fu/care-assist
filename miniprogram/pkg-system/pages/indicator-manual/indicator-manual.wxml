@@ -1,0 +1,72 @@
+<view class="container">
+  <view class="search-section">
+    <view class="search-bar">
+      <input
+        class="search-input"
+        type="text"
+        placeholder="搜索指标名称，如：血压、血糖"
+        value="{{query}}"
+        bindinput="onQueryInput"
+        confirm-type="search"
+      />
+      <text wx:if="{{query}}" class="search-clear" bindtap="clearQuery">✕</text>
+    </view>
+
+    <view class="suggestion-list" wx:if="{{suggestions.length > 0 && !selected}}">
+      <view
+        class="suggestion-item"
+        wx:for="{{suggestions}}"
+        wx:key="key"
+        data-index="{{index}}"
+        bindtap="selectIndicator"
+      >
+        <view class="suggestion-main">
+          <text class="suggestion-name">{{item.name}}</text>
+          <text class="suggestion-unit">{{item.unit}}</text>
+        </view>
+        <view class="suggestion-range" wx:if="{{item.ref_range}}">参考范围：{{item.ref_range}}</view>
+        <view class="suggestion-aliases" wx:if="{{item.aliases.length > 0}}">别名：{{item.aliases.join(' / ')}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="form-section" wx:if="{{selected}}">
+    <view class="selected-card">
+      <view class="selected-header">
+        <text class="selected-name">{{selected.name}}</text>
+        <text class="selected-unit">{{selected.unit}}</text>
+      </view>
+      <view class="selected-range" wx:if="{{selected.ref_range}}">参考范围：{{selected.ref_range}}</view>
+      <text class="change-indicator" bindtap="changeIndicator">重新选择</text>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">数值 ({{selected.unit}})</text>
+      <input
+        class="form-input"
+        type="digit"
+        placeholder="请输入数值"
+        value="{{value}}"
+        bindinput="onValueInput"
+      />
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">记录日期</text>
+      <picker mode="date" value="{{recordDate}}" bindchange="onDateChange">
+        <view class="form-picker">
+          <text>{{recordDate}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <button class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '保存中...' : '保存'}}
+    </button>
+  </view>
+
+  <view class="empty-tip" wx:if="{{!selected && !suggestions.length && !query}}">
+    <text class="tip-text">搜索并选择要录入的指标</text>
+  </view>
+</view>
