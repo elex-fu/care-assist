@@ -8,3 +8,4 @@ from app.models.reminder import Reminder
 from app.models.ai_conversation import AIConversation
 from app.models.vaccine import VaccineRecord
 from app.models.medication import Medication, MedicationLog
+from app.models.growth_record import GrowthRecord

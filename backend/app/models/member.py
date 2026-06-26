@@ -37,6 +37,9 @@ class Member(Base):
     )
 
     family: Mapped["Family"] = relationship("Family", back_populates="members")
+    growth_records: Mapped[list["GrowthRecord"]] = relationship(
+        "GrowthRecord", back_populates="member", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_member_family", "family_id"),
