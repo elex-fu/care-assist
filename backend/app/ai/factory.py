@@ -5,6 +5,8 @@ from typing import Optional
 from app.ai.provider import AIProvider
 from app.ai.kimi_code_provider import KimiCodeProvider
 from app.ai.ocr_provider import OCRProvider
+from app.ai.baidu_ocr_provider import BaiduOCRProvider
+from app.ai.tencent_ocr_provider import TencentOCRProvider
 from app.config import settings
 from app.core.logging import get_logger
 
@@ -92,7 +94,7 @@ def list_ocr_providers() -> list[str]:
     return list(_OCR_PROVIDER_REGISTRY.keys())
 
 
-def get_ocr_provider(name: str | None = None) -> OCRProvider:
+def get_ocr_provider(name: Optional[str] = None) -> OCRProvider:
     """Get an OCR provider instance by name.
 
     Defaults to settings.OCR_PROVIDER.
@@ -119,3 +121,7 @@ async def ocr_with_fallback(image_url: str) -> list[dict]:
     provider = get_ocr_provider()
     logger.info(f"OCR using provider: {provider.name()}")
     return await provider.extract_indicators(image_url)
+
+
+register_ocr_provider("baidu", BaiduOCRProvider)
+register_ocr_provider("tencent", TencentOCRProvider)
