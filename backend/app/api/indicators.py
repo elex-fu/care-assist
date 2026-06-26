@@ -17,7 +17,9 @@ from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
 from app.schemas.indicator_matrix import IndicatorMatrixResponse, MatrixCell
 from app.schemas.indicator_metadata import IndicatorMetadata
+from app.schemas.chronic import ChronicPackageListItem, ChronicPackageResponse
 from app.core.indicator_search import search_indicators
+from app.core.chronic_packages import CHRONIC_PACKAGES, list_chronic_packages, build_chronic_package
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
 logger = get_logger("app.api.indicators")
@@ -297,3 +299,26 @@ async def get_indicator_metadata(
     """Search indicator metadata (name, unit, reference range, aliases)."""
     results = search_indicators(q, limit=limit)
     return ResponseWrapper(data=results)
+
+
+@router.get("/chronic", response_model=ResponseWrapper[list[ChronicPackageListItem]])
+async def list_chronic_packages_endpoint(
+    current: Member = Depends(get_current_member),
+):
+    """List available chronic disease monitoring packages."""
+    return ResponseWrapper(data=list_chronic_packages())
+
+
+@router.get("/chronic/{package}", response_model=ResponseWrapper[ChronicPackageResponse])
+async def get_chronic_package_endpoint(
+    package: str,
+    member_id: str = Query(...),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get chronic disease package details for a family member."""
+    if package not in CHRONIC_PACKAGES:
+        raise NotFoundException("套餐不存在")
+    target = await _verify_member_in_family(member_id, current, db)
+    data = await build_chronic_package(package, target, db)
+    return ResponseWrapper(data=data)
