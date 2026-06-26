@@ -40,5 +40,12 @@ class Settings(BaseSettings):
     KIMI_CODE_MODEL: str = "kimi-k2.6"
     KIMI_CODE_TIMEOUT: float = 60.0
 
+    # OCR Provider configuration
+    OCR_PROVIDER: str = "mock"  # mock | baidu | tencent
+    BAIDU_OCR_API_KEY: str = ""
+    BAIDU_OCR_SECRET_KEY: str = ""
+    TENCENT_OCR_SECRET_ID: str = ""
+    TENCENT_OCR_SECRET_KEY: str = ""
+
 
 settings = Settings()
