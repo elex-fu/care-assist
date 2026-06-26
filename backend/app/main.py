@@ -9,7 +9,7 @@ from app.db.session import engine
 from app.core.exceptions import BusinessException
 from app.core.logging import configure_logging, get_logger
 from app.middleware.logging import RequestLoggingMiddleware
-from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export, summary
+from app.api import auth, members, home, indicators, reports, ai_conversations, hospitals, vaccines, reminders, health_events, search, ws, medications, export, summary, child
 from app.config import settings
 
 # Initialize logging system before anything else
@@ -113,5 +113,6 @@ app.include_router(ws.router, prefix="/api")
 app.include_router(medications.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
 app.include_router(summary.router, prefix="/api")
+app.include_router(child.router, prefix="/api")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
