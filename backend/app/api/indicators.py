@@ -16,6 +16,8 @@ from app.schemas.indicator import IndicatorCreate, IndicatorOut, IndicatorTrendO
 from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
 from app.schemas.indicator_matrix import IndicatorMatrixResponse, MatrixCell
+from app.schemas.indicator_metadata import IndicatorMetadata
+from app.core.indicator_search import search_indicators
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
 logger = get_logger("app.api.indicators")
@@ -284,3 +286,14 @@ async def get_indicator_matrix(
         cells=cells,
     )
     return ResponseWrapper(data=matrix)
+
+
+@router.get("/metadata", response_model=ResponseWrapper[list[IndicatorMetadata]])
+async def get_indicator_metadata(
+    q: str = Query("", description="Search query for indicator name or alias"),
+    limit: int = Query(10, ge=1, le=50),
+    current: Member = Depends(get_current_member),
+):
+    """Search indicator metadata (name, unit, reference range, aliases)."""
+    results = search_indicators(q, limit=limit)
+    return ResponseWrapper(data=results)
