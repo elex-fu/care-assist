@@ -14,6 +14,8 @@ from app.core.exceptions import NotFoundException, ForbiddenException
 from app.core.ocr_service import get_ocr_service
 from app.core.indicator_engine import IndicatorEngine
 from app.core.logging import get_logger
+from app.services.ocr_pipeline import run_ocr_pipeline
+from app.config import settings
 from app.models.member import Member
 from app.models.report import Report
 from app.models.indicator import IndicatorData
@@ -177,6 +179,15 @@ async def trigger_ocr(
     for img_path in report.images:
         items = await ocr_service.extract_indicators(img_path)
         all_extracted.extend(items)
+
+    # Normalize through pipeline if OCR_PROVIDER is not legacy mock/regex
+    import os
+    if os.getenv("OCR_PROVIDER", settings.OCR_PROVIDER) not in ("mock", "regex"):
+        try:
+            pipeline_result = await run_ocr_pipeline(report.images)
+            all_extracted = [item.model_dump() for item in pipeline_result.extracted]
+        except Exception as exc:
+            logger.warning(f"OCR pipeline failed, falling back to legacy OCR: {exc}")
 
     # Save extracted indicators to report
     report.extracted_indicators = all_extracted

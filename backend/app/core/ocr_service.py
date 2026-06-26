@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 import re
 
+from app.ai.ocr_provider import OCRProvider
 from app.core.indicator_engine import IndicatorEngine
+from app.core.logging import get_logger
+
+logger = get_logger("app.core.ocr_service")
 
 
 class OCRService(ABC):
-    """Abstract OCR service for extracting health indicators from report images."""
+    """Legacy abstract OCR service for extracting health indicators from report images."""
 
     @abstractmethod
     async def extract_indicators(self, image_path: str) -> list[dict]:
@@ -18,20 +21,14 @@ class OCRService(ABC):
         ...
 
 
-class MockOCRService(OCRService):
+class MockOCRService(OCRService, OCRProvider):
     """Mock OCR for testing and dev environments without real OCR keys."""
 
-    # Simulated text patterns for demo images
-    PATTERNS = {
-        r"收缩压[：:]\s*(\d+(?:\.\d+)?)": ("systolic_bp", "收缩压", "mmHg"),
-        r"舒张压[：:]\s*(\d+(?:\.\d+)?)": ("diastolic_bp", "舒张压", "mmHg"),
-        r"空腹血糖[：:]\s*(\d+(?:\.\d+)?)": ("fasting_glucose", "空腹血糖", "mmol/L"),
-        r"血糖[：:]\s*(\d+(?:\.\d+)?)": ("fasting_glucose", "血糖", "mmol/L"),
-        r"血红蛋白[：:]\s*(\d+(?:\.\d+)?)": ("hemoglobin", "血红蛋白", "g/L"),
-        r"总胆固醇[：:]\s*(\d+(?:\.\d+)?)": ("total_cholesterol", "总胆固醇", "mmol/L"),
-        r"低密度脂蛋白[：:]\s*(\d+(?:\.\d+)?)": ("ldl", "低密度脂蛋白", "mmol/L"),
-        r"心率[：:]\s*(\d+(?:\.\d+)?)": ("heart_rate", "心率", "次/分"),
-    }
+    def name(self) -> str:
+        return "mock"
+
+    async def extract_text(self, image_path: str) -> str:
+        return "收缩压：125 mmHg\n舒张压：82 mmHg\n空腹血糖：5.6 mmol/L"
 
     async def extract_indicators(self, image_path: str) -> list[dict]:
         # In mock mode, we simulate extraction based on filename hints
@@ -85,7 +82,7 @@ class MockOCRService(OCRService):
         return results
 
 
-class RegexOCRService(OCRService):
+class RegexOCRService(OCRService, OCRProvider):
     """Simple regex-based OCR that expects pre-extracted text.
 
     In production, this would be preceded by a real OCR engine like
@@ -103,6 +100,17 @@ class RegexOCRService(OCRService):
         r"心率[\s:：]*(\d+(?:\.\d+)?)": ("heart_rate", "心率", "次/分"),
         r"BMI[\s:：]*(\d+(?:\.\d+)?)": ("bmi", "BMI", "kg/m²"),
     }
+
+    def name(self) -> str:
+        return "regex"
+
+    async def extract_text(self, image_path: str) -> str:
+        txt_path = image_path.rsplit(".", 1)[0] + ".txt"
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            return ""
 
     async def extract_indicators(self, image_path: str) -> list[dict]:
         # For now, read a companion .txt file if it exists (simulating OCR text output)

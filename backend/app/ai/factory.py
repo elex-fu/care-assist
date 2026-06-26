@@ -123,5 +123,9 @@ async def ocr_with_fallback(image_url: str) -> list[dict]:
     return await provider.extract_indicators(image_url)
 
 
+from app.core.ocr_service import MockOCRService, RegexOCRService
+
 register_ocr_provider("baidu", BaiduOCRProvider)
 register_ocr_provider("tencent", TencentOCRProvider)
+register_ocr_provider("mock", MockOCRService)
+register_ocr_provider("regex", RegexOCRService)
