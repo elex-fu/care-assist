@@ -389,3 +389,121 @@
   color: #94A3B8;
   font-size: 14px;
 }
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.toggle-item {
+  padding: 6px 20px;
+  margin: 0 6px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #64748B;
+  background: #F1F5F9;
+  font-weight: 500;
+}
+
+.toggle-item.active {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+/* Matrix View */
+.matrix-view {
+  padding: 12px 0;
+}
+
+.matrix-scroll {
+  width: 100%;
+  height: calc(100vh - 220px);
+  white-space: nowrap;
+  background: #FFFFFF;
+}
+
+.matrix-table {
+  display: inline-table;
+  border-collapse: collapse;
+  min-width: 100%;
+}
+
+.matrix-row {
+  display: table-row;
+}
+
+.header-row {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.matrix-cell {
+  display: table-cell;
+  min-width: 100px;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 13px;
+  border: 1px solid #F1F5F9;
+  vertical-align: middle;
+  color: #1E293B;
+}
+
+.header-cell {
+  background: #F8FAFC;
+  font-weight: 600;
+  color: #475569;
+}
+
+.fixed-cell {
+  position: sticky;
+  left: 0;
+  background: #FFFFFF;
+  min-width: 80px;
+  font-weight: 500;
+  color: #64748B;
+  z-index: 2;
+}
+
+.header-row .fixed-cell {
+  background: #F8FAFC;
+  z-index: 3;
+}
+
+.matrix-cell .unit {
+  display: block;
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.empty-cell {
+  color: #CBD5E1;
+}
+
+/* Status colors */
+.normal {
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.low {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.high {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.critical {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.08);
+  font-weight: 600;
+}
