@@ -1,4 +1,3 @@
-import pytest
 from datetime import date
 
 from app.models.vaccine import VaccineRecord
@@ -40,9 +39,11 @@ class TestVaccineRecordCreate:
         assert data["actual_date"] == "2024-05-01"
 
     async def test_create_forbidden_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
         from app.models.family import Family
         from app.models.member import Member
-        import uuid, secrets
         family = Family(
             id=str(uuid.uuid4()), name="Other",
             invite_code=secrets.token_urlsafe(8)[:6].upper(),
@@ -146,9 +147,11 @@ class TestVaccineRecordUpdate:
         assert resp.status_code == 404
 
     async def test_update_record_forbidden_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
         from app.models.family import Family
         from app.models.member import Member
-        import uuid, secrets
         family = Family(
             id=str(uuid.uuid4()), name="Other",
             invite_code=secrets.token_urlsafe(8)[:6].upper(),
@@ -200,3 +203,39 @@ class TestVaccineRecordDelete:
     async def test_delete_record_not_found(self, auth_client):
         resp = await auth_client.delete("/api/vaccines/nonexistent-id")
         assert resp.status_code == 404
+
+
+class TestVaccineScheduleGeneration:
+    async def test_generate_schedule_for_child(self, auth_client, test_member, db):
+        from sqlalchemy import select
+
+        from app.models.vaccine_library import VaccineLibrary
+
+        test_member.birth_date = date(2020, 1, 1)
+        await db.commit()
+
+        lib_count = (await db.execute(select(VaccineLibrary.id))).scalars().all().__len__()
+
+        resp = await auth_client.post(f"/api/vaccines/schedule?member_id={test_member.id}")
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert len(data["records"]) == lib_count
+        assert data["overdue_count"] == lib_count
+
+    async def test_generate_schedule_is_idempotent(self, auth_client, test_member, db):
+        from sqlalchemy import select
+
+        from app.models.vaccine_library import VaccineLibrary
+
+        test_member.birth_date = date(2020, 1, 1)
+        await db.commit()
+
+        lib_count = (await db.execute(select(VaccineLibrary.id))).scalars().all().__len__()
+
+        resp1 = await auth_client.post(f"/api/vaccines/schedule?member_id={test_member.id}")
+        assert resp1.status_code == 200
+        assert len(resp1.json()["data"]["records"]) == lib_count
+
+        resp2 = await auth_client.post(f"/api/vaccines/schedule?member_id={test_member.id}")
+        assert resp2.status_code == 200
+        assert len(resp2.json()["data"]["records"]) == 0  # already generated

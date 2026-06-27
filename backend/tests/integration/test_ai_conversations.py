@@ -1,5 +1,4 @@
-import pytest
-from datetime import date, datetime, timezone
+from datetime import date
 from decimal import Decimal
 
 from app.models.ai_conversation import AIConversation
@@ -21,9 +20,11 @@ class TestAIConversationCreate:
         assert data["messages"] == []
 
     async def test_create_conversation_forbidden_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
         from app.models.family import Family
         from app.models.member import Member
-        import uuid, secrets
         family = Family(
             id=str(uuid.uuid4()), name="Other",
             invite_code=secrets.token_urlsafe(8)[:6].upper(),
@@ -112,7 +113,9 @@ class TestAIConversationSendMessage:
             type="lab",
             images=[],
             ocr_status="completed",
-            extracted_indicators=[{"indicator_key": "systolic_bp", "value": 120, "status": "normal"}],
+            extracted_indicators=[
+                {"indicator_key": "systolic_bp", "value": 120, "status": "normal"}
+            ],
             report_date=date(2024, 6, 15),
         ))
         await db.commit()
@@ -138,9 +141,11 @@ class TestAIConversationSendMessage:
         assert resp.status_code == 404
 
     async def test_send_message_forbidden_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
         from app.models.family import Family
         from app.models.member import Member
-        import uuid, secrets
         family = Family(
             id=str(uuid.uuid4()), name="Other",
             invite_code=secrets.token_urlsafe(8)[:6].upper(),
@@ -162,6 +167,72 @@ class TestAIConversationSendMessage:
         resp = await auth_client.post(
             f"/api/ai-conversations/{conv.id}/messages",
             json={"user_message": "你好"},
+        )
+        assert resp.status_code == 403
+
+
+class TestAIConversationStream:
+    async def test_stream_reply_success(self, auth_client, test_member, db):
+        conv = AIConversation(member_id=test_member.id, messages=[])
+        db.add(conv)
+        await db.commit()
+
+        resp = await auth_client.get(
+            f"/api/ai-conversations/stream?conversation_id={conv.id}&user_message=你好",
+        )
+        assert resp.status_code == 200
+        assert "text/event-stream" in resp.headers.get("content-type", "")
+
+        body = resp.text
+        assert "data:" in body
+        assert "您好" in body
+        data_lines = [line for line in body.splitlines() if line.startswith("data:")]
+        assert len(data_lines) >= 1
+
+        await db.refresh(conv)
+        assert len(conv.messages) == 2
+        assert conv.messages[0]["role"] == "user"
+        assert conv.messages[1]["role"] == "assistant"
+        assert "您好" in conv.messages[1]["content"]
+
+    async def test_stream_not_found(self, auth_client):
+        resp = await auth_client.get(
+            "/api/ai-conversations/stream?conversation_id=nonexistent-id&user_message=hello",
+        )
+        assert resp.status_code == 404
+
+    async def test_stream_forbidden_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
+        from app.models.family import Family
+        from app.models.member import Member
+
+        family = Family(
+            id=str(uuid.uuid4()),
+            name="Other",
+            invite_code=secrets.token_urlsafe(8)[:6].upper(),
+        )
+        db.add(family)
+        await db.commit()
+        other = Member(
+            id=str(uuid.uuid4()),
+            family_id=family.id,
+            name="Other",
+            gender="male",
+            type="adult",
+            role="member",
+        )
+        db.add(other)
+        await db.commit()
+
+        conv = AIConversation(member_id=other.id, messages=[])
+        db.add(conv)
+        await db.commit()
+        await db.refresh(conv)
+
+        resp = await auth_client.get(
+            f"/api/ai-conversations/stream?conversation_id={conv.id}&user_message=你好",
         )
         assert resp.status_code == 403
 

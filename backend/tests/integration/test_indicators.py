@@ -227,3 +227,45 @@ class TestIndicatorTrend:
         data = resp.json()["data"]
         assert data["indicator_key"] == "systolic_bp"
         assert "trend" in data
+
+
+class TestIndicatorCompare:
+    async def test_compare_indicators(self, auth_client, test_member, db):
+        db.add(IndicatorData(
+            member_id=test_member.id,
+            indicator_key="systolic_bp",
+            indicator_name="收缩压",
+            value=Decimal("120"),
+            unit="mmHg",
+            status="normal",
+            deviation_percent=Decimal("0.00"),
+            record_date=date(2024, 6, 15),
+        ))
+        db.add(IndicatorData(
+            member_id=test_member.id,
+            indicator_key="diastolic_bp",
+            indicator_name="舒张压",
+            value=Decimal("80"),
+            unit="mmHg",
+            status="normal",
+            deviation_percent=Decimal("0.00"),
+            record_date=date(2024, 6, 15),
+        ))
+        await db.commit()
+
+        resp = await auth_client.get(
+            f"/api/indicators/compare?member_id={test_member.id}"
+            f"&indicator_keys=systolic_bp&indicator_keys=diastolic_bp"
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert len(data["series"]) == 2
+        series_keys = {s["indicator_key"] for s in data["series"]}
+        assert "systolic_bp" in series_keys
+        assert "diastolic_bp" in series_keys
+
+    async def test_compare_empty_keys(self, auth_client, test_member):
+        resp = await auth_client.get(f"/api/indicators/compare?member_id={test_member.id}")
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["series"] == []

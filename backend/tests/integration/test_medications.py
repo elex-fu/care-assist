@@ -262,3 +262,41 @@ class TestMedicationTake:
         data = resp.json()["data"]
         assert data["status"] == "taken"
         assert data["notes"] == "补打卡"
+
+
+class TestMedicationCalendar:
+    async def test_medication_calendar(self, auth_client, test_member, db):
+        med = Medication(
+            member_id=test_member.id,
+            name="降压药",
+            dosage="5mg",
+            frequency="每日1次",
+            time_slots=["08:00"],
+            start_date=date(2024, 6, 1),
+            status="active",
+        )
+        db.add(med)
+        await db.flush()
+
+        log = MedicationLog(
+            medication_id=med.id,
+            member_id=test_member.id,
+            scheduled_date=date(2024, 6, 15),
+            scheduled_time="08:00",
+            status="taken",
+        )
+        db.add(log)
+        await db.commit()
+
+        resp = await auth_client.get(
+            f"/api/medications/calendar?member_id={test_member.id}&year_month=2024-06"
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["year"] == 2024
+        assert data["month"] == 6
+        assert len(data["days"]) == 30
+
+        day_15 = next(d for d in data["days"] if d["date"] == "2024-06-15")
+        assert day_15["taken_count"] == 1
+        assert day_15["status"] == "complete"
