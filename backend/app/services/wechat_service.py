@@ -15,6 +15,25 @@ class WeChatService:
     _token_expires_at: float = 0.0
     _lock = asyncio.Lock()
 
+    @staticmethod
+    def _request_access_token() -> dict:
+        url = "https://api.weixin.qq.com/cgi-bin/token"
+        params = {
+            "grant_type": "client_credential",
+            "appid": settings.WECHAT_APPID,
+            "secret": settings.WECHAT_SECRET,
+        }
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.get(url, params=params)
+        return resp.json()
+
+    @staticmethod
+    def _send_subscribe(token: str, payload: dict) -> dict:
+        url = f"https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={token}"
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.post(url, json=payload)
+        return resp.json()
+
     @classmethod
     async def get_access_token(cls) -> str:
         """Fetch and cache WeChat access token."""
@@ -29,15 +48,7 @@ class WeChatService:
             if not settings.WECHAT_APPID or not settings.WECHAT_SECRET:
                 raise BusinessException(code=2001, message="微信 AppID 或 Secret 未配置")
 
-            url = "https://api.weixin.qq.com/cgi-bin/token"
-            params = {
-                "grant_type": "client_credential",
-                "appid": settings.WECHAT_APPID,
-                "secret": settings.WECHAT_SECRET,
-            }
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(url, params=params)
-                data = resp.json()
+            data = await asyncio.to_thread(cls._request_access_token)
 
             if "access_token" not in data:
                 raise BusinessException(code=2002, message=f"获取微信 access_token 失败: {data}")
@@ -64,7 +75,6 @@ class WeChatService:
             page: Optional mini-program page path to open on tap
         """
         token = await cls.get_access_token()
-        url = f"https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={token}"
 
         payload = {
             "touser": openid,
@@ -74,9 +84,7 @@ class WeChatService:
         if page:
             payload["page"] = page
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(url, json=payload)
-            result = resp.json()
+        result = await asyncio.to_thread(cls._send_subscribe, token, payload)
 
         if result.get("errcode") != 0:
             raise BusinessException(

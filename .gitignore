@@ -32,3 +32,17 @@ docker-volumes/
 # Environment files
 .env
 backend/.env
+
+# Generated runtime data
+.mysql_data/
+uploads/
+e2e/screenshots/
+backend/e2e/screenshots/
+
+# WeChat DevTools private config
+project.private.config.json
+miniprogram/project.private.config.json
+
+# Agent workspace archives
+Kimi_Agent_*/
+docs/archive/

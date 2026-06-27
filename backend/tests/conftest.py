@@ -24,6 +24,10 @@ from app.config import settings
 settings.KIMI_CODE_API_KEY = ""
 settings.DEFAULT_AI_PROVIDER = ""
 
+# Disable real WeChat jscode2session calls; use deterministic dev mock
+settings.WECHAT_APPID = ""
+settings.WECHAT_SECRET = ""
+
 # Ensure all models are registered in Base.metadata before creating tables
 import app.models  # noqa: F401
 
