@@ -94,3 +94,9 @@ class ReminderOut(BaseModel):
     related_report_id: str | None
     priority: str
     created_at: Any
+
+
+class ReminderGenerateRequest(BaseModel):
+    member_id: str
+    report_id: str
+    scheduled_date: date

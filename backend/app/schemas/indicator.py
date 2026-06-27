@@ -56,3 +56,20 @@ class IndicatorTrendOut(BaseModel):
     current: IndicatorTrendPoint | None
     previous: IndicatorTrendPoint | None
     trend: dict[str, Any]
+
+
+class IndicatorSeriesPoint(BaseModel):
+    value: float
+    record_date: date
+    status: str
+
+
+class IndicatorSeries(BaseModel):
+    indicator_key: str
+    indicator_name: str
+    unit: str
+    points: list[IndicatorSeriesPoint]
+
+
+class IndicatorCompareOut(BaseModel):
+    series: list[IndicatorSeries]

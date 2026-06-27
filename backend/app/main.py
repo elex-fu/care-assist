@@ -26,6 +26,7 @@ from app.api import (
 from app.config import settings
 from app.core.exceptions import BusinessException
 from app.core.logging import configure_logging, get_logger
+from app.db.seed import init_db
 from app.db.session import engine
 from app.middleware.logging import RequestLoggingMiddleware
 
@@ -57,6 +58,7 @@ if settings.SENTRY_DSN:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
+    await init_db()
     yield
     # shutdown
     await engine.dispose()
@@ -86,7 +88,8 @@ app.add_middleware(
 async def business_exception_handler(request: Request, exc: BusinessException):
     request_id = getattr(request.state, "request_id", "-")
     app_logger.warning(
-        f"BusinessException: code={exc.biz_code} status={exc.status_code} detail={exc.detail} path={request.url.path}",
+        f"BusinessException: code={exc.biz_code} status={exc.status_code} "
+        f"detail={exc.detail} path={request.url.path}",
         extra={"request_id": request_id},
     )
     return JSONResponse(

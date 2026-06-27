@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone, date, time
 
 from sqlalchemy import String, ForeignKey, Date, Text, Time, Index, JSON
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 
@@ -43,6 +43,8 @@ class MedicationLog(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+
+    medication: Mapped["Medication"] = relationship("Medication", lazy="joined")
 
     __table_args__ = (
         Index("idx_medlog_medication_date", "medication_id", "scheduled_date"),

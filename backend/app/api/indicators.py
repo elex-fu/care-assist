@@ -12,7 +12,15 @@ from app.core.indicator_engine import IndicatorEngine
 from app.core.logging import get_logger
 from app.models.member import Member
 from app.models.indicator import IndicatorData
-from app.schemas.indicator import IndicatorCreate, IndicatorOut, IndicatorTrendOut, IndicatorTrendPoint
+from app.schemas.indicator import (
+    IndicatorCreate,
+    IndicatorOut,
+    IndicatorTrendOut,
+    IndicatorTrendPoint,
+    IndicatorCompareOut,
+    IndicatorSeries,
+    IndicatorSeriesPoint,
+)
 from app.schemas.batch import BatchIndicatorCreate
 from app.schemas.common import ResponseWrapper
 from app.schemas.indicator_matrix import IndicatorMatrixResponse, MatrixCell
@@ -288,6 +296,62 @@ async def get_indicator_matrix(
         cells=cells,
     )
     return ResponseWrapper(data=matrix)
+
+
+@router.get("/compare", response_model=ResponseWrapper[IndicatorCompareOut])
+async def compare_indicators(
+    member_id: str = Query(...),
+    indicator_keys: list[str] = Query(default=[]),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Compare multiple indicators over a date range."""
+    target = await _verify_member_in_family(member_id, current, db)
+
+    if end_date is None:
+        end_date = date.today()
+    if start_date is None:
+        start_date = end_date - timedelta(days=90)
+    if not indicator_keys:
+        return ResponseWrapper(data=IndicatorCompareOut(series=[]))
+
+    stmt = (
+        select(IndicatorData)
+        .where(
+            IndicatorData.member_id == member_id,
+            IndicatorData.indicator_key.in_(indicator_keys),
+            IndicatorData.record_date >= start_date,
+            IndicatorData.record_date <= end_date,
+        )
+        .order_by(IndicatorData.record_date, IndicatorData.created_at)
+    )
+    result = await db.execute(stmt)
+    records = result.scalars().all()
+
+    by_key: dict[str, list[IndicatorSeriesPoint]] = {k: [] for k in indicator_keys}
+    names: dict[str, str] = {}
+    units: dict[str, str] = {}
+    for r in records:
+        by_key[r.indicator_key].append(
+            IndicatorSeriesPoint(
+                value=float(r.value), record_date=r.record_date, status=r.status
+            )
+        )
+        names[r.indicator_key] = r.indicator_name
+        units[r.indicator_key] = r.unit
+
+    series = [
+        IndicatorSeries(
+            indicator_key=k,
+            indicator_name=names.get(k, k),
+            unit=units.get(k, ""),
+            points=by_key[k],
+        )
+        for k in indicator_keys
+    ]
+    return ResponseWrapper(data=IndicatorCompareOut(series=series))
 
 
 @router.get("/metadata", response_model=ResponseWrapper[list[IndicatorMetadata]])

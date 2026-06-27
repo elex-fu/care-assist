@@ -68,3 +68,9 @@ class VaccineScheduleEntry(BaseModel):
     dose: int
     recommended_age_months: int
     scheduled_date: date
+
+
+class VaccineScheduleOut(BaseModel):
+    records: list[VaccineRecordOut]
+    overdue_count: int
+    upcoming_count: int

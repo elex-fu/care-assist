@@ -9,8 +9,14 @@ from app.core.security import get_current_member, get_db
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.models.member import Member
 from app.models.vaccine import VaccineRecord
-from app.schemas.vaccine import VaccineRecordCreate, VaccineRecordUpdate, VaccineRecordOut
+from app.schemas.vaccine import (
+    VaccineRecordCreate,
+    VaccineRecordUpdate,
+    VaccineRecordOut,
+    VaccineScheduleOut,
+)
 from app.schemas.common import ResponseWrapper
+from app.services.vaccine_schedule_service import generate_vaccine_schedule
 
 router = APIRouter(prefix="/vaccines", tags=["儿童疫苗"])
 
@@ -67,6 +73,26 @@ async def list_vaccine_records(
     result = await db.execute(stmt)
     items = result.scalars().all()
     return ResponseWrapper(data=[VaccineRecordOut.model_validate(i) for i in items])
+
+
+@router.post("/schedule", response_model=ResponseWrapper[VaccineScheduleOut])
+async def generate_schedule(
+    member_id: str = Query(...),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate standard vaccine schedule records for a member from VaccineLibrary."""
+    target = await _verify_member_in_family(member_id, current, db)
+    records = await generate_vaccine_schedule(db, target)
+    overdue = sum(1 for r in records if r.status == "overdue")
+    upcoming = sum(1 for r in records if r.status == "upcoming")
+    return ResponseWrapper(
+        data=VaccineScheduleOut(
+            records=[VaccineRecordOut.model_validate(r) for r in records],
+            overdue_count=overdue,
+            upcoming_count=upcoming,
+        )
+    )
 
 
 @router.patch("/{record_id}", response_model=ResponseWrapper[VaccineRecordOut])

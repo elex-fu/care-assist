@@ -293,6 +293,123 @@ class AIService:
 
         return "\n".join(advice)
 
+    QUICK_QUESTION_TEMPLATES = {
+        "pages/home/home": ["{name}最近指标怎么样？", "今天需要关注哪些健康提醒？"],
+        "pages/indicators/indicators": ["{name}的血压趋势如何？", "哪些指标需要特别关注？"],
+        "pages/reports/reports": ["帮我解读{name}最新报告", "报告中有哪些异常指标？"],
+        "pages/medication/medication": ["{name}今天吃药了吗？", "最近漏服过药吗？"],
+        "pages/vaccine/vaccine": ["{name}下一针疫苗什么时候打？", "有没有逾期的疫苗？"],
+    }
+
+    async def generate_quick_questions(
+        self,
+        member: Member,
+        page_context: Optional[str] = None,
+        recent_indicators: Optional[list[dict]] = None,
+        recent_reports: Optional[list[dict]] = None,
+    ) -> list[str]:
+        """Generate contextual quick question suggestions for the AI page."""
+        provider = self._get_provider()
+        if provider is not None:
+            try:
+                prompt = self._build_quick_questions_prompt(
+                    member, page_context, recent_indicators, recent_reports
+                )
+                reply = await provider.chat(
+                    [{"role": "user", "content": prompt}],
+                    stream=False,
+                    max_tokens=256,
+                    temperature=0.7,
+                )
+                questions = [q.strip("-\n ") for q in reply.split("\n") if q.strip()]
+                return questions[:4]
+            except Exception:
+                pass
+        return self._rule_based_quick_questions(
+            member, page_context, recent_indicators, recent_reports
+        )
+
+    def _build_quick_questions_prompt(
+        self,
+        member: Member,
+        page_context: Optional[str],
+        recent_indicators: Optional[list[dict]],
+        recent_reports: Optional[list[dict]],
+    ) -> str:
+        lines = [
+            f"请为家庭健康助手生成 2-4 条用户可能想问的快捷问题，针对成员 {member.name}。",
+            f"当前页面：{page_context or '首页'}",
+        ]
+        if recent_indicators:
+            lines.append(f"最近指标：{len(recent_indicators)} 条")
+        if recent_reports:
+            lines.append(f"最近报告：{len(recent_reports)} 份")
+        lines.append("请只输出问题列表，每行一条，简洁自然。")
+        return "\n".join(lines)
+
+    def _rule_based_quick_questions(
+        self,
+        member: Member,
+        page_context: Optional[str],
+        recent_indicators: Optional[list[dict]],
+        recent_reports: Optional[list[dict]],
+    ) -> list[str]:
+        base = list(self.QUICK_QUESTION_TEMPLATES.get(page_context or "", ["{name}最近身体怎么样？"]))
+        if recent_indicators:
+            base.append("{name}最近指标有什么变化？")
+        if recent_reports:
+            base.append("帮我总结{name}最近的检查报告")
+        return [q.format(name=member.name) for q in base[:4]]
+
+    async def summarize_report(
+        self,
+        member: Member,
+        report: "Report",
+    ) -> str:
+        """Generate an AI summary for a report and store it on the report."""
+        extracted = report.extracted_indicators or []
+        provider = self._get_provider()
+        if provider is not None:
+            try:
+                prompt = self._build_report_summary_prompt(member, report, extracted)
+                reply = await provider.chat(
+                    [{"role": "user", "content": prompt}],
+                    stream=False,
+                    max_tokens=512,
+                    temperature=0.5,
+                )
+                return self._append_disclaimer(reply)
+            except Exception:
+                pass
+        return self._rule_based_summary(member, report, extracted)
+
+    def _build_report_summary_prompt(
+        self,
+        member: Member,
+        report: "Report",
+        extracted: list[dict],
+    ) -> str:
+        lines = [f"请用简洁中文总结{member.name}的{report.type}报告："]
+        for item in extracted[:20]:
+            lines.append(
+                f"- {item.get('indicator_name')}: {item.get('value')} {item.get('unit')}"
+            )
+        return "\n".join(lines)
+
+    def _rule_based_summary(
+        self,
+        member: Member,
+        report: "Report",
+        extracted: list[dict],
+    ) -> str:
+        if not extracted:
+            return f"{member.name}的{report.type}报告暂未识别到指标，请检查图片清晰度。"
+        abnormal = [i for i in extracted if i.get("status") in ("low", "high", "critical")]
+        if abnormal:
+            names = "、".join(i["indicator_name"] for i in abnormal[:5])
+            return f"{member.name}的报告中{names}等{len(abnormal)}项指标异常，建议进一步复查。"
+        return f"{member.name}的报告中各项指标均在参考范围内，整体情况平稳。"
+
     async def generate_family_summary(
         self,
         member_cards: list[dict],

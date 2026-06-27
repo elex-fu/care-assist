@@ -47,5 +47,10 @@ class Settings(BaseSettings):
     TENCENT_OCR_SECRET_ID: str = ""
     TENCENT_OCR_SECRET_KEY: str = ""
 
+    # Celery / async task configuration
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
+    CELERY_SCAN_INTERVAL_SEC: int = 3600  # production default: 1 hour
+
 
 settings = Settings()

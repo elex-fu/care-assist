@@ -1,26 +1,46 @@
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, desc
+from fastapi.responses import StreamingResponse
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.ai_service import AIService
-from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.logging import get_logger
-from app.models.member import Member
+from app.core.security import get_current_member, get_db
 from app.models.ai_conversation import AIConversation
 from app.models.indicator import IndicatorData
+from app.models.member import Member
 from app.models.report import Report
 from app.schemas.ai_conversation import (
     AIConversationCreate,
+    AIConversationListOut,
     AIConversationMessageRequest,
     AIConversationOut,
-    AIConversationListOut,
     AIReplyOut,
 )
 from app.schemas.common import ResponseWrapper
+
+
+async def _get_quick_questions(
+    member_id: str,
+    page_context: str | None,
+    current: Member,
+    db: AsyncSession,
+) -> ResponseWrapper[list[str]]:
+    target = await _verify_member_in_family(member_id, current, db)
+    recent_indicators = await _get_recent_indicators(db, target.id, limit=5)
+    recent_reports = await _get_recent_reports(db, target.id, limit=3)
+
+    ai_svc = AIService()
+    questions = await ai_svc.generate_quick_questions(
+        member=target,
+        page_context=page_context,
+        recent_indicators=recent_indicators if recent_indicators else None,
+        recent_reports=recent_reports if recent_reports else None,
+    )
+    return ResponseWrapper(data=questions)
 
 router = APIRouter(prefix="/ai-conversations", tags=["AI对话"])
 logger = get_logger("app.api.ai_conversations")
@@ -92,7 +112,10 @@ async def create_conversation(
     db.add(conv)
     await db.commit()
     await db.refresh(conv)
-    logger.info(f"AI conversation created: id={conv.id} member_id={target.id} context={payload.page_context}")
+    logger.info(
+        f"AI conversation created: id={conv.id} member_id={target.id} "
+        f"context={payload.page_context}"
+    )
     return ResponseWrapper(data=AIConversationOut.model_validate(conv))
 
 
@@ -133,6 +156,16 @@ async def list_conversations(
     return ResponseWrapper(data=data)
 
 
+@router.get("/quick-questions", response_model=ResponseWrapper[list[str]])
+async def get_quick_questions(
+    member_id: str = Query(...),
+    page_context: str | None = Query(None),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    return await _get_quick_questions(member_id, page_context, current, db)
+
+
 @router.post("/{conversation_id}/messages", response_model=ResponseWrapper[AIReplyOut])
 async def send_message(
     conversation_id: str,
@@ -147,7 +180,7 @@ async def send_message(
     target = await _verify_member_in_family(conv.member_id, current, db)
 
     # Append user message
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     messages = list(conv.messages or [])
     messages.append({"role": "user", "content": payload.user_message, "timestamp": now})
 
@@ -170,7 +203,9 @@ async def send_message(
     )
 
     # Append assistant message
-    messages.append({"role": "assistant", "content": reply, "timestamp": datetime.now(timezone.utc).isoformat()})
+    messages.append(
+        {"role": "assistant", "content": reply, "timestamp": datetime.now(UTC).isoformat()}
+    )
     conv.messages = messages
     await db.commit()
     await db.refresh(conv)
@@ -188,6 +223,63 @@ async def send_message(
             messages=conv.messages,
         )
     )
+
+
+@router.get("/stream")
+async def stream_conversation(
+    conversation_id: str = Query(...),
+    user_message: str = Query(...),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    conv = await db.get(AIConversation, conversation_id)
+    if not conv:
+        raise NotFoundException("对话不存在")
+
+    target = await _verify_member_in_family(conv.member_id, current, db)
+
+    now = datetime.now(UTC).isoformat()
+    original_messages = list(conv.messages or [])
+    messages = original_messages + [
+        {"role": "user", "content": user_message, "timestamp": now}
+    ]
+    history = [{"role": m["role"], "content": m["content"]} for m in original_messages]
+
+    recent_indicators = await _get_recent_indicators(db, target.id)
+    recent_reports = await _get_recent_reports(db, target.id)
+
+    ai_svc = AIService()
+
+    async def event_generator():
+        chunks = []
+        async for chunk in ai_svc.generate_reply_stream(
+            member=target,
+            conversation_history=history,
+            user_message=user_message,
+            page_context=conv.page_context,
+            recent_indicators=recent_indicators if recent_indicators else None,
+            recent_reports=recent_reports if recent_reports else None,
+        ):
+            chunks.append(chunk)
+            yield f"data: {chunk}\n\n"
+
+        assistant_content = "".join(chunks)
+        conv.messages = messages + [
+            {
+                "role": "assistant",
+                "content": assistant_content,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        ]
+        await db.commit()
+
+        logger.info(
+            f"AI stream finished: conversation_id={conversation_id} member_id={target.id} "
+            f"chunks={len(chunks)} reply_len={len(assistant_content)} "
+            f"context={conv.page_context}"
+        )
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.delete("/{conversation_id}", response_model=ResponseWrapper[dict])

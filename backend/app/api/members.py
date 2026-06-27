@@ -1,29 +1,29 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException, ConflictException
-from app.core.permissions import PermissionChecker
+from app.core.exceptions import ConflictException, ForbiddenException, NotFoundException
 from app.core.logging import get_logger
-from app.models.member import Member
+from app.core.permissions import PermissionChecker
+from app.core.security import get_current_member, get_db
 from app.models.family import Family
-from app.models.indicator import IndicatorData
-from app.models.report import Report
 from app.models.health_event import HealthEvent
 from app.models.hospital import HospitalEvent
-from app.models.vaccine import VaccineRecord
+from app.models.indicator import IndicatorData
+from app.models.member import Member
 from app.models.reminder import Reminder
+from app.models.report import Report
+from app.models.vaccine import VaccineRecord
+from app.schemas.common import ResponseWrapper
+from app.schemas.indicator import IndicatorOut
 from app.schemas.member import (
-    MemberUpdate,
-    MemberOut,
     FamilyMembersOut,
     FamilyOut,
+    MemberOut,
+    MemberUpdate,
     SubscriptionUpdate,
 )
-from app.schemas.indicator import IndicatorOut
-from app.schemas.common import ResponseWrapper
-from sqlalchemy import select, desc
+from app.services.vaccine_service import generate_child_vaccine_schedule
 
 router = APIRouter(prefix="/members", tags=["成员管理"])
 logger = get_logger("app.api.members")
@@ -96,7 +96,15 @@ async def create_member(
     db.add(member)
     await db.commit()
     await db.refresh(member)
-    logger.info(f"Member created: id={member.id} name={member.name} family_id={current.family_id} by={current.id}")
+
+    if member.type == "child" and member.birth_date:
+        await generate_child_vaccine_schedule(db, member.id, member.birth_date)
+        await db.refresh(member)
+
+    logger.info(
+        f"Member created: id={member.id} name={member.name} "
+        f"family_id={current.family_id} by={current.id}"
+    )
     return ResponseWrapper(data=MemberOut.model_validate(member))
 
 
@@ -180,8 +188,12 @@ async def generate_invite(
 async def join_family(
     token: str,
     name: str,
+    type: str = "adult",
+    birth_date: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
+    from datetime import date as dt_date
+
     from app.core.security import decode_jwt
 
     try:
@@ -202,16 +214,23 @@ async def join_family(
 
     import uuid
 
+    parsed_birth_date = dt_date.fromisoformat(birth_date) if birth_date else None
     new_member = Member(
         id=str(uuid.uuid4()),
         family_id=family_id,
         name=name,
         gender="male",
+        type=type,
+        birth_date=parsed_birth_date,
         role="member",
     )
     db.add(new_member)
     await db.commit()
     await db.refresh(new_member)
+
+    if new_member.type == "child" and new_member.birth_date:
+        await generate_child_vaccine_schedule(db, new_member.id, new_member.birth_date)
+        await db.refresh(new_member)
 
     return ResponseWrapper(data=MemberOut.model_validate(new_member))
 
@@ -226,38 +245,65 @@ async def export_member_health(
     if not target:
         raise NotFoundException("成员不存在")
     if target.family_id != current.family_id:
-        logger.warning(f"export denied: target family_id={target.family_id} != current family_id={current.family_id}")
+        logger.warning(
+            f"export denied: target family_id={target.family_id} "
+            f"!= current family_id={current.family_id}"
+        )
         raise ForbiddenException("无权限导出其他家庭成员的数据")
 
     logger.info(f"Exporting health data for member_id={member_id} requested by={current.id}")
 
     # Indicators
-    stmt = select(IndicatorData).where(IndicatorData.member_id == member_id).order_by(desc(IndicatorData.record_date))
+    stmt = (
+        select(IndicatorData)
+        .where(IndicatorData.member_id == member_id)
+        .order_by(desc(IndicatorData.record_date))
+    )
     result = await db.execute(stmt)
     indicators = result.scalars().all()
 
     # Reports
-    stmt = select(Report).where(Report.member_id == member_id).order_by(desc(Report.report_date))
+    stmt = (
+        select(Report)
+        .where(Report.member_id == member_id)
+        .order_by(desc(Report.report_date))
+    )
     result = await db.execute(stmt)
     reports = result.scalars().all()
 
     # Health events
-    stmt = select(HealthEvent).where(HealthEvent.member_id == member_id).order_by(desc(HealthEvent.event_date))
+    stmt = (
+        select(HealthEvent)
+        .where(HealthEvent.member_id == member_id)
+        .order_by(desc(HealthEvent.event_date))
+    )
     result = await db.execute(stmt)
     events = result.scalars().all()
 
     # Hospital events
-    stmt = select(HospitalEvent).where(HospitalEvent.member_id == member_id).order_by(desc(HospitalEvent.admission_date))
+    stmt = (
+        select(HospitalEvent)
+        .where(HospitalEvent.member_id == member_id)
+        .order_by(desc(HospitalEvent.admission_date))
+    )
     result = await db.execute(stmt)
     hospitals = result.scalars().all()
 
     # Vaccines
-    stmt = select(VaccineRecord).where(VaccineRecord.member_id == member_id).order_by(desc(VaccineRecord.scheduled_date))
+    stmt = (
+        select(VaccineRecord)
+        .where(VaccineRecord.member_id == member_id)
+        .order_by(desc(VaccineRecord.scheduled_date))
+    )
     result = await db.execute(stmt)
     vaccines = result.scalars().all()
 
     # Reminders
-    stmt = select(Reminder).where(Reminder.member_id == member_id).order_by(desc(Reminder.scheduled_date))
+    stmt = (
+        select(Reminder)
+        .where(Reminder.member_id == member_id)
+        .order_by(desc(Reminder.scheduled_date))
+    )
     result = await db.execute(stmt)
     reminders = result.scalars().all()
 
@@ -265,11 +311,57 @@ async def export_member_health(
         data={
             "member": MemberOut.model_validate(target).model_dump(),
             "indicators": [IndicatorOut.model_validate(i).model_dump() for i in indicators],
-            "reports": [{"id": r.id, "type": r.type, "hospital": r.hospital, "report_date": r.report_date.isoformat() if r.report_date else None, "ocr_status": r.ocr_status} for r in reports],
-            "health_events": [{"id": e.id, "type": e.type, "event_date": e.event_date.isoformat() if e.event_date else None, "diagnosis": e.diagnosis, "status": e.status} for e in events],
-            "hospital_events": [{"id": h.id, "hospital": h.hospital, "admission_date": h.admission_date.isoformat() if h.admission_date else None, "discharge_date": h.discharge_date.isoformat() if h.discharge_date else None, "diagnosis": h.diagnosis, "status": h.status} for h in hospitals],
-            "vaccines": [{"id": v.id, "vaccine_name": v.vaccine_name, "dose": v.dose, "scheduled_date": v.scheduled_date.isoformat() if v.scheduled_date else None, "status": v.status} for v in vaccines],
-            "reminders": [{"id": r.id, "title": r.title, "type": r.type, "scheduled_date": r.scheduled_date.isoformat() if r.scheduled_date else None, "status": r.status} for r in reminders],
+            "reports": [
+                {
+                    "id": r.id,
+                    "type": r.type,
+                    "hospital": r.hospital,
+                    "report_date": r.report_date.isoformat() if r.report_date else None,
+                    "ocr_status": r.ocr_status,
+                }
+                for r in reports
+            ],
+            "health_events": [
+                {
+                    "id": e.id,
+                    "type": e.type,
+                    "event_date": e.event_date.isoformat() if e.event_date else None,
+                    "diagnosis": e.diagnosis,
+                    "status": e.status,
+                }
+                for e in events
+            ],
+            "hospital_events": [
+                {
+                    "id": h.id,
+                    "hospital": h.hospital,
+                    "admission_date": h.admission_date.isoformat() if h.admission_date else None,
+                    "discharge_date": h.discharge_date.isoformat() if h.discharge_date else None,
+                    "diagnosis": h.diagnosis,
+                    "status": h.status,
+                }
+                for h in hospitals
+            ],
+            "vaccines": [
+                {
+                    "id": v.id,
+                    "vaccine_name": v.vaccine_name,
+                    "dose": v.dose,
+                    "scheduled_date": v.scheduled_date.isoformat() if v.scheduled_date else None,
+                    "status": v.status,
+                }
+                for v in vaccines
+            ],
+            "reminders": [
+                {
+                    "id": r.id,
+                    "title": r.title,
+                    "type": r.type,
+                    "scheduled_date": r.scheduled_date.isoformat() if r.scheduled_date else None,
+                    "status": r.status,
+                }
+                for r in reminders
+            ],
         }
     )
 
@@ -293,7 +385,10 @@ async def delete_member(
         raise NotFoundException("成员不存在")
 
     if target.family_id != current.family_id:
-        logger.warning(f"delete_member denied: target family_id={target.family_id} != current family_id={current.family_id}")
+        logger.warning(
+            f"delete_member denied: target family_id={target.family_id} "
+            f"!= current family_id={current.family_id}"
+        )
         raise ForbiddenException("无法删除其他家庭的成员")
 
     await db.delete(target)

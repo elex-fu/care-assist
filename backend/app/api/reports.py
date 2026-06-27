@@ -1,26 +1,34 @@
+import contextlib
 import os
 import shutil
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, timedelta
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException
-from app.core.ocr_service import get_ocr_service
+from app.config import settings
+from app.core.ai_service import AIService
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.indicator_engine import IndicatorEngine
 from app.core.logging import get_logger
-from app.services.ocr_pipeline import run_ocr_pipeline
-from app.config import settings
-from app.models.member import Member
-from app.models.report import Report
+from app.core.ocr_service import get_ocr_service
+from app.core.security import get_current_member, get_db
 from app.models.indicator import IndicatorData
-from app.schemas.report import ReportCreate, ReportOut, ReportListOut, OCRTriggerOut, OCRResultItem
+from app.models.member import Member
+from app.models.reminder import Reminder
+from app.models.report import Report
 from app.schemas.common import ResponseWrapper
+from app.schemas.report import (
+    OCRResultItem,
+    OCRTriggerOut,
+    ReportAISummaryOut,
+    ReportListOut,
+    ReportOut,
+)
+from app.services.ocr_pipeline import run_ocr_pipeline
 
 router = APIRouter(prefix="/reports", tags=["报告管理"])
 logger = get_logger("app.api.reports")
@@ -63,14 +71,14 @@ def _save_upload(member_id: str, report_id: str, file: UploadFile) -> str:
 async def create_report(
     member_id: str = Form(...),
     type: str = Form(...),
-    hospital: Optional[str] = Form(None),
-    department: Optional[str] = Form(None),
-    report_date: Optional[str] = Form(None),
+    hospital: str | None = Form(None),
+    department: str | None = Form(None),
+    report_date: str | None = Form(None),
     images: list[UploadFile] = File(default=[]),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
-    target = await _verify_member_in_family(member_id, current, db)
+    await _verify_member_in_family(member_id, current, db)
 
     parsed_date = date.fromisoformat(report_date) if report_date else None
 
@@ -122,6 +130,21 @@ async def list_reports(
     )
 
 
+@router.get("/{report_id}", response_model=ResponseWrapper[ReportOut])
+async def get_report(
+    report_id: str,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    report = await db.get(Report, report_id)
+    if not report:
+        raise NotFoundException("报告不存在")
+
+    await _verify_member_in_family(report.member_id, current, db)
+
+    return ResponseWrapper(data=ReportOut.model_validate(report))
+
+
 @router.delete("/{report_id}", response_model=ResponseWrapper[dict])
 async def delete_report(
     report_id: str,
@@ -135,13 +158,11 @@ async def delete_report(
     await _verify_member_in_family(report.member_id, current, db)
 
     # Clean up uploaded files
-    for img_path in report.images or []:
-        try:
+    with contextlib.suppress(Exception):
+        for img_path in report.images or []:
             Path(img_path).unlink(missing_ok=True)
-        except Exception:
-            pass
     # Try to remove empty dirs
-    try:
+    with contextlib.suppress(Exception):
         base = _ensure_upload_dir()
         member_dir = base / report.member_id
         if member_dir.exists():
@@ -150,8 +171,6 @@ async def delete_report(
                     sub.rmdir()
             if not any(member_dir.iterdir()):
                 member_dir.rmdir()
-    except Exception:
-        pass
 
     await db.delete(report)
     await db.commit()
@@ -200,7 +219,10 @@ async def trigger_ocr(
     age_months = None
     if target and target.birth_date:
         today = date.today()
-        age_months = (today.year - target.birth_date.year) * 12 + (today.month - target.birth_date.month)
+        age_months = (
+            (today.year - target.birth_date.year) * 12
+            + (today.month - target.birth_date.month)
+        )
         if today.day < target.birth_date.day:
             age_months -= 1
         age_months = max(0, age_months)
@@ -225,6 +247,27 @@ async def trigger_ocr(
 
     await db.commit()
 
+    # Auto-create reminders for abnormal indicators identified by OCR
+    for item in all_extracted:
+        if item.get("status") in ("high", "critical"):
+            db.add(
+                Reminder(
+                    member_id=report.member_id,
+                    type="checkup",
+                    title=f"指标异常复查：{item.get('indicator_name', '')}",
+                    description=(
+                        f"报告 OCR 识别到 {item.get('indicator_name')} "
+                        f"为 {item.get('status')}，建议复查"
+                    ),
+                    scheduled_date=(report.report_date or date.today()) + timedelta(days=7),
+                    status="pending",
+                    related_report_id=report.id,
+                    related_indicator=item.get("indicator_key"),
+                    priority="high",
+                )
+            )
+    await db.commit()
+
     logger.info(
         f"OCR completed: report_id={report_id} extracted={len(all_extracted)} "
         f"indicators_created={len(all_extracted)}"
@@ -234,5 +277,33 @@ async def trigger_ocr(
             report_id=report.id,
             ocr_status=report.ocr_status,
             extracted=[OCRResultItem(**item) for item in all_extracted],
+        )
+    )
+
+
+@router.post("/{report_id}/ai-summary", response_model=ResponseWrapper[ReportAISummaryOut])
+async def generate_ai_summary(
+    report_id: str,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    report = await db.get(Report, report_id)
+    if not report:
+        raise NotFoundException("报告不存在")
+
+    target = await _verify_member_in_family(report.member_id, current, db)
+
+    ai_svc = AIService()
+    summary = await ai_svc.summarize_report(member=target, report=report)
+    report.ai_summary = summary
+    await db.commit()
+    await db.refresh(report)
+
+    logger.info(f"Report AI summary generated: report_id={report_id}")
+    return ResponseWrapper(
+        data=ReportAISummaryOut(
+            id=report.id,
+            ai_summary=report.ai_summary,
+            updated_at=report.updated_at,
         )
     )

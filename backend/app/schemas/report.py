@@ -47,3 +47,11 @@ class OCRTriggerOut(BaseModel):
     report_id: str
     ocr_status: str
     extracted: list[OCRResultItem]
+
+
+class ReportAISummaryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    ai_summary: Optional[str]
+    updated_at: Any

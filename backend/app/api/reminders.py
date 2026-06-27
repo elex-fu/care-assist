@@ -1,16 +1,24 @@
-from datetime import date
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException
 from app.models.member import Member
 from app.models.reminder import Reminder
-from app.schemas.reminder import ReminderCreate, ReminderUpdate, ReminderOut
+from app.models.report import Report
 from app.schemas.common import ResponseWrapper
+from app.schemas.reminder import (
+    ReminderCreate,
+    ReminderGenerateRequest,
+    ReminderOut,
+    ReminderUpdate,
+)
+from app.services.reminder_service import (
+    create_reminder_from_report,
+    find_duplicate_reminder,
+)
 
 router = APIRouter(prefix="/reminders", tags=["提醒系统"])
 
@@ -32,6 +40,17 @@ async def create_reminder(
 ):
     target = await _verify_member_in_family(payload.member_id, current, db)
 
+    duplicate = await find_duplicate_reminder(
+        db,
+        member_id=target.id,
+        type=payload.type,
+        scheduled_date=payload.scheduled_date,
+        related_report_id=payload.related_report_id,
+        related_indicator=payload.related_indicator,
+    )
+    if duplicate:
+        return ResponseWrapper(data=ReminderOut.model_validate(duplicate))
+
     reminder = Reminder(
         member_id=target.id,
         type=payload.type,
@@ -52,7 +71,7 @@ async def create_reminder(
 @router.get("", response_model=ResponseWrapper[list[ReminderOut]])
 async def list_reminders(
     member_id: str = Query(...),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
@@ -66,6 +85,33 @@ async def list_reminders(
     result = await db.execute(stmt)
     items = result.scalars().all()
     return ResponseWrapper(data=[ReminderOut.model_validate(i) for i in items])
+
+
+@router.post("/from-report", response_model=ResponseWrapper[ReminderOut])
+async def create_from_report(
+    payload: ReminderGenerateRequest,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a review reminder from a report."""
+    target = await _verify_member_in_family(payload.member_id, current, db)
+    report = await db.get(Report, payload.report_id)
+    if not report or report.member_id != target.id:
+        raise NotFoundException("报告不存在")
+
+    duplicate = await find_duplicate_reminder(
+        db,
+        member_id=target.id,
+        type="review",
+        scheduled_date=payload.scheduled_date,
+        related_report_id=report.id,
+        related_indicator=None,
+    )
+    if duplicate:
+        return ResponseWrapper(data=ReminderOut.model_validate(duplicate))
+
+    reminder = await create_reminder_from_report(db, report, payload.scheduled_date)
+    return ResponseWrapper(data=ReminderOut.model_validate(reminder))
 
 
 @router.patch("/{reminder_id}", response_model=ResponseWrapper[ReminderOut])

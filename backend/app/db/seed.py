@@ -1,6 +1,10 @@
 """Seed data for care-assist."""
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import Base, async_session, engine
+from app.models.vaccine_library import VaccineLibrary
 
 THRESHOLDS = {
     "systolic_bp": {
@@ -128,9 +132,38 @@ VACCINE_SCHEDULE = [
     ]},
 ]
 
+VACCINE_LIBRARY_SEED = [
+    {
+        "name": item["name"],
+        "dose_number": dose["dose"],
+        "recommended_age_months": dose["scheduled_months"],
+        "category": "国家免疫规划",
+    }
+    for item in VACCINE_SCHEDULE
+    for dose in item["doses"]
+]
+
+
+async def seed_vaccine_library(db: AsyncSession) -> int:
+    """Seed standard vaccine library entries from VACCINE_SCHEDULE. Idempotent."""
+    existing = await db.execute(select(VaccineLibrary.name).limit(1))
+    if existing.scalar_one_or_none():
+        return 0
+
+    for entry in VACCINE_LIBRARY_SEED:
+        db.add(VaccineLibrary(**entry))
+    await db.commit()
+    return len(VACCINE_LIBRARY_SEED)
+
 
 async def seed_all(db: AsyncSession) -> None:
     """Run all seeders. Idempotent."""
-    # Thresholds and vaccine schedules are static dictionaries used by services.
-    # No DB inserts needed for them in Phase 1.
-    pass
+    await seed_vaccine_library(db)
+
+
+async def init_db() -> None:
+    """Create all tables and seed reference data on application startup."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with async_session() as db:
+        await seed_vaccine_library(db)

@@ -63,6 +63,36 @@ class MedicationOut(BaseModel):
     updated_at: Any
 
 
+class MedicationLogCreate(BaseModel):
+    medication_id: str
+    member_id: str
+    scheduled_date: date
+    scheduled_time: str
+    status: str = "pending"
+    notes: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("pending", "taken", "missed", "skipped"):
+            raise ValueError("status must be one of: pending, taken, missed, skipped")
+        return v
+
+
+class MedicationLogUpdate(BaseModel):
+    status: str | None = None
+    notes: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if v not in ("pending", "taken", "missed", "skipped"):
+            raise ValueError("status must be one of: pending, taken, missed, skipped")
+        return v
+
+
 class MedicationLogOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -87,3 +117,18 @@ class MedicationWithLogsOut(BaseModel):
     medication: MedicationOut
     logs: list[MedicationLogOut]
     adherence_rate: float
+
+
+class MedicationCalendarDay(BaseModel):
+    date: date
+    scheduled_count: int
+    taken_count: int
+    missed_count: int
+    skipped_count: int
+    status: str  # complete / partial / missed / skipped / none
+
+
+class MedicationCalendarOut(BaseModel):
+    year: int
+    month: int
+    days: list[MedicationCalendarDay]

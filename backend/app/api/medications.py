@@ -1,3 +1,4 @@
+from calendar import monthrange
 from datetime import date, datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, Query
@@ -15,8 +16,11 @@ from app.schemas.medication import (
     MedicationLogOut,
     MedicationTakeRequest,
     MedicationWithLogsOut,
+    MedicationCalendarOut,
+    MedicationCalendarDay,
 )
 from app.schemas.common import ResponseWrapper
+from app.services.medication_log_service import MedicationLogService
 
 router = APIRouter(prefix="/medications", tags=["用药管理"])
 
@@ -72,6 +76,69 @@ async def list_medications(
     result = await db.execute(stmt)
     items = result.scalars().all()
     return ResponseWrapper(data=[MedicationOut.model_validate(i) for i in items])
+
+
+@router.get("/calendar", response_model=ResponseWrapper[MedicationCalendarOut])
+async def get_medication_calendar(
+    member_id: str = Query(...),
+    year_month: str = Query(..., pattern=r"^\d{4}-\d{2}$"),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return daily medication adherence for a given month."""
+    target = await _verify_member_in_family(member_id, current, db)
+
+    year, month = map(int, year_month.split("-"))
+    _, last_day = monthrange(year, month)
+    start = date(year, month, 1)
+    end = date(year, month, last_day)
+
+    # Ensure pending logs exist for the requested month
+    await MedicationLogService.generate_for_range(db, target.id, start, end)
+
+    stmt = (
+        select(MedicationLog)
+        .where(MedicationLog.member_id == target.id)
+        .where(MedicationLog.scheduled_date >= start)
+        .where(MedicationLog.scheduled_date <= end)
+    )
+    result = await db.execute(stmt)
+    logs = result.scalars().all()
+
+    by_date: dict[date, list[MedicationLog]] = {}
+    for log in logs:
+        by_date.setdefault(log.scheduled_date, []).append(log)
+
+    days = []
+    for d in range(1, last_day + 1):
+        cur = date(year, month, d)
+        day_logs = by_date.get(cur, [])
+        scheduled = len(day_logs)
+        taken = sum(1 for l in day_logs if l.status == "taken")
+        missed = sum(1 for l in day_logs if l.status == "missed")
+        skipped = sum(1 for l in day_logs if l.status == "skipped")
+        status = "none"
+        if scheduled:
+            if taken == scheduled:
+                status = "complete"
+            elif missed > 0:
+                status = "missed" if (missed + skipped) == scheduled else "partial"
+            elif skipped == scheduled:
+                status = "skipped"
+            else:
+                status = "partial"
+        days.append(
+            MedicationCalendarDay(
+                date=cur,
+                scheduled_count=scheduled,
+                taken_count=taken,
+                missed_count=missed,
+                skipped_count=skipped,
+                status=status,
+            )
+        )
+
+    return ResponseWrapper(data=MedicationCalendarOut(year=year, month=month, days=days))
 
 
 @router.get("/{medication_id}", response_model=ResponseWrapper[MedicationWithLogsOut])
