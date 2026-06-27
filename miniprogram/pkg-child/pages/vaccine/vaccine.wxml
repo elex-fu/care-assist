@@ -1,8 +1,25 @@
 <view class="container">
   <view class="header-row">
-    <text class="header-title">疫苗记录</text>
-    <view class="add-btn" bindtap="goToAdd">
-      <text class="add-btn-text">+ 新增</text>
+    <view class="header-title-wrap">
+      <text class="header-title">疫苗记录</text>
+      <view class="summary-badges" wx:if="{{vaccines.length}}">
+        <view class="summary-badge overdue" wx:if="{{overdueCount}}">
+          <text class="summary-count">{{overdueCount}}</text>
+          <text class="summary-label">已逾期</text>
+        </view>
+        <view class="summary-badge upcoming" wx:if="{{upcomingCount}}">
+          <text class="summary-count">{{upcomingCount}}</text>
+          <text class="summary-label">即将接种</text>
+        </view>
+      </view>
+    </view>
+    <view class="header-actions">
+      <view class="generate-btn" bindtap="generateSchedule">
+        <text class="generate-btn-text">生成计划</text>
+      </view>
+      <view class="add-btn" bindtap="goToAdd">
+        <text class="add-btn-text">+ 新增</text>
+      </view>
     </view>
   </view>
 
@@ -37,4 +54,6 @@
     actionText="添加疫苗记录 +"
     bind:action="goToAdd"
   />
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

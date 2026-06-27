@@ -1,0 +1,17 @@
+<view class="mask {{visible ? 'show' : ''}}" wx:if="{{visible}}" bindtap="close">
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-header">
+      <text class="sheet-title">{{title || '指标趋势'}}</text>
+      <text class="sheet-close" bindtap="close">✕</text>
+    </view>
+    <view class="sheet-body">
+      <canvas type="2d" id="trendCanvas" class="trend-canvas"></canvas>
+      <view class="legend" wx:if="{{series.length}}">
+        <view class="legend-item" wx:for="{{series}}" wx:key="indicator_key">
+          <view class="legend-dot" style="background: {{colors[index % colors.length]}};"></view>
+          <text>{{item.indicator_name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

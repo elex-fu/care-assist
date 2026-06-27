@@ -75,4 +75,6 @@
   <button class="share-btn" open-type="share" wx:if="{{summary}}">
     <text>分享给家人</text>
   </button>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

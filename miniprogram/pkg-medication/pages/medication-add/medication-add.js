@@ -132,4 +132,8 @@ Page({
       wx.showToast({ title: err.message || '操作失败', icon: 'none' })
     }
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

@@ -63,4 +63,6 @@
       <text class="tip-text">输入成员姓名查找其所有健康数据</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

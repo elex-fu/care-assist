@@ -64,4 +64,6 @@
     actionText="添加提醒 +"
     bind:action="goToAdd"
   />
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

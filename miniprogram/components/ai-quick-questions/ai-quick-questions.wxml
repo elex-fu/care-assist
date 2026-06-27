@@ -1,0 +1,6 @@
+<view class="quick-questions" wx:if="{{questions.length}}">
+  <text class="quick-questions-title">快捷问题</text>
+  <view class="q-chip" wx:for="{{questions}}" wx:key="*this" data-q="{{item}}" bindtap="onTap">
+    <text>{{item}}</text>
+  </view>
+</view>

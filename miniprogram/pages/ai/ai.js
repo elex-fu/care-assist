@@ -2,13 +2,6 @@ const api = require('../../utils/api')
 const { store, setMembers, setCurrentMemberId } = require('../../utils/store')
 const { getClient } = require('../../utils/websocket')
 
-const QUICK_QUESTIONS = [
-  '血压正常吗？',
-  '帮我分析最新报告',
-  '最近指标有什么变化？',
-  '需要注意什么？',
-]
-
 Page({
   data: {
     members: [],
@@ -19,15 +12,18 @@ Page({
     loading: false,
     showHistory: false,
     conversations: [],
-    quickQuestions: QUICK_QUESTIONS,
+    pageContext: '',
     elderMode: false,
   },
 
   ws: null,
 
-  onLoad() {
+  onLoad(options) {
+    const pageContext = options.pageContext || wx.getStorageSync('ai_page_context') || ''
+    wx.removeStorageSync('ai_page_context')
     const cachedMembers = store.members
     const currentId = store.currentMemberId
+    this.setData({ pageContext })
     if (cachedMembers && cachedMembers.length) {
       this.setData({
         members: cachedMembers,
@@ -207,9 +203,9 @@ Page({
     this.sendMessage()
   },
 
-  onQuickQuestion(e) {
-    const q = e.currentTarget.dataset.q
-    this.sendMessage(q)
+  onQuickQuestionSelect(e) {
+    const q = e.detail.question
+    if (q) this.sendMessage(q)
   },
 
   onAiAction(e) {
@@ -354,5 +350,9 @@ Page({
     // Only return structured data if we found more than plain text
     const hasStructure = blocks.some(b => b.type !== 'text')
     return hasStructure ? blocks : null
+  },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
   },
 })

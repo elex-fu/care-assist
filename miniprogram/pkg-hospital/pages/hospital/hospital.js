@@ -49,4 +49,8 @@ Page({
   },
 
   getHospitalStatusLabel,
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

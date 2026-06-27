@@ -448,4 +448,8 @@ Page({
       this.setData({ activeTab: 'indicators' })
     }
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

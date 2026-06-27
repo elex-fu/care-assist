@@ -30,4 +30,6 @@
     actionText="添加住院记录 +"
     bind:action="goToAdd"
   />
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

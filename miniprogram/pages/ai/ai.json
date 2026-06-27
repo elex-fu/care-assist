@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "AI 助手",
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "ai-quick-questions": "/components/ai-quick-questions/ai-quick-questions"
   }
 }

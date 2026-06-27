@@ -76,4 +76,6 @@
       </view>
     </view>
   </block>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

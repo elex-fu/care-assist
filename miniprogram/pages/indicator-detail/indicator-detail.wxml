@@ -80,4 +80,6 @@
       <text>查看来源报告 ›</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

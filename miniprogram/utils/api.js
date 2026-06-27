@@ -132,4 +132,40 @@ module.exports = {
   put(url, data) { return request({ url, method: 'PUT', data }) },
   del(url) { return request({ url, method: 'DELETE' }) },
   uploadFile,
+
+  // AI
+  getQuickQuestions(memberId, pageContext = '') {
+    let url = `/api/ai-conversations/quick-questions?member_id=${memberId}`
+    if (pageContext) url += `&page_context=${encodeURIComponent(pageContext)}`
+    return request({ url, method: 'GET' })
+  },
+
+  // Indicators
+  compareIndicators(memberId, indicatorKeys) {
+    const keys = indicatorKeys.map(k => `indicator_keys=${encodeURIComponent(k)}`).join('&')
+    return request({ url: `/api/indicators/compare?member_id=${memberId}&${keys}`, method: 'GET' })
+  },
+
+  // Medication
+  getMedicationCalendar(memberId, yearMonth) {
+    return request({
+      url: `/api/medications/calendar?member_id=${memberId}&year_month=${yearMonth}`,
+      method: 'GET',
+    })
+  },
+
+  // Vaccine
+  generateVaccineSchedule(memberId) {
+    return request({ url: `/api/vaccines/schedule?member_id=${memberId}`, method: 'POST' })
+  },
+
+  // Report
+  generateReportAISummary(reportId) {
+    return request({ url: `/api/reports/${reportId}/ai-summary`, method: 'POST' })
+  },
+
+  // Reminder
+  createReminderFromReport(payload) {
+    return request({ url: '/api/reminders/from-report', method: 'POST', data: payload })
+  },
 }

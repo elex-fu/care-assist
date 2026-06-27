@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container report-detail">
   <view class="report-header" wx:if="{{report}}">
     <view class="header-row">
       <view class="type-tag {{report.type}}">
@@ -45,6 +45,13 @@
     </view>
   </view>
 
+  <view class="section" wx:if="{{report && !report.ai_summary}}">
+    <text class="section-title">AI 解读</text>
+    <view class="action-btn secondary" bindtap="generateSummary">
+      <text>{{generatingSummary ? '生成中...' : '生成 AI 解读'}}</text>
+    </view>
+  </view>
+
   <empty-state
     wx:if="{{report && (!report.extracted_indicators || !report.extracted_indicators.length) && !report.ai_summary}}"
     title="暂无识别结果"
@@ -55,8 +62,21 @@
     <view class="primary-btn" bindtap="addToIndicators">
       <text>加入指标中心</text>
     </view>
+    <view class="reminder-row">
+      <picker class="reminder-picker" mode="date" value="{{reminderDate}}" bindchange="onReminderDateChange">
+        <view class="picker-content">
+          <text class="picker-label">提醒日期</text>
+          <text class="picker-value">{{reminderDate}}</text>
+        </view>
+      </picker>
+      <view class="secondary-btn" bindtap="addReminder">
+        <text>{{addingReminder ? '添加中...' : '添加复查提醒'}}</text>
+      </view>
+    </view>
     <view class="delete-btn" bindtap="deleteReport">
       <text>删除报告</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

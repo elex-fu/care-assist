@@ -4,6 +4,7 @@
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "indicator-row": "/components/indicator-row/indicator-row",
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "trend-bottom-sheet": "/components/trend-bottom-sheet/trend-bottom-sheet"
   }
 }

@@ -17,6 +17,60 @@
   color: #1E293B;
 }
 
+.header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.summary-badge {
+  display: flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.summary-badge.overdue {
+  background: #FEF2F2;
+  color: #EF4444;
+}
+
+.summary-badge.upcoming {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.summary-count {
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generate-btn {
+  background: #FFFFFF;
+  border: 1px solid #2563EB;
+  padding: 6px 14px;
+  border-radius: 10px;
+}
+
+.generate-btn-text {
+  font-size: 13px;
+  color: #2563EB;
+  font-weight: 500;
+}
+
 .add-btn {
   background: #2563EB;
   padding: 6px 14px;

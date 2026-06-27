@@ -20,4 +20,8 @@ Page({
       success: () => wx.showToast({ title: '已复制', icon: 'success' }),
     })
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

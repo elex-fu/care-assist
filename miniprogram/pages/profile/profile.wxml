@@ -102,4 +102,6 @@
   <view class="version">
     <text>家庭健康助手 v{{version}}</text>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

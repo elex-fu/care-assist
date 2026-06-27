@@ -98,4 +98,8 @@ Page({
       this.setData({ submitting: false })
     }
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

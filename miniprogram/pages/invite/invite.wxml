@@ -7,4 +7,6 @@
     </view>
     <button class="copy-btn" bindtap="copyLink" wx:if="{{inviteLink}}">复制链接</button>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

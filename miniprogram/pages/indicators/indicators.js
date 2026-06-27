@@ -26,6 +26,9 @@ Page({
     viewMode: 'list',
     matrix: null,
     matrixLoading: false,
+    compareMode: false,
+    selectedKeys: [],
+    showCompareSheet: false,
 
     // Add form fields
     indicatorIndex: 0,
@@ -255,6 +258,39 @@ Page({
 
   preventClose() {
     // Do nothing — catches tap on sheet to prevent overlay close
+  },
+
+  toggleCompareMode() {
+    this.setData({ compareMode: !this.data.compareMode, selectedKeys: [] })
+  },
+
+  toggleSelect(e) {
+    const key = e.currentTarget.dataset.key
+    const selected = this.data.selectedKeys
+    const idx = selected.indexOf(key)
+    if (idx >= 0) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(key)
+    }
+    this.setData({ selectedKeys: [...selected] })
+  },
+
+  openCompare() {
+    if (this.data.selectedKeys.length < 2) {
+      wx.showToast({ title: '请至少选择 2 个指标', icon: 'none' })
+      return
+    }
+    this.setData({ showCompareSheet: true })
+  },
+
+  closeCompare() {
+    this.setData({ showCompareSheet: false })
+  },
+
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
   },
 
   getStatusColor,

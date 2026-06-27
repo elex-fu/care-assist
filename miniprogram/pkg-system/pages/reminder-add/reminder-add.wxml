@@ -41,4 +41,6 @@
       <text>删除提醒</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

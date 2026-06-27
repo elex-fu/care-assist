@@ -21,4 +21,6 @@
     </view>
     <button class="join-btn" bindtap="join" loading="{{loading}}">{{loading ? '加入中...' : '加入家庭'}}</button>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

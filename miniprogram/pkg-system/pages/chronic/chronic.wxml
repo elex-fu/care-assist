@@ -66,4 +66,6 @@
     <view class="spinner"></view>
     <text class="loading-text">加载中...</text>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

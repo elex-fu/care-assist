@@ -117,4 +117,6 @@
       <button class="btn-text" bindtap="goToManualEntry">手动录入指标</button>
     </view>
   </block>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

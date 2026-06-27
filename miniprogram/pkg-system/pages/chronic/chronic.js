@@ -83,4 +83,8 @@ Page({
   goBack() {
     wx.navigateBack()
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

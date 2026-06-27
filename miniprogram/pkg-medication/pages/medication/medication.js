@@ -7,11 +7,13 @@ Page({
     currentMemberId: null,
     medications: [],
     loading: true,
+    yearMonth: '',
   },
 
   onLoad() {
     const cachedMembers = store.members
     const currentId = store.currentMemberId
+    this.setData({ yearMonth: this.formatYearMonth(new Date()) })
     if (cachedMembers && cachedMembers.length) {
       this.setData({
         members: cachedMembers,
@@ -24,6 +26,24 @@ Page({
   onShow() {
     const id = this.data.currentMemberId
     if (id) this.loadMedications(id)
+  },
+
+  formatYearMonth(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  },
+
+  onDayTap(e) {
+    const date = e.detail.date
+    wx.showToast({ title: date, icon: 'none' })
+  },
+
+  onMonthChange(e) {
+    this.setData({ yearMonth: e.detail.yearMonth })
+  },
+
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
   },
 
   async loadMembers() {

@@ -123,6 +123,11 @@ Page({
     wx.navigateTo({ url: `/pages/member-detail/member-detail?id=${id}` })
   },
 
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
+
   getMemberTypeLabel,
   getLatestStatusLabel,
 })

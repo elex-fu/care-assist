@@ -1,0 +1,25 @@
+.quick-questions {
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.quick-questions-title {
+  font-size: 13px;
+  color: #64748B;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.q-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  background: #EFF6FF;
+  color: #2563EB;
+  border-radius: 16px;
+  font-size: 13px;
+}

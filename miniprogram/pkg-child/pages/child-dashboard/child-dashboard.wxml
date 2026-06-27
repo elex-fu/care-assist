@@ -97,4 +97,6 @@
     title="加载失败"
     subtitle="请稍后重试"
   />
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

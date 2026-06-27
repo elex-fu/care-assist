@@ -146,4 +146,9 @@ Page({
       url: `/pkg-system/pages/indicator-manual/indicator-manual?member_id=${memberId}`,
     })
   },
+
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

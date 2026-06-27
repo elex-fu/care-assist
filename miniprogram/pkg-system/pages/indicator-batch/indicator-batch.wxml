@@ -47,4 +47,6 @@
       <text>{{submitting ? '保存中...' : '保存'}}</text>
     </button>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

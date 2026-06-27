@@ -58,4 +58,6 @@
     </view>
     <button class="submit-btn" bindtap="saveSubscription">保存订阅设置</button>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

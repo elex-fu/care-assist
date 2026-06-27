@@ -54,4 +54,6 @@
       <text>删除记录</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

@@ -49,4 +49,6 @@
   <view class="loading-mask" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

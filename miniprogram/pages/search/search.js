@@ -95,4 +95,8 @@ Page({
   askAi() {
     wx.switchTab({ url: '/pages/ai/ai' })
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

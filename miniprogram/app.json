@@ -102,6 +102,9 @@
       }
     ]
   },
+  "usingComponents": {
+    "ai-fab": "./components/ai-fab/ai-fab"
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

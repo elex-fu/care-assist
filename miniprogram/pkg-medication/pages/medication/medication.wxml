@@ -12,6 +12,15 @@
     </view>
   </scroll-view>
 
+  <!-- Medication Calendar -->
+  <medication-calendar
+    wx:if="{{currentMemberId && yearMonth}}"
+    member-id="{{currentMemberId}}"
+    year-month="{{yearMonth}}"
+    bind:daytap="onDayTap"
+    bind:monthchange="onMonthChange"
+  />
+
   <!-- Medication List -->
   <view class="medication-list" wx:if="{{!loading && medications.length}}">
     <view class="medication-card" wx:for="{{medications}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail">
@@ -49,4 +58,6 @@
   <view class="fab" bindtap="goToAdd">
     <text class="fab-icon">+</text>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

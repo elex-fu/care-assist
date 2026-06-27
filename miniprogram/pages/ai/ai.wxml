@@ -84,17 +84,12 @@
   </scroll-view>
 
   <!-- Quick Questions -->
-  <view class="quick-questions" wx:if="{{!loading && messages.length < 2}}">
-    <view
-      class="q-chip"
-      wx:for="{{quickQuestions}}"
-      wx:key="*this"
-      data-q="{{item}}"
-      bindtap="onQuickQuestion"
-    >
-      <text>{{item}}</text>
-    </view>
-  </view>
+  <ai-quick-questions
+    wx:if="{{!loading && messages.length < 2 && currentMemberId}}"
+    member-id="{{currentMemberId}}"
+    page-context="{{pageContext}}"
+    bind:select="onQuickQuestionSelect"
+  />
 
   <!-- Input Bar -->
   <view class="input-bar">
@@ -133,4 +128,6 @@
       </view>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

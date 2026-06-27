@@ -39,4 +39,8 @@ Page({
       this.setData({ loading: false })
     }
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

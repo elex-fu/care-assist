@@ -59,4 +59,6 @@
       </button>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

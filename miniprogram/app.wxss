@@ -117,6 +117,68 @@ page {
   font-size: 15px !important;
 }
 
+/* Elder mode overrides for new components */
+.elder-mode .ai-fab {
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 34px !important;
+}
+
+.elder-mode .ai-fab-icon {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+.elder-mode .calendar-title,
+.elder-mode .month-switcher .switch-icon {
+  font-size: 18px !important;
+}
+
+.elder-mode .weekdays {
+  font-size: 15px !important;
+}
+
+.elder-mode .day {
+  height: 56px !important;
+  font-size: 17px !important;
+}
+
+.elder-mode .summary-badge {
+  font-size: 14px !important;
+  padding: 4px 10px !important;
+}
+
+.elder-mode .summary-count,
+.elder-mode .summary-label {
+  font-size: 14px !important;
+}
+
+.elder-mode .vaccine-name {
+  font-size: 18px !important;
+}
+
+.elder-mode .vaccine-card .meta,
+.elder-mode .vaccine-card .extra-text {
+  font-size: 15px !important;
+}
+
+.elder-mode .report-detail .primary-btn,
+.elder-mode .report-detail .secondary-btn,
+.elder-mode .report-detail .delete-btn {
+  height: 54px !important;
+  font-size: 18px !important;
+}
+
+.elder-mode .report-detail .reminder-picker {
+  min-height: 54px !important;
+  padding: 16px 14px !important;
+}
+
+.elder-mode .report-detail .picker-label,
+.elder-mode .report-detail .picker-value {
+  font-size: 17px !important;
+}
+
 /* Skeleton Loading */
 .skeleton {
   background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);

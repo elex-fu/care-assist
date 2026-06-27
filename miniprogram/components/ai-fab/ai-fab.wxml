@@ -1,0 +1,3 @@
+<view class="ai-fab" style="bottom: {{safeBottom + 80}}px;" bindtap="onTap">
+  <image class="ai-fab-icon" src="/assets/icons/ai.png" />
+</view>

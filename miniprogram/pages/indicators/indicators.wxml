@@ -28,20 +28,34 @@
     >
       <text>表单</text>
     </view>
+    <view
+      class="toggle-item {{compareMode ? 'active' : ''}}"
+      bindtap="toggleCompareMode"
+    >
+      <text>{{compareMode ? '完成' : '对比'}}</text>
+    </view>
   </view>
 
   <!-- Indicator List -->
   <view class="indicator-list" wx:if="{{viewMode === 'list' && !loading && indicators.length}}">
-    <indicator-row
+    <view
+      class="indicator-row-wrap"
       wx:for="{{indicators}}"
       wx:key="id"
-      indicator="{{item}}"
-      data-id="{{item.id}}"
       data-key="{{item.indicator_key}}"
-      data-name="{{item.indicator_name}}"
-      data-unit="{{item.unit}}"
-      bindtap="goToDetail"
-    />
+      bindtap="{{compareMode ? 'toggleSelect' : 'goToDetail'}}"
+    >
+      <view class="select-box" wx:if="{{compareMode}}">
+        <view class="select-circle {{selectedKeys.indexOf(item.indicator_key) >= 0 ? 'selected' : ''}}" />
+      </view>
+      <indicator-row
+        indicator="{{item}}"
+        data-id="{{item.id}}"
+        data-key="{{item.indicator_key}}"
+        data-name="{{item.indicator_name}}"
+        data-unit="{{item.unit}}"
+      />
+    </view>
   </view>
 
   <!-- Matrix View -->
@@ -114,10 +128,24 @@
     <view class="fab-secondary" bindtap="goToBatch">
       <text class="fab-secondary-text">批量</text>
     </view>
+    <view class="fab-secondary" wx:if="{{compareMode && selectedKeys.length >= 2}}" bindtap="openCompare">
+      <text class="fab-secondary-text">对比</text>
+    </view>
     <view class="fab" bindtap="openAddForm">
       <text class="fab-icon">+</text>
     </view>
   </view>
+
+  <!-- Compare Bottom Sheet -->
+  <trend-bottom-sheet
+    visible="{{showCompareSheet}}"
+    member-id="{{currentMemberId}}"
+    indicator-keys="{{selectedKeys}}"
+    title="多指标趋势"
+    bind:close="closeCompare"
+  />
+
+  <ai-fab bind:tap="onAIFabTap" />
 
   <!-- Add Form Overlay -->
   <view class="form-overlay" wx:if="{{showAddForm}}" bindtap="closeAddForm">

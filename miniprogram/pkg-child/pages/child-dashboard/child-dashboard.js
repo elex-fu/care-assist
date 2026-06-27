@@ -111,4 +111,8 @@ Page({
   },
 
   getVaccineStatusLabel,
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

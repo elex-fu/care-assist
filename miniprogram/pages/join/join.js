@@ -53,4 +53,8 @@ Page({
   goToLogin() {
     wx.reLaunch({ url: '/pages/index/index' })
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

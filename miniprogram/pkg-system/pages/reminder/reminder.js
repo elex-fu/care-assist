@@ -115,4 +115,8 @@ Page({
     const map = { critical: '紧急', high: '高', normal: '普通', low: '低' }
     return map[priority] || priority
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

@@ -1,0 +1,35 @@
+<view class="calendar-card">
+  <view class="calendar-header">
+    <view class="month-switcher">
+      <view class="switch-btn" bindtap="onPrevMonth">
+        <text class="switch-icon">‹</text>
+      </view>
+      <text class="calendar-title">{{currentYearMonth || yearMonth}} 用药打卡</text>
+      <view class="switch-btn" bindtap="onNextMonth">
+        <text class="switch-icon">›</text>
+      </view>
+    </view>
+    <view class="legend">
+      <view class="legend-item"><view class="dot complete"></view><text>完成</text></view>
+      <view class="legend-item"><view class="dot partial"></view><text>部分</text></view>
+      <view class="legend-item"><view class="dot missed"></view><text>漏服</text></view>
+    </view>
+  </view>
+
+  <view class="weekdays">
+    <text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text>
+  </view>
+
+  <view class="days">
+    <view
+      class="day {{item.status}}"
+      wx:for="{{days}}"
+      wx:key="date"
+      data-date="{{item.date}}"
+      bindtap="onDayTap"
+    >
+      <text class="day-num">{{item.day}}</text>
+      <view class="day-dot" wx:if="{{item.status !== 'none'}}" />
+    </view>
+  </view>
+</view>

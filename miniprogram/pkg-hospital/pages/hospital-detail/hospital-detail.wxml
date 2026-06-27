@@ -132,4 +132,6 @@
       <text>办理出院</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

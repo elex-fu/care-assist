@@ -1,5 +1,6 @@
 const api = require('../../../utils/api')
 const { getReportTypeLabel, getOcrStatusLabel } = require('../../../utils/format')
+const { generateReportAISummary, createReminderFromReport } = require('../../../utils/api')
 
 Page({
   data: {
@@ -7,12 +8,19 @@ Page({
     reportId: '',
     report: null,
     loading: false,
+    generatingSummary: false,
+    addingReminder: false,
+    reminderDate: '',
   },
 
   onLoad(options) {
     const memberId = options.member_id || ''
     const reportId = options.report_id || ''
-    this.setData({ memberId, reportId })
+    this.setData({
+      memberId,
+      reportId,
+      reminderDate: this.formatDateOffset(new Date(), 7),
+    })
     if (memberId && reportId) {
       this.loadReport(memberId, reportId)
     }
@@ -54,6 +62,54 @@ Page({
         wx.showToast({ title: '指标已同步到指标中心', icon: 'success' })
       },
     })
+  },
+
+  async generateSummary() {
+    const { reportId, memberId } = this.data
+    if (!reportId) return
+    this.setData({ generatingSummary: true })
+    try {
+      const res = await generateReportAISummary(reportId)
+      this.setData({ report: res.data })
+      wx.showToast({ title: 'AI 解读已生成', icon: 'success' })
+    } catch (err) {
+      wx.showToast({ title: err.message || '生成失败', icon: 'none' })
+    } finally {
+      this.setData({ generatingSummary: false })
+    }
+  },
+
+  async addReminder() {
+    const { report, memberId, reminderDate } = this.data
+    if (!report || !memberId) return
+    this.setData({ addingReminder: true })
+    try {
+      await createReminderFromReport({
+        member_id: memberId,
+        report_id: report.id,
+        scheduled_date: reminderDate,
+      })
+      wx.showToast({ title: '复查提醒已添加', icon: 'success' })
+    } catch (err) {
+      wx.showToast({ title: err.message || '添加失败', icon: 'none' })
+    } finally {
+      this.setData({ addingReminder: false })
+    }
+  },
+
+  onReminderDateChange(e) {
+    this.setData({ reminderDate: e.detail.value })
+  },
+
+  formatDateOffset(d, days) {
+    const t = new Date(d)
+    t.setDate(t.getDate() + days)
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+  },
+
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
   },
 
   async deleteReport() {

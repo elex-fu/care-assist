@@ -69,4 +69,6 @@
   <view class="empty-tip" wx:if="{{!selected && !suggestions.length && !query}}">
     <text class="tip-text">搜索并选择要录入的指标</text>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

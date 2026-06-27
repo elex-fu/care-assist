@@ -129,4 +129,8 @@ Page({
   goBack() {
     this.setData({ showResult: false, exportData: null, downloadedFile: '' })
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

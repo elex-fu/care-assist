@@ -69,4 +69,6 @@
   <view class="submit-bar">
     <button class="btn-submit" bindtap="submit">保存</button>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

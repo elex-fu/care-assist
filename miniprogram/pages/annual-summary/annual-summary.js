@@ -39,4 +39,8 @@ Page({
       path: `/pages/annual-summary/annual-summary?year=${year}`,
     }
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

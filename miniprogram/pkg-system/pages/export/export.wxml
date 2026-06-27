@@ -77,4 +77,6 @@
       <text class="file-hint">点击「预览」查看</text>
     </view>
   </view>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>

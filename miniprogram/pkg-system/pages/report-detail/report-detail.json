@@ -3,6 +3,7 @@
   "usingComponents": {
     "lazy-image": "/components/lazy-image/lazy-image",
     "indicator-row": "/components/indicator-row/indicator-row",
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "ai-fab": "/components/ai-fab/ai-fab"
   }
 }

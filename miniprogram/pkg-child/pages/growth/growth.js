@@ -116,4 +116,8 @@ Page({
   goToMilestones() {
     wx.navigateTo({ url: `/pkg-child/pages/milestone/milestone?member_id=${this.data.memberId}` })
   },
+  onAIFabTap(e) {
+    const { onAIFabTap } = require('../../../utils/page-base')
+    onAIFabTap(e)
+  },
 })

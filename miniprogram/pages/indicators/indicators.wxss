@@ -507,3 +507,36 @@
   background: rgba(239, 68, 68, 0.08);
   font-weight: 600;
 }
+
+.indicator-row-wrap {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  padding-right: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.select-box {
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.select-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #CBD5E1;
+}
+
+.select-circle.selected {
+  border-color: #2563EB;
+  background: #2563EB;
+}
+
+.indicator-row-wrap indicator-row {
+  flex: 1;
+}

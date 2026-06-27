@@ -34,4 +34,6 @@
   </view>
 
   <button class="submit-btn" bindtap="submit">保存</button>
+
+  <ai-fab bind:tap="onAIFabTap" />
 </view>
