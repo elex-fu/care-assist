@@ -1,4 +1,6 @@
-const API_BASE = 'ws://localhost:8000'
+const { getWsBase } = require('./config')
+
+const API_BASE = getWsBase()
 
 const env = (typeof wx !== 'undefined' && wx.getAccountInfoSync)
   ? wx.getAccountInfoSync().miniProgram.envVersion

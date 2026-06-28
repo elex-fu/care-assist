@@ -8,6 +8,11 @@ Page({
     medications: [],
     loading: true,
     yearMonth: '',
+    selectedDate: '',
+    dayLogs: [],
+    showDayDetail: false,
+    dayDetailLoading: false,
+    missedReminders: [],
   },
 
   onLoad() {
@@ -32,9 +37,35 @@ Page({
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
   },
 
-  onDayTap(e) {
+  async onDayTap(e) {
     const date = e.detail.date
-    wx.showToast({ title: date, icon: 'none' })
+    this.setData({ selectedDate: date, showDayDetail: true, dayDetailLoading: true })
+    try {
+      const res = await api.getMedicationLogs(this.data.currentMemberId, date)
+      this.setData({ dayLogs: res.data || [], dayDetailLoading: false })
+    } catch (err) {
+      wx.showToast({ title: err.message || '加载失败', icon: 'none' })
+      this.setData({ dayDetailLoading: false })
+    }
+  },
+
+  closeDayDetail() {
+    this.setData({ showDayDetail: false, dayLogs: [] })
+  },
+
+  async markLogStatus(e) {
+    const { logId, status } = e.currentTarget.dataset
+    try {
+      await api.updateMedicationLog(logId, { status })
+      wx.showToast({ title: status === 'taken' ? '已标记打卡' : '已标记漏服', icon: 'success' })
+      const updated = this.data.dayLogs.map(log =>
+        log.id === logId ? { ...log, status } : log
+      )
+      this.setData({ dayLogs: updated })
+      this.loadMedications(this.data.currentMemberId)
+    } catch (err) {
+      wx.showToast({ title: err.message || '操作失败', icon: 'none' })
+    }
   },
 
   onMonthChange(e) {
@@ -63,12 +94,27 @@ Page({
   async loadMedications(memberId) {
     this.setData({ loading: true })
     try {
-      const res = await api.get(`/api/medications?member_id=${memberId}`)
-      this.setData({ medications: res.data || [], loading: false })
+      const [medRes, reminderRes] = await Promise.all([
+        api.get(`/api/medications?member_id=${memberId}`),
+        api.listReminders({ member_id: memberId, type: 'medication', status: 'pending' }),
+      ])
+      this.setData({
+        medications: medRes.data || [],
+        missedReminders: reminderRes.data || [],
+        loading: false,
+      })
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }
+  },
+
+  goToReminderDetail(e) {
+    const id = e.currentTarget.dataset.id
+    const memberId = this.data.currentMemberId
+    wx.navigateTo({
+      url: `/pkg-system/pages/reminder-add/reminder-add?member_id=${memberId}&id=${id}&edit=true`,
+    })
   },
 
   selectMember(e) {

@@ -153,6 +153,19 @@ module.exports = {
       method: 'GET',
     })
   },
+  getMedicationLogs(memberId, date) {
+    return request({
+      url: `/api/medications/logs?member_id=${memberId}&date=${date}`,
+      method: 'GET',
+    })
+  },
+  updateMedicationLog(logId, payload) {
+    return request({
+      url: `/api/medications/logs/${logId}`,
+      method: 'PATCH',
+      data: payload,
+    })
+  },
 
   // Vaccine
   generateVaccineSchedule(memberId) {
@@ -167,5 +180,11 @@ module.exports = {
   // Reminder
   createReminderFromReport(payload) {
     return request({ url: '/api/reminders/from-report', method: 'POST', data: payload })
+  },
+  listReminders(params) {
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&')
+    return request({ url: `/api/reminders?${qs}`, method: 'GET' })
   },
 }

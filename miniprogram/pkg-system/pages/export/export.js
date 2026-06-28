@@ -82,7 +82,8 @@ Page({
     // Excel or PDF: use downloadFile
     this.setData({ exporting: true })
     const token = wx.getStorageSync('access_token')
-    let url = `http://localhost:8000/api/export/${format.toLowerCase()}?member_id=${memberId}`
+    const { getApiBase } = require('../../../utils/config')
+    let url = `${getApiBase()}/api/export/${format.toLowerCase()}?member_id=${memberId}`
     if (format === 'Excel' && startDate && endDate) {
       url += `&start_date=${startDate}&end_date=${endDate}`
     }

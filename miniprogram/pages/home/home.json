@@ -3,6 +3,7 @@
   "enablePullDownRefresh": true,
   "backgroundColor": "#F8FAFC",
   "usingComponents": {
-    "member-card": "/components/member-card/member-card"
+    "member-card": "/components/member-card/member-card",
+    "medical-disclaimer": "/components/medical-disclaimer/medical-disclaimer"
   }
 }

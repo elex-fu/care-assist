@@ -77,5 +77,6 @@
     </view>
   </block>
 
+  <medical-disclaimer />
   <ai-fab bind:tap="onAIFabTap" />
 </view>

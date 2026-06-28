@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000'
+const { getApiBase } = require('./config')
 
 function chooseImage(sourceType = ['camera', 'album']) {
   return new Promise((resolve, reject) => {
@@ -16,7 +16,7 @@ function uploadImage(filePath, fields = {}) {
   const token = wx.getStorageSync('access_token')
   return new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: `${API_BASE}/api/reports`,
+      url: `${getApiBase()}/api/reports`,
       filePath,
       name: 'images',
       header: {

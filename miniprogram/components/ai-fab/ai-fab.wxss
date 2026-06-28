@@ -1,18 +1,23 @@
 .ai-fab {
   position: fixed;
-  right: 16px;
   width: 56px;
   height: 56px;
   border-radius: 28px;
-  background: #2563EB;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
+.ai-fab.animating {
+  transition: transform 0.3s ease-out;
+}
+
 .ai-fab-icon {
-  width: 28px;
-  height: 28px;
+  color: #FFFFFF;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 300;
 }

@@ -91,6 +91,8 @@
     bind:select="onQuickQuestionSelect"
   />
 
+  <medical-disclaimer />
+
   <!-- Input Bar -->
   <view class="input-bar">
     <input

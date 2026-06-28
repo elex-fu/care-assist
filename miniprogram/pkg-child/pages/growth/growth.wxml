@@ -9,15 +9,24 @@
     </picker>
   </view>
 
+  <view class="chart-wrap" wx:if="{{records.length}}">
+    <canvas canvas-id="growthChart" class="growth-chart"></canvas>
+  </view>
+  <view class="chart-empty" wx:else>
+    <text>暂无数据，无法绘制趋势图</text>
+  </view>
+
   <view class="record-list" wx:if="{{records.length}}">
     <view class="record-item" wx:for="{{records}}" wx:key="id">
       <view class="record-main">
         <text class="record-date">{{item.recorded_at}}</text>
         <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
+        <text class="record-assessment" wx:if="{{item.assessment_label}}">{{item.assessment_label}}</text>
       </view>
       <view class="record-value-wrap">
         <text class="record-value">{{item.value}}</text>
         <text class="record-unit">{{item.unit}}</text>
+        <text class="record-percentile" wx:if="{{item.percentile != null}}">P{{item.percentile}}</text>
       </view>
       <text class="delete-btn" data-id="{{item.id}}" bindtap="deleteRecord">删除</text>
     </view>

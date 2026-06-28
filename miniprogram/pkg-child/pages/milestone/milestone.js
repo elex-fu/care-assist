@@ -7,6 +7,20 @@ const CATEGORY_LABELS = {
   social: '社交',
 }
 
+const STATUS_LABELS = {
+  achieved: '已达成',
+  warning: '临近',
+  delayed: '延迟',
+  normal: '待发展',
+}
+
+const STATUS_COLORS = {
+  achieved: '#10b981',
+  warning: '#f59e0b',
+  delayed: '#ef4444',
+  normal: '#6b7280',
+}
+
 Page({
   data: {
     memberId: null,
@@ -32,6 +46,8 @@ Page({
       const milestones = (res.data || []).map(m => ({
         ...m,
         categoryLabel: CATEGORY_LABELS[m.category] || m.category,
+        statusLabel: STATUS_LABELS[m.status] || m.status,
+        statusColor: STATUS_COLORS[m.status] || STATUS_COLORS.normal,
       }))
       this.setData({ milestones, loading: false })
     } catch (err) {

@@ -21,6 +21,24 @@
     bind:monthchange="onMonthChange"
   />
 
+  <!-- Missed Medication Reminders -->
+  <view class="reminder-section" wx:if="{{missedReminders.length}}">
+    <text class="section-title">⚠️ 漏服提醒</text>
+    <view
+      class="reminder-card"
+      wx:for="{{missedReminders}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goToReminderDetail"
+    >
+      <view class="reminder-header">
+        <text class="reminder-title">{{item.title}}</text>
+        <text class="reminder-date">{{item.scheduled_date}}</text>
+      </view>
+      <text class="reminder-desc" wx:if="{{item.description}}">{{item.description}}</text>
+    </view>
+  </view>
+
   <!-- Medication List -->
   <view class="medication-list" wx:if="{{!loading && medications.length}}">
     <view class="medication-card" wx:for="{{medications}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail">
@@ -52,6 +70,40 @@
   <!-- Loading -->
   <view class="loading-wrap" wx:if="{{loading}}">
     <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- Day Detail Popup -->
+  <view class="day-overlay" wx:if="{{showDayDetail}}" bindtap="closeDayDetail">
+    <view class="day-sheet" catchtap="preventClose">
+      <view class="day-header">
+        <text class="day-title">{{selectedDate}} 用药明细</text>
+        <text class="day-close" bindtap="closeDayDetail">✕</text>
+      </view>
+      <view class="day-loading" wx:if="{{dayDetailLoading}}">
+        <text>加载中...</text>
+      </view>
+      <view class="day-logs" wx:elif="{{dayLogs.length}}">
+        <view class="day-log" wx:for="{{dayLogs}}" wx:key="id">
+          <view class="log-info">
+            <text class="log-time">{{item.scheduled_time}}</text>
+            <text class="log-name">{{item.medication_name || '用药'}}</text>
+            <text class="log-status {{item.status}}">
+              {{item.status === 'taken' ? '已打卡' : item.status === 'missed' ? '漏服' : item.status === 'skipped' ? '跳过' : '待服用'}}
+            </text>
+          </view>
+          <view class="log-actions" wx:if="{{item.status !== 'taken'}}">
+            <button class="log-btn taken" data-log-id="{{item.id}}" data-status="taken" bindtap="markLogStatus">打卡</button>
+            <button class="log-btn missed" data-log-id="{{item.id}}" data-status="missed" bindtap="markLogStatus">漏服</button>
+          </view>
+          <view class="log-actions" wx:else>
+            <button class="log-btn missed" data-log-id="{{item.id}}" data-status="missed" bindtap="markLogStatus">标记漏服</button>
+          </view>
+        </view>
+      </view>
+      <view class="day-empty" wx:else>
+        <text>当天没有用药安排</text>
+      </view>
+    </view>
   </view>
 
   <!-- FAB -->

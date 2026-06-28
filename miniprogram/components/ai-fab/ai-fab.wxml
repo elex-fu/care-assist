@@ -1,3 +1,10 @@
-<view class="ai-fab" style="bottom: {{safeBottom + 80}}px;" bindtap="onTap">
-  <image class="ai-fab-icon" src="/assets/icons/ai.png" />
+<view
+  class="ai-fab {{animating ? 'animating' : ''}}"
+  style="bottom: {{safeBottom + 80}}px; right: 16px; transform: translate({{translateX}}px, {{translateY}}px);"
+  bindtap="onTap"
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+>
+  <text class="ai-fab-icon">✦</text>
 </view>

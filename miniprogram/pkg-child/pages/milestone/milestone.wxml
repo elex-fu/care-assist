@@ -9,6 +9,7 @@
       <view class="milestone-header">
         <text class="milestone-age">{{item.age_months}} 个月</text>
         <text class="milestone-category">{{item.categoryLabel}}</text>
+        <text class="milestone-status" style="color: {{item.statusColor}}; border-color: {{item.statusColor}};">{{item.statusLabel}}</text>
       </view>
       <text class="milestone-title">{{item.title}}</text>
       <text class="milestone-desc">{{item.description}}</text>
