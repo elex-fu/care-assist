@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -413,15 +414,22 @@ class AIService:
     async def generate_family_summary(
         self,
         member_cards: list[dict],
+        timeout: float = 5.0,
     ) -> str:
         """Generate AI daily summary for family dashboard."""
         provider = self._get_provider()
         if provider is not None:
             try:
-                reply = await provider.generate_summary({"member_cards": member_cards})
+                reply = await asyncio.wait_for(
+                    provider.generate_summary({"member_cards": member_cards}),
+                    timeout=timeout,
+                )
                 return self._append_disclaimer(reply)
+            except TimeoutError:
+                # Dashboard should not block on slow AI provider; fall back quickly.
+                pass
             except Exception:
-                # Fall back to rule-based summary on provider failure
+                # Fall back to rule-based summary on provider failure.
                 pass
 
         total_abnormal = sum(c.get("abnormal_count", 0) for c in member_cards)

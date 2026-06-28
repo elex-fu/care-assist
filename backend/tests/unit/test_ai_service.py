@@ -190,6 +190,23 @@ class TestAIServiceMockReplies:
         assert "免责声明" in summary
         mock_provider.generate_summary.assert_awaited_once()
 
+    async def test_family_summary_falls_back_on_provider_timeout(self):
+        import asyncio
+
+        async def slow_summary(_context):
+            await asyncio.sleep(10)
+            return "不会返回"
+
+        mock_provider = MagicMock(spec=AIProvider)
+        mock_provider.generate_summary = slow_summary
+        svc = AIService(provider=mock_provider)
+        cards = [
+            {"name": "张三", "latest_status": "normal", "abnormal_count": 0},
+        ]
+        summary = await svc.generate_family_summary(cards, timeout=0.01)
+        assert "整体平稳" in summary or "良好" in summary
+        assert "免责声明" in summary
+
     async def test_family_summary_normal(self):
         svc = AIService()
         cards = [

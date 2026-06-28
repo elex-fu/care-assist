@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 import redis.asyncio as aioredis
-import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+aiomysql://care:carepass@localhost:3306/care_assist")
+from app.config import settings
+
+DATABASE_URL = settings.DATABASE_URL
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -21,5 +22,5 @@ async_session = async_sessionmaker(
 Base = declarative_base()
 
 # Redis connection pool for WebSocket state sharing + rate limiting
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+REDIS_URL = settings.REDIS_URL
 redis_pool = aioredis.ConnectionPool.from_url(REDIS_URL, max_connections=50)

@@ -6,9 +6,11 @@ from decimal import Decimal
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-os.environ.setdefault("DATABASE_URL", "mysql+aiomysql://root@localhost:3308/care_assist")
+# Use a dedicated test database so integration tests never drop the dev schema.
+os.environ.setdefault("DATABASE_URL", "mysql+aiomysql://root@localhost:3308/care_assist_test")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
 os.environ.setdefault("DEBUG", "true")
 
@@ -32,8 +34,13 @@ settings.WECHAT_SECRET = ""
 import app.models  # noqa: F401
 
 
+TEST_DATABASE_URL = os.environ["DATABASE_URL"]
+# URL pointing at the MySQL server itself, without a database, so we can create
+# the dedicated test database if it does not exist.
+TEST_SERVER_URL = TEST_DATABASE_URL.rsplit("/", 1)[0]
+
 TEST_ENGINE = create_async_engine(
-    os.environ["DATABASE_URL"],
+    TEST_DATABASE_URL,
     pool_size=5,
     max_overflow=0,
     pool_pre_ping=True,
@@ -42,8 +49,18 @@ TEST_ENGINE = create_async_engine(
 TestSession = async_sessionmaker(TEST_ENGINE, class_=AsyncSession, expire_on_commit=False)
 
 
+async def _ensure_test_database_exists() -> None:
+    """Create the test database if it does not exist."""
+    server_engine = create_async_engine(TEST_SERVER_URL, poolclass=pool.NullPool)
+    async with server_engine.connect() as conn:
+        db_name = TEST_DATABASE_URL.rsplit("/", 1)[-1]
+        await conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"))
+    await server_engine.dispose()
+
+
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_engine():
+    await _ensure_test_database_exists()
     async with TEST_ENGINE.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield TEST_ENGINE
