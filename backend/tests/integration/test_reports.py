@@ -181,3 +181,95 @@ class TestReportOCR:
         assert data["ocr_status"] == "completed"
         assert len(data["extracted"]) > 0
         assert data["extracted"][0]["indicator_key"]
+
+
+class TestReportAISummary:
+    async def test_generate_ai_summary_success(self, auth_client, test_member, db):
+        report = Report(
+            member_id=test_member.id,
+            type="lab",
+            images=[],
+            ocr_status="completed",
+            report_date=date(2024, 6, 15),
+            extracted_indicators=[
+                {
+                    "indicator_key": "systolic_bp",
+                    "indicator_name": "收缩压",
+                    "value": 145,
+                    "unit": "mmHg",
+                    "status": "high",
+                }
+            ],
+        )
+        db.add(report)
+        await db.commit()
+        await db.refresh(report)
+
+        resp = await auth_client.post(f"/api/reports/{report.id}/ai-summary")
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["id"] == report.id
+        assert test_member.name in data["ai_summary"]
+        assert "异常" in data["ai_summary"]
+
+    async def test_generate_ai_summary_no_indicators(self, auth_client, test_member, db):
+        report = Report(
+            member_id=test_member.id,
+            type="lab",
+            images=[],
+            ocr_status="completed",
+            report_date=date(2024, 6, 15),
+            extracted_indicators=[],
+        )
+        db.add(report)
+        await db.commit()
+        await db.refresh(report)
+
+        resp = await auth_client.post(f"/api/reports/{report.id}/ai-summary")
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["id"] == report.id
+        assert "暂未识别到指标" in data["ai_summary"]
+
+    async def test_generate_ai_summary_not_found(self, auth_client):
+        resp = await auth_client.post("/api/reports/nonexistent-id/ai-summary")
+        assert resp.status_code == 404
+
+    async def test_generate_ai_summary_other_family(self, auth_client, db):
+        import secrets
+        import uuid
+
+        from app.models.family import Family
+        from app.models.member import Member
+
+        other_family = Family(
+            id=str(uuid.uuid4()),
+            name="Other",
+            invite_code=secrets.token_urlsafe(8)[:6].upper(),
+        )
+        db.add(other_family)
+        await db.commit()
+        other_member = Member(
+            id=str(uuid.uuid4()),
+            family_id=other_family.id,
+            name="Other",
+            gender="male",
+            type="adult",
+            role="member",
+        )
+        db.add(other_member)
+        await db.commit()
+
+        report = Report(
+            member_id=other_member.id,
+            type="lab",
+            images=[],
+            ocr_status="completed",
+            report_date=date(2024, 6, 15),
+        )
+        db.add(report)
+        await db.commit()
+        await db.refresh(report)
+
+        resp = await auth_client.post(f"/api/reports/{report.id}/ai-summary")
+        assert resp.status_code == 403

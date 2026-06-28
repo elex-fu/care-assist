@@ -1,28 +1,31 @@
+import pytest
 
-from app.core.milestone_data import (
-    get_all_milestones,
-    get_milestone_categories,
-    get_milestones_for_age,
+from app.core.milestone_data import _milestone_status, get_milestones_for_age
+
+
+@pytest.mark.parametrize(
+    "age_months,expected_status",
+    [
+        (1, "normal"),   # far from expected
+        (11, "warning"), # 1 month before 12
+        (12, "achieved"),
+        (13, "achieved"),
+        (15, "delayed"), # > 12 + 2
+    ],
 )
+def test_milestone_status(age_months, expected_status):
+    assert _milestone_status(age_months, 12) == expected_status
 
 
-class TestMilestoneData:
-    def test_get_all_milestones(self):
-        milestones = get_all_milestones()
-        assert len(milestones) > 0
-        categories = {m.category for m in milestones}
-        assert categories <= {"motor", "language", "cognitive", "social"}
+def test_get_milestones_for_age_sets_status():
+    milestones = get_milestones_for_age(12)
+    assert len(milestones) > 0
+    for m in milestones:
+        assert m.status in {"normal", "warning", "achieved", "delayed"}
+        if m.age_months <= 12 <= m.age_months + 2:
+            assert m.status == "achieved"
 
-    def test_get_milestones_for_age(self):
-        milestones = get_milestones_for_age(12)
-        assert all(m.age_months <= 12 for m in milestones)
-        assert any(m.title == "独站" for m in milestones)
 
-    def test_get_milestones_for_none_age(self):
-        milestones = get_milestones_for_age(None)
-        assert len(milestones) == len(get_all_milestones())
-
-    def test_get_milestone_categories(self):
-        categories = get_milestone_categories()
-        assert "motor" in categories
-        assert "language" in categories
+def test_get_milestones_for_age_none_age():
+    milestones = get_milestones_for_age(None)
+    assert all(m.status == "normal" for m in milestones)
