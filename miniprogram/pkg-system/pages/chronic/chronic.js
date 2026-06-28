@@ -27,7 +27,7 @@ Page({
       memberId,
       memberName: member ? member.name : '',
       package: packageKey,
-      packageName: packageKey ? (PACKAGE_INFO[packageKey]?.name || '') : '',
+      packageName: packageKey ? ((PACKAGE_INFO[packageKey] && PACKAGE_INFO[packageKey].name) || '') : '',
     })
 
     if (packageKey) {
@@ -43,7 +43,7 @@ Page({
       const res = await api.get('/api/indicators/chronic')
       const packages = (res.data || []).map(p => ({
         ...p,
-        icon: PACKAGE_INFO[p.package]?.icon || '📋',
+        icon: (PACKAGE_INFO[p.package] && PACKAGE_INFO[p.package].icon) || '📋',
       }))
       this.setData({ packages, loading: false })
     } catch (err) {
@@ -62,7 +62,7 @@ Page({
       const res = await api.get(`/api/indicators/chronic/${packageKey}?member_id=${this.data.memberId}`)
       const data = res.data || {}
       this.setData({
-        packageName: data.name || PACKAGE_INFO[packageKey]?.name || packageKey,
+        packageName: data.name || (PACKAGE_INFO[packageKey] && PACKAGE_INFO[packageKey].name) || packageKey,
         indicators: data.indicators || [],
         summary: data.summary || '',
         loading: false,

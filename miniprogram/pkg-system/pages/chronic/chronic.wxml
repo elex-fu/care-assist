@@ -53,7 +53,13 @@
             <text class="indicator-empty" wx:else>无数据</text>
             <text class="indicator-unit">{{item.unit}}</text>
           </view>
-          <view class="indicator-status {{item.status}}">{{item.status_label}}</view>
+          <view class="indicator-status {{item.status}}">
+            <block wx:if="{{item.status === 'normal'}}">正常</block>
+            <block wx:elif="{{item.status === 'low'}}">偏低</block>
+            <block wx:elif="{{item.status === 'high'}}">偏高</block>
+            <block wx:elif="{{item.status === 'critical'}}">异常</block>
+            <block wx:else>无数据</block>
+          </view>
         </view>
       </view>
       <view class="empty-tip" wx:else>

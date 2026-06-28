@@ -70,7 +70,9 @@ Page({
     this.setData({ generatingSummary: true })
     try {
       const res = await generateReportAISummary(reportId)
-      this.setData({ report: res.data })
+      this.setData({
+        report: { ...this.data.report, ai_summary: res.data.ai_summary, updated_at: res.data.updated_at },
+      })
       wx.showToast({ title: 'AI 解读已生成', icon: 'success' })
     } catch (err) {
       wx.showToast({ title: err.message || '生成失败', icon: 'none' })

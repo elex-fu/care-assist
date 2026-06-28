@@ -197,10 +197,10 @@ Page({
   },
 
   goToSourceReport() {
-    const { current } = this.data
+    const { current, memberId } = this.data
     if (!current || !current.source_report_id) return
     wx.navigateTo({
-      url: `/pkg-system/pages/report-detail/report-detail?report_id=${current.source_report_id}`,
+      url: `/pkg-system/pages/report-detail/report-detail?report_id=${current.source_report_id}&member_id=${memberId}`,
     })
   },
 

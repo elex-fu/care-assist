@@ -32,11 +32,6 @@ Page({
     this.loadDashboard()
   },
 
-  onShow() {
-    // Refresh when coming back
-    this.loadDashboard()
-  },
-
   onPullDownRefresh() {
     this.loadDashboard().finally(() => wx.stopPullDownRefresh())
   },
