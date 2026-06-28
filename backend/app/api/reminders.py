@@ -72,6 +72,7 @@ async def create_reminder(
 async def list_reminders(
     member_id: str = Query(...),
     status: str | None = Query(None),
+    type: str | None = Query(None),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
@@ -80,6 +81,8 @@ async def list_reminders(
     stmt = select(Reminder).where(Reminder.member_id == member_id)
     if status:
         stmt = stmt.where(Reminder.status == status)
+    if type:
+        stmt = stmt.where(Reminder.type == type)
     stmt = stmt.order_by(desc(Reminder.scheduled_date), desc(Reminder.created_at))
 
     result = await db.execute(stmt)

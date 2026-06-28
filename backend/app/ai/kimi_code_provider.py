@@ -1,11 +1,14 @@
-"""Kimi Code provider using Anthropic Messages API protocol.
+"""Kimi Code provider using OpenAI-compatible chat completions.
 
-Kimi Code endpoint: https://api.kimi.com/coding/v1/messages
-Reference: model-router upstream configuration for kimi-code.
+Kimi Code endpoint: https://api.kimi.com/coding/v1/chat/completions
 """
 
+from __future__ import annotations
+
+import base64
 import json
-from typing import AsyncIterator, Union
+import os
+from collections.abc import AsyncIterator
 
 import httpx
 
@@ -15,10 +18,7 @@ from app.core.exceptions import BusinessException
 
 
 class KimiCodeProvider(AIProvider):
-    """Kimi Code provider.
-
-    Uses Anthropic Messages API format through the Kimi Code coding endpoint.
-    """
+    """Kimi Code provider using OpenAI-compatible chat completions."""
 
     def __init__(
         self,
@@ -44,39 +44,24 @@ class KimiCodeProvider(AIProvider):
         stream: bool = False,
         max_tokens: int = 1024,
         temperature: float = 0.7,
-    ) -> Union[AsyncIterator[str], str]:
-        """Call Kimi Code /v1/messages endpoint (Anthropic protocol)."""
-        # Convert OpenAI-style messages to Anthropic format if needed.
-        # Anthropic supports system as a top-level field, user/assistant in messages.
-        system_message = None
-        chat_messages = []
-        for m in messages:
-            role = m.get("role")
-            content = m.get("content", "")
-            if role == "system":
-                system_message = content
-            elif role in ("user", "assistant"):
-                chat_messages.append({"role": role, "content": content})
-
-        payload: dict = {
+    ) -> AsyncIterator[str] | str:
+        """Call Kimi Code /v1/chat/completions endpoint (OpenAI protocol)."""
+        # kimi-for-coding only allows temperature=1.0.
+        payload = {
             "model": self.model,
-            "messages": chat_messages,
+            "messages": messages,
             "max_tokens": max_tokens,
+            "temperature": 1.0,
             "stream": stream,
         }
-        if system_message:
-            payload["system"] = system_message
-        if temperature is not None:
-            payload["temperature"] = temperature
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01",
-            "anthropic-beta": "claude-code-20250219",
+            "User-Agent": "KimiCLI/1.6",
         }
 
-        url = f"{self.base_url}/v1/messages"
+        url = f"{self.base_url}/chat/completions"
 
         if stream:
             return self._stream_chat(url, headers, payload)
@@ -92,13 +77,9 @@ class KimiCodeProvider(AIProvider):
             response = await client.post(url, headers=headers, json=payload)
             self._raise_for_status(response)
             data = response.json()
-            content_blocks = data.get("content", [])
-            text_parts = [
-                block.get("text", "")
-                for block in content_blocks
-                if block.get("type") == "text"
-            ]
-            return "".join(text_parts)
+        message = data.get("choices", [{}])[0].get("message", {})
+        # Some kimi-for-coding responses include reasoning_content before content.
+        return message.get("content", "")
 
     async def _stream_chat(
         self,
@@ -107,14 +88,15 @@ class KimiCodeProvider(AIProvider):
         payload: dict,
     ) -> AsyncIterator[str]:
         headers["Accept"] = "text/event-stream"
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            async with client.stream("POST", url, headers=headers, json=payload) as response:
-                self._raise_for_status(response)
-                async for line in response.aiter_lines():
+        async with (
+            httpx.AsyncClient(timeout=self.timeout) as client,
+            client.stream("POST", url, headers=headers, json=payload) as response,
+        ):
+            self._raise_for_status(response)
+            async for line in response.aiter_lines():
                     line = line.strip()
                     if not line or not line.startswith("data:"):
                         continue
-                    # Support both "data: {...}" and "data:{...}" formats
                     data_str = line[len("data:"):].strip()
                     if data_str == "[DONE]":
                         break
@@ -122,14 +104,10 @@ class KimiCodeProvider(AIProvider):
                         data = json.loads(data_str)
                     except json.JSONDecodeError:
                         continue
-                    event_type = data.get("type")
-                    if event_type == "content_block_delta":
-                        delta = data.get("delta", {})
-                        if delta.get("type") == "text_delta":
-                            yield delta.get("text", "")
-                    elif event_type == "message_delta":
-                        # end of message
-                        pass
+                    delta = data.get("choices", [{}])[0].get("delta", {})
+                    text = delta.get("content", "")
+                    if text:
+                        yield text
 
     def _raise_for_status(self, response: httpx.Response) -> None:
         if response.status_code >= 400:
@@ -141,17 +119,24 @@ class KimiCodeProvider(AIProvider):
             raise BusinessException(f"Kimi Code API error ({response.status_code}): {message}")
 
     async def analyze_image(self, image_url: str, prompt: str) -> str:
-        """Analyze image using vision-capable model.
+        """Analyze an image using vision-capable model."""
+        content = [{"type": "text", "text": prompt}]
+        if image_url.startswith("http://") or image_url.startswith("https://"):
+            content.append({"type": "image_url", "image_url": {"url": image_url}})
+        else:
+            # Local file path: read and base64 encode.
+            path = image_url if os.path.isabs(image_url) else os.path.join(os.getcwd(), image_url)
+            with open(path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode("utf-8")
+            ext = os.path.splitext(path)[1].lower()
+            media_type = "image/png" if ext == ".png" else "image/jpeg"
+            content.append(
+                {"type": "image_url", "image_url": {"url": f"data:{media_type};base64,{b64}"}}
+            )
 
-        Note: Kimi Code may not support vision. This method falls back to
-        describing the task via text if image analysis is unavailable.
-        """
         messages = [
             {"role": "system", "content": "You are a medical report analysis assistant."},
-            {
-                "role": "user",
-                "content": f"{prompt}\nImage URL: {image_url}",
-            },
+            {"role": "user", "content": content},
         ]
         return await self.chat(messages, stream=False, max_tokens=2048)
 
@@ -173,5 +158,8 @@ class KimiCodeProvider(AIProvider):
                 f"最新状态 {card.get('latest_status', '正常')}, "
                 f"异常指标数 {card.get('abnormal_count', 0)}"
             )
-        lines.append("要求：1. 用温暖的中文；2. 异常成员优先提醒；3. 给出具体可操作建议；4. 不超过150字。")
+        lines.append(
+            "要求：1. 用温暖的中文；2. 异常成员优先提醒；"
+            "3. 给出具体可操作建议；4. 不超过150字。"
+        )
         return "\n".join(lines)

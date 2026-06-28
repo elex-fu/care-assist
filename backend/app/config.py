@@ -34,18 +34,26 @@ class Settings(BaseSettings):
     DEFAULT_AI_PROVIDER: str = "kimi-code"
     FALLBACK_AI_PROVIDERS: list[str] = []
 
-    # Kimi Code provider (Anthropic protocol via https://api.kimi.com/coding)
+    # Kimi Code provider (OpenAI-compatible via https://api.kimi.com/coding/v1)
     KIMI_CODE_API_KEY: str = ""
-    KIMI_CODE_BASE_URL: str = "https://api.kimi.com/coding"
+    KIMI_CODE_BASE_URL: str = "https://api.kimi.com/coding/v1"
     KIMI_CODE_MODEL: str = "kimi-k2.6"
     KIMI_CODE_TIMEOUT: float = 60.0
 
     # OCR Provider configuration
-    OCR_PROVIDER: str = "mock"  # mock | baidu | tencent
+    OCR_PROVIDER: str = "mock"  # mock | baidu | tencent | kimi
     BAIDU_OCR_API_KEY: str = ""
     BAIDU_OCR_SECRET_KEY: str = ""
     TENCENT_OCR_SECRET_ID: str = ""
     TENCENT_OCR_SECRET_KEY: str = ""
+
+    # Kimi / Moonshot OCR configuration
+    MOONSHOT_API_KEY: str = ""
+    MOONSHOT_BASE_URL: str = "https://api.moonshot.cn/v1"
+    MOONSHOT_OCR_MODEL: str = "kimi-latest"
+
+    # Kimi Code OCR configuration (OpenAI-compatible chat completions endpoint)
+    KIMI_CODE_OCR_MODEL: str = "kimi-for-coding"
 
     # Celery / async task configuration
     CELERY_BROKER_URL: str = ""

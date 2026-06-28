@@ -1,25 +1,26 @@
 from calendar import monthrange
-from datetime import date, datetime, timezone, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, desc, func
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException
-from app.models.member import Member
 from app.models.medication import Medication, MedicationLog
-from app.schemas.medication import (
-    MedicationCreate,
-    MedicationUpdate,
-    MedicationOut,
-    MedicationLogOut,
-    MedicationTakeRequest,
-    MedicationWithLogsOut,
-    MedicationCalendarOut,
-    MedicationCalendarDay,
-)
+from app.models.member import Member
 from app.schemas.common import ResponseWrapper
+from app.schemas.medication import (
+    MedicationCalendarDay,
+    MedicationCalendarOut,
+    MedicationCreate,
+    MedicationLogOut,
+    MedicationLogUpdate,
+    MedicationOut,
+    MedicationTakeRequest,
+    MedicationUpdate,
+    MedicationWithLogsOut,
+)
 from app.services.medication_log_service import MedicationLogService
 
 router = APIRouter(prefix="/medications", tags=["用药管理"])
@@ -78,6 +79,61 @@ async def list_medications(
     return ResponseWrapper(data=[MedicationOut.model_validate(i) for i in items])
 
 
+@router.get("/logs", response_model=ResponseWrapper[list[MedicationLogOut]])
+async def list_medication_logs(
+    member_id: str = Query(...),
+    date: date = Query(...),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all medication log entries for a specific member and date."""
+    await _verify_member_in_family(member_id, current, db)
+
+    stmt = (
+        select(MedicationLog)
+        .where(MedicationLog.member_id == member_id)
+        .where(MedicationLog.scheduled_date == date)
+        .order_by(MedicationLog.scheduled_time)
+    )
+    result = await db.execute(stmt)
+    logs = result.scalars().all()
+    data = []
+    for log in logs:
+        out = MedicationLogOut.model_validate(log)
+        if log.medication:
+            out.medication_name = log.medication.name
+        data.append(out)
+    return ResponseWrapper(data=data)
+
+
+@router.patch("/logs/{log_id}", response_model=ResponseWrapper[MedicationLogOut])
+async def update_medication_log(
+    log_id: str,
+    payload: MedicationLogUpdate,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update a medication log status (taken / missed / skipped / pending)."""
+    log = await db.get(MedicationLog, log_id)
+    if not log:
+        raise NotFoundException("用药记录不存在")
+
+    await _verify_member_in_family(log.member_id, current, db)
+
+    update_data = payload.model_dump(exclude_unset=True)
+    if update_data.get("status") == "taken" and not log.taken_at:
+        log.taken_at = datetime.now(UTC)
+    elif update_data.get("status") != "taken":
+        log.taken_at = None
+
+    for field, value in update_data.items():
+        setattr(log, field, value)
+
+    await db.commit()
+    await db.refresh(log)
+    return ResponseWrapper(data=MedicationLogOut.model_validate(log))
+
+
 @router.get("/calendar", response_model=ResponseWrapper[MedicationCalendarOut])
 async def get_medication_calendar(
     member_id: str = Query(...),
@@ -114,9 +170,9 @@ async def get_medication_calendar(
         cur = date(year, month, d)
         day_logs = by_date.get(cur, [])
         scheduled = len(day_logs)
-        taken = sum(1 for l in day_logs if l.status == "taken")
-        missed = sum(1 for l in day_logs if l.status == "missed")
-        skipped = sum(1 for l in day_logs if l.status == "skipped")
+        taken = sum(1 for log in day_logs if log.status == "taken")
+        missed = sum(1 for log in day_logs if log.status == "missed")
+        skipped = sum(1 for log in day_logs if log.status == "skipped")
         status = "none"
         if scheduled:
             if taken == scheduled:
@@ -179,7 +235,7 @@ async def get_medication(
     return ResponseWrapper(
         data=MedicationWithLogsOut(
             medication=MedicationOut.model_validate(medication),
-            logs=[MedicationLogOut.model_validate(l) for l in logs],
+            logs=[MedicationLogOut.model_validate(log) for log in logs],
             adherence_rate=round(adherence_rate, 1),
         )
     )
@@ -249,7 +305,7 @@ async def take_medication(
 
     if existing:
         existing.status = "taken"
-        existing.taken_at = datetime.now(timezone.utc)
+        existing.taken_at = datetime.now(UTC)
         existing.notes = payload.notes
         await db.commit()
         await db.refresh(existing)
@@ -260,7 +316,7 @@ async def take_medication(
         member_id=medication.member_id,
         scheduled_date=payload.scheduled_date,
         scheduled_time=payload.scheduled_time,
-        taken_at=datetime.now(timezone.utc),
+        taken_at=datetime.now(UTC),
         status="taken",
         notes=payload.notes,
     )

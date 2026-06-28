@@ -105,6 +105,7 @@ class MedicationLogOut(BaseModel):
     status: str
     notes: str | None
     created_at: Any
+    medication_name: str | None = None
 
 
 class MedicationTakeRequest(BaseModel):

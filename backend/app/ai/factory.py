@@ -1,14 +1,14 @@
 """AI Provider factory with fallback support."""
 
-from typing import Optional
-
-from app.ai.provider import AIProvider
-from app.ai.kimi_code_provider import KimiCodeProvider
-from app.ai.ocr_provider import OCRProvider
 from app.ai.baidu_ocr_provider import BaiduOCRProvider
+from app.ai.kimi_code_provider import KimiCodeProvider
+from app.ai.kimi_ocr_provider import KimiOCRProvider
+from app.ai.ocr_provider import OCRProvider
+from app.ai.provider import AIProvider
 from app.ai.tencent_ocr_provider import TencentOCRProvider
 from app.config import settings
 from app.core.logging import get_logger
+from app.core.ocr_service import MockOCRService, RegexOCRService
 
 logger = get_logger(__name__)
 
@@ -24,7 +24,7 @@ def list_providers() -> list[str]:
     return list(_PROVIDER_REGISTRY.keys())
 
 
-def get_provider(name: Optional[str] = None) -> AIProvider:
+def get_provider(name: str | None = None) -> AIProvider:
     """Get an AI provider instance by name.
 
     Args:
@@ -66,7 +66,7 @@ async def chat_with_fallback(
     providers = [settings.DEFAULT_AI_PROVIDER] + settings.FALLBACK_AI_PROVIDERS
     providers = [p for p in providers if p]
 
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
     for provider_name in providers:
         try:
             provider = get_provider(provider_name)
@@ -94,7 +94,7 @@ def list_ocr_providers() -> list[str]:
     return list(_OCR_PROVIDER_REGISTRY.keys())
 
 
-def get_ocr_provider(name: Optional[str] = None) -> OCRProvider:
+def get_ocr_provider(name: str | None = None) -> OCRProvider:
     """Get an OCR provider instance by name.
 
     Defaults to settings.OCR_PROVIDER.
@@ -123,9 +123,8 @@ async def ocr_with_fallback(image_url: str) -> list[dict]:
     return await provider.extract_indicators(image_url)
 
 
-from app.core.ocr_service import MockOCRService, RegexOCRService
-
 register_ocr_provider("baidu", BaiduOCRProvider)
 register_ocr_provider("tencent", TencentOCRProvider)
+register_ocr_provider("kimi", KimiOCRProvider)
 register_ocr_provider("mock", MockOCRService)
 register_ocr_provider("regex", RegexOCRService)

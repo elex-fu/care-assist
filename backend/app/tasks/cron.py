@@ -30,6 +30,27 @@ def _task_session():
     )
 
 
+async def generate_medication_logs_async() -> dict:
+    """Generate pending MedicationLog entries for active medications."""
+    engine, session_maker = _task_session()
+    async with session_maker() as db:
+        result = await db.execute(
+            select(Medication.member_id)
+            .where(Medication.status == "active")
+            .distinct()
+        )
+        member_ids = result.scalars().all()
+        today = date.today()
+        end = today + timedelta(days=7)
+        total = 0
+        for member_id in member_ids:
+            total += await MedicationLogService.generate_for_range(
+                db, member_id, today, end
+            )
+    await engine.dispose()
+    return {"generated": total}
+
+
 @celery_app.task(
     name="care_assist.generate_medication_logs",
     bind=True,
@@ -38,30 +59,20 @@ def _task_session():
     autoretry_for=(Exception,),
 )
 def generate_medication_logs(self) -> dict:
-    async def _run():
-        engine, session_maker = _task_session()
-        async with session_maker() as db:
-            result = await db.execute(
-                select(Medication.member_id)
-                .where(Medication.status == "active")
-                .distinct()
-            )
-            member_ids = result.scalars().all()
-            today = date.today()
-            end = today + timedelta(days=7)
-            total = 0
-            for member_id in member_ids:
-                total += await MedicationLogService.generate_for_range(
-                    db, member_id, today, end
-                )
-        await engine.dispose()
-        return total
-
     try:
-        count = run_async_task(_run())
+        count = run_async_task(generate_medication_logs_async())
     except Exception as exc:
         raise self.retry(exc=exc) from exc
-    return {"generated": count}
+    return {"generated": count["generated"]}
+
+
+async def scan_missed_medications_async() -> dict:
+    """Scan for missed medication doses and create reminders."""
+    engine, session_maker = _task_session()
+    async with session_maker() as db:
+        count = await ReminderEngine.scan_missed_medications(db)
+    await engine.dispose()
+    return {"scanned": count, "missed": count}
 
 
 @celery_app.task(
@@ -72,18 +83,20 @@ def generate_medication_logs(self) -> dict:
     autoretry_for=(Exception,),
 )
 def scan_missed_medications(self) -> dict:
-    async def _run():
-        engine, session_maker = _task_session()
-        async with session_maker() as db:
-            count = await ReminderEngine.scan_missed_medications(db)
-        await engine.dispose()
-        return count
-
     try:
-        count = run_async_task(_run())
+        result = run_async_task(scan_missed_medications_async())
     except Exception as exc:
         raise self.retry(exc=exc) from exc
-    return {"scanned": count, "missed": count}
+    return result
+
+
+async def scan_overdue_vaccines_async() -> dict:
+    """Scan for overdue vaccine records and create reminders."""
+    engine, session_maker = _task_session()
+    async with session_maker() as db:
+        count = await ReminderEngine.scan_overdue_vaccines(db)
+    await engine.dispose()
+    return {"scanned": count, "overdue": count}
 
 
 @celery_app.task(
@@ -94,18 +107,20 @@ def scan_missed_medications(self) -> dict:
     autoretry_for=(Exception,),
 )
 def scan_overdue_vaccines(self) -> dict:
-    async def _run():
-        engine, session_maker = _task_session()
-        async with session_maker() as db:
-            count = await ReminderEngine.scan_overdue_vaccines(db)
-        await engine.dispose()
-        return count
-
     try:
-        count = run_async_task(_run())
+        result = run_async_task(scan_overdue_vaccines_async())
     except Exception as exc:
         raise self.retry(exc=exc) from exc
-    return {"scanned": count, "overdue": count}
+    return result
+
+
+async def scan_overdue_reminders_async() -> dict:
+    """Mark pending reminders whose scheduled date has passed as overdue."""
+    engine, session_maker = _task_session()
+    async with session_maker() as db:
+        count = await ReminderEngine.scan_overdue_reminders(db)
+    await engine.dispose()
+    return {"scanned": count, "updated": count}
 
 
 @celery_app.task(
@@ -116,15 +131,8 @@ def scan_overdue_vaccines(self) -> dict:
     autoretry_for=(Exception,),
 )
 def scan_overdue_reminders(self) -> dict:
-    async def _run():
-        engine, session_maker = _task_session()
-        async with session_maker() as db:
-            count = await ReminderEngine.scan_overdue_reminders(db)
-        await engine.dispose()
-        return count
-
     try:
-        count = run_async_task(_run())
+        result = run_async_task(scan_overdue_reminders_async())
     except Exception as exc:
         raise self.retry(exc=exc) from exc
-    return {"scanned": count, "updated": count}
+    return result
