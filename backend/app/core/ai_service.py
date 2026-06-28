@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from app.ai.factory import get_default_provider, chat_with_fallback
+from app.ai.factory import chat_with_fallback, get_default_provider
 from app.ai.provider import AIProvider
 from app.config import settings
 from app.core.indicator_engine import IndicatorEngine

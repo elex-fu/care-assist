@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.core.ai_service import AIService
+import pytest
+
 from app.ai.provider import AIProvider
 from app.config import settings
+from app.core.ai_service import AIService
 
 
 @pytest.fixture(autouse=True)
