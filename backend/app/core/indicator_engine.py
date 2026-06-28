@@ -1,4 +1,4 @@
-from typing import Optional
+
 
 
 class IndicatorEngine:
@@ -54,23 +54,74 @@ class IndicatorEngine:
             "unit": "kg/m²",
             "threshold": {"lower": 18.5, "upper": 24},
         },
+        "hba1c": {
+            "name": "糖化血红蛋白",
+            "unit": "%",
+            "threshold": {"lower": 4, "upper": 6},
+        },
+        "hdl": {
+            "name": "高密度脂蛋白",
+            "unit": "mmol/L",
+            "threshold": {"lower": 1, "upper": 2},
+        },
+        "triglycerides": {
+            "name": "甘油三酯",
+            "unit": "mmol/L",
+            "threshold": {"lower": 0, "upper": 1.7},
+        },
+        "temperature": {
+            "name": "体温",
+            "unit": "°C",
+            "threshold": {"lower": 36, "upper": 37.2},
+        },
+        "height": {
+            "name": "身高",
+            "unit": "cm",
+        },
+        "weight": {
+            "name": "体重",
+            "unit": "kg",
+        },
     }
 
     NAME_MAPPING = {
         "血压（收缩压）": "systolic_bp",
         "收缩压": "systolic_bp",
+        "高压": "systolic_bp",
         "SBP": "systolic_bp",
         "血压（舒张压）": "diastolic_bp",
         "舒张压": "diastolic_bp",
+        "低压": "diastolic_bp",
         "DBP": "diastolic_bp",
         "空腹血糖": "fasting_glucose",
         "血糖": "fasting_glucose",
+        "FBG": "fasting_glucose",
         "血红蛋白": "hemoglobin",
         "总胆固醇": "total_cholesterol",
         "胆固醇": "total_cholesterol",
+        "TC": "total_cholesterol",
         "低密度脂蛋白": "ldl",
+        "LDL": "ldl",
         "心率": "heart_rate",
+        "脉率": "heart_rate",
         "BMI": "bmi",
+        "糖化血红蛋白": "hba1c",
+        "HbA1c": "hba1c",
+        "糖化": "hba1c",
+        "高密度脂蛋白": "hdl",
+        "HDL": "hdl",
+        "好胆固醇": "hdl",
+        "甘油三酯": "triglycerides",
+        "TG": "triglycerides",
+        "血脂": "triglycerides",
+        "体温": "temperature",
+        "Temperature": "temperature",
+        "身高": "height",
+        "Height": "height",
+        "身长": "height",
+        "体重": "weight",
+        "Weight": "weight",
+        "体质量": "weight",
     }
 
     @classmethod
@@ -91,15 +142,19 @@ class IndicatorEngine:
         mappings = {
             "mmhg": "mmHg",
             "mmol/l": "mmol/L",
-            "mmol/l": "mmol/L",
             "g/l": "g/L",
             "kg/m2": "kg/m²",
             "kg/m²": "kg/m²",
+            "°c": "°C",
+            "c": "°C",
+            "cm": "cm",
+            "kg": "kg",
+            "%": "%",
         }
         return mappings.get(u, unit)
 
     @classmethod
-    def judge(cls, value: float, indicator_key: str, age_months: Optional[int] = None) -> str:
+    def judge(cls, value: float, indicator_key: str, age_months: int | None = None) -> str:
         config = cls.THRESHOLDS.get(indicator_key)
         if not config:
             return "unknown"
@@ -128,7 +183,12 @@ class IndicatorEngine:
         return "normal"
 
     @classmethod
-    def calculate_deviation(cls, value: float, indicator_key: str, age_months: Optional[int] = None) -> float:
+    def calculate_deviation(
+        cls,
+        value: float,
+        indicator_key: str,
+        age_months: int | None = None,
+    ) -> float:
         config = cls.THRESHOLDS.get(indicator_key)
         if not config:
             return 0.0
@@ -157,10 +217,26 @@ class IndicatorEngine:
         direction = "stable" if change_pct < 0.05 else ("up" if change > 0 else "down")
         magnitude = "small" if change_pct < 0.1 else ("moderate" if change_pct < 0.3 else "large")
 
-        is_lower_better = indicator_key in ["fasting_glucose", "ldl", "total_cholesterol", "triglycerides"]
+        is_lower_better = indicator_key in [
+            "fasting_glucose",
+            "ldl",
+            "total_cholesterol",
+            "triglycerides",
+            "hba1c",
+        ]
         if is_lower_better:
-            evaluation = "improving" if direction == "down" else ("worsening" if direction == "up" else "stable")
+            if direction == "down":
+                evaluation = "improving"
+            elif direction == "up":
+                evaluation = "worsening"
+            else:
+                evaluation = "stable"
         else:
-            evaluation = "improving" if direction == "up" else ("worsening" if direction == "down" else "stable")
+            if direction == "up":
+                evaluation = "improving"
+            elif direction == "down":
+                evaluation = "worsening"
+            else:
+                evaluation = "stable"
 
         return {"direction": direction, "magnitude": magnitude, "evaluation": evaluation}

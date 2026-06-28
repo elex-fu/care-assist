@@ -1,14 +1,14 @@
-from datetime import date, datetime
-from typing import Any, Optional
+from datetime import date
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
 
 class ReportBase(BaseModel):
     type: str
-    hospital: Optional[str] = None
-    department: Optional[str] = None
-    report_date: Optional[date] = None
+    hospital: str | None = None
+    department: str | None = None
+    report_date: date | None = None
 
 
 class ReportCreate(ReportBase):
@@ -21,12 +21,12 @@ class ReportOut(BaseModel):
     id: str
     member_id: str
     type: str
-    hospital: Optional[str]
-    department: Optional[str]
-    report_date: Optional[date]
+    hospital: str | None
+    department: str | None
+    report_date: date | None
     images: list[str]
-    extracted_indicators: Optional[list[dict]]
-    ai_summary: Optional[str]
+    extracted_indicators: list[dict] | None
+    ai_summary: str | None
     ocr_status: str
     created_at: Any
 
@@ -53,5 +53,5 @@ class ReportAISummaryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    ai_summary: Optional[str]
+    ai_summary: str | None
     updated_at: Any

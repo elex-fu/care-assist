@@ -3,13 +3,13 @@ import os
 import shutil
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.core.ai_service import AIService
 from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.indicator_engine import IndicatorEngine
@@ -178,6 +178,27 @@ async def delete_report(
     return ResponseWrapper(data={"deleted": True})
 
 
+def _calculate_age_months(birth_date: date | None) -> int | None:
+    if not birth_date:
+        return None
+    today = date.today()
+    months = (today.year - birth_date.year) * 12 + (today.month - birth_date.month)
+    if today.day < birth_date.day:
+        months -= 1
+    return max(0, months)
+
+
+def _indicator_threshold(indicator_key: str, age_months: int | None) -> dict:
+    config = IndicatorEngine.THRESHOLDS.get(indicator_key, {})
+    threshold = config.get("threshold", {})
+    if age_months and "age_groups" in config:
+        for group in config["age_groups"]:
+            if age_months <= group["max_age_months"]:
+                threshold = group
+                break
+    return threshold
+
+
 @router.post("/{report_id}/ocr", response_model=ResponseWrapper[OCRTriggerOut])
 async def trigger_ocr(
     report_id: str,
@@ -193,53 +214,87 @@ async def trigger_ocr(
     if not report.images:
         raise ForbiddenException("报告没有图片，无法执行OCR")
 
-    ocr_service = get_ocr_service()
-    all_extracted = []
-    for img_path in report.images:
-        items = await ocr_service.extract_indicators(img_path)
-        all_extracted.extend(items)
+    # Prefer the modern OCR pipeline; fallback to legacy service on failure.
+    extracted_items: list[OCRResultItem] = []
+    try:
+        pipeline_result = await run_ocr_pipeline(report.images)
+        extracted_items = list(pipeline_result.extracted)
+    except Exception as exc:
+        logger.warning(f"OCR pipeline failed, falling back to legacy OCR: {exc}")
 
-    # Normalize through pipeline if OCR_PROVIDER is not legacy mock/regex
-    import os
-    if os.getenv("OCR_PROVIDER", settings.OCR_PROVIDER) not in ("mock", "regex"):
-        try:
-            pipeline_result = await run_ocr_pipeline(report.images)
-            all_extracted = [item.model_dump() for item in pipeline_result.extracted]
-        except Exception as exc:
-            logger.warning(f"OCR pipeline failed, falling back to legacy OCR: {exc}")
+    if not extracted_items:
+        logger.info("Pipeline returned no indicators, trying legacy OCR service")
+        ocr_service = get_ocr_service()
+        for img_path in report.images:
+            try:
+                legacy_items = await ocr_service.extract_indicators(img_path)
+                for raw in legacy_items:
+                    name = raw.get("indicator_name") or raw.get("name", "")
+                    key = raw.get("indicator_key") or raw.get("key", "")
+                    value = raw.get("value")
+                    unit = raw.get("unit", "")
+                    if value is None:
+                        continue
+                    try:
+                        value = float(value)
+                    except (ValueError, TypeError):
+                        continue
+                    extracted_items.append(
+                        OCRResultItem(
+                            indicator_key=key or name,
+                            indicator_name=name or key,
+                            value=value,
+                            unit=unit,
+                            raw_text=raw.get("raw_text", ""),
+                        )
+                    )
+            except Exception as exc:
+                logger.warning(f"Legacy OCR failed for {img_path}: {exc}")
+
+    # Deduplicate by indicator_key keeping the first occurrence.
+    seen_keys: set[str] = set()
+    deduplicated: list[OCRResultItem] = []
+    for item in extracted_items:
+        if item.indicator_key in seen_keys:
+            continue
+        seen_keys.add(item.indicator_key)
+        deduplicated.append(item)
+    extracted_items = deduplicated
 
     # Save extracted indicators to report
-    report.extracted_indicators = all_extracted
+    report.extracted_indicators = [item.model_dump() for item in extracted_items]
     report.ocr_status = "completed"
     await db.commit()
     await db.refresh(report)
 
-    # Also create IndicatorData records for each extracted indicator
+    # Create IndicatorData records with Decimal precision and thresholds.
     target = await db.get(Member, report.member_id)
-    age_months = None
-    if target and target.birth_date:
-        today = date.today()
-        age_months = (
-            (today.year - target.birth_date.year) * 12
-            + (today.month - target.birth_date.month)
-        )
-        if today.day < target.birth_date.day:
-            age_months -= 1
-        age_months = max(0, age_months)
+    age_months = _calculate_age_months(target.birth_date if target else None)
 
-    for item in all_extracted:
-        status = IndicatorEngine.judge(item["value"], item["indicator_key"], age_months)
+    for item in extracted_items:
+        status = IndicatorEngine.judge(item.value, item.indicator_key, age_months)
         deviation = IndicatorEngine.calculate_deviation(
-            item["value"], item["indicator_key"], age_months
+            item.value, item.indicator_key, age_months
         )
+        threshold = _indicator_threshold(item.indicator_key, age_months)
         indicator = IndicatorData(
             member_id=report.member_id,
-            indicator_key=item["indicator_key"],
-            indicator_name=item["indicator_name"],
-            value=item["value"],
-            unit=item["unit"],
+            indicator_key=item.indicator_key,
+            indicator_name=item.indicator_name,
+            value=Decimal(str(item.value)),
+            unit=item.unit,
+            lower_limit=(
+                Decimal(str(threshold.get("lower")))
+                if threshold.get("lower") is not None
+                else None
+            ),
+            upper_limit=(
+                Decimal(str(threshold.get("upper")))
+                if threshold.get("upper") is not None
+                else None
+            ),
             status=status,
-            deviation_percent=round(deviation, 4),
+            deviation_percent=Decimal(str(round(deviation, 4))),
             record_date=report.report_date or date.today(),
             source_report_id=report.id,
         )
@@ -248,35 +303,38 @@ async def trigger_ocr(
     await db.commit()
 
     # Auto-create reminders for abnormal indicators identified by OCR
-    for item in all_extracted:
-        if item.get("status") in ("high", "critical"):
+    for item in extracted_items:
+        item_status = IndicatorEngine.judge(item.value, item.indicator_key, age_months)
+        if item_status in ("high", "critical"):
             db.add(
                 Reminder(
                     member_id=report.member_id,
                     type="checkup",
-                    title=f"指标异常复查：{item.get('indicator_name', '')}",
+                    title=f"指标异常复查：{item.indicator_name}",
                     description=(
-                        f"报告 OCR 识别到 {item.get('indicator_name')} "
-                        f"为 {item.get('status')}，建议复查"
+                        f"报告 OCR 识别到 {item.indicator_name} "
+                        f"为 {item_status}，建议复查"
                     ),
                     scheduled_date=(report.report_date or date.today()) + timedelta(days=7),
                     status="pending",
                     related_report_id=report.id,
-                    related_indicator=item.get("indicator_key"),
+                    related_indicator=item.indicator_key,
                     priority="high",
                 )
             )
     await db.commit()
 
     logger.info(
-        f"OCR completed: report_id={report_id} extracted={len(all_extracted)} "
-        f"indicators_created={len(all_extracted)}"
+        f"OCR completed: report_id={report_id} extracted={len(extracted_items)} "
+        f"indicators_created={len(extracted_items)}"
     )
+    # Normalize pipeline/legacy OCR items to the response schema.
+    schema_items = [OCRResultItem(**item.model_dump()) for item in extracted_items]
     return ResponseWrapper(
         data=OCRTriggerOut(
             report_id=report.id,
             ocr_status=report.ocr_status,
-            extracted=[OCRResultItem(**item) for item in all_extracted],
+            extracted=schema_items,
         )
     )
 

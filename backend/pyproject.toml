@@ -19,6 +19,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "asgiref>=3.7.0",
     "sentry-sdk[fastapi]>=2.0.0",
+    "nest-asyncio>=1.6.0",
 ]
 
 [project.optional-dependencies]

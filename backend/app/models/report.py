@@ -1,7 +1,8 @@
 import uuid
-from datetime import datetime, timezone, date
+from datetime import UTC, date, datetime
 
-from sqlalchemy import String, ForeignKey, Date, Enum as SAEnum, JSON, Index, Text
+from sqlalchemy import JSON, Date, ForeignKey, Index, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -10,8 +11,12 @@ from app.db.session import Base
 class Report(Base):
     __tablename__ = "reports"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    member_id: Mapped[str] = mapped_column(String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    member_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False
+    )
     type: Mapped[str] = mapped_column(
         SAEnum("lab", "diagnosis", "prescription", "discharge", name="report_type_enum"),
         nullable=False,
@@ -28,7 +33,11 @@ class Report(Base):
         nullable=False,
         default="pending",
     )
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
 
     __table_args__ = (
         Index("idx_report_member_date", "member_id", "report_date"),
