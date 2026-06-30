@@ -1,5 +1,6 @@
 const api = require('../../../utils/api')
 const { formatDateFull } = require('../../../utils/format')
+const notification = require('../../../utils/notification')
 
 const FREQUENCY_OPTIONS = ['每日1次', '每日2次', '每日3次', '每周1次', '按需']
 
@@ -127,6 +128,7 @@ Page({
         await api.post('/api/medications', { ...payload, member_id: memberId })
         wx.showToast({ title: '添加成功', icon: 'success' })
       }
+      await notification.requestReminderSubscription()
       setTimeout(() => wx.navigateBack(), 1200)
     } catch (err) {
       wx.showToast({ title: err.message || '操作失败', icon: 'none' })

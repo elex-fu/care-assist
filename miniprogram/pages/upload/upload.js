@@ -15,6 +15,7 @@ Page({
     reportType: 'lab',
     reportResult: null,
     extractedIndicators: [],
+    aiSummary: '',
     errorMsg: '',
     progressText: '',
   },
@@ -110,6 +111,7 @@ Page({
         step: 'result',
         reportResult: res,
         extractedIndicators: ocrData.extracted || [],
+        aiSummary: ocrData.ai_summary || '',
         progressText: '',
       })
     } catch (err) {

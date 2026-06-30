@@ -17,6 +17,7 @@ Page({
     indicators: [],
     summary: '',
     loading: false,
+    showTrend: false,
   },
 
   onLoad(options) {
@@ -71,6 +72,14 @@ Page({
       wx.showToast({ title: err.message || '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }
+  },
+
+  showTrend() {
+    this.setData({ showTrend: true })
+  },
+
+  closeTrend() {
+    this.setData({ showTrend: false })
   },
 
   goToDetail(e) {

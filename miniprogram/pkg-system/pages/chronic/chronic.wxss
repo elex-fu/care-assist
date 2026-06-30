@@ -90,6 +90,28 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.trend-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.trend-entry-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.trend-entry-arrow {
+  font-size: 20px;
+  color: #94A3B8;
+}
+
 .summary-label {
   display: block;
   font-size: 14px;

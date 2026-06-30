@@ -39,10 +39,12 @@ Page({
 
   onLoad() {
     const cachedMembers = store.members
+    const currentId = store.currentMemberId
     if (cachedMembers && cachedMembers.length) {
+      const validIds = new Set(cachedMembers.map(m => m.id))
       this.setData({
         members: cachedMembers,
-        currentMemberId: store.currentMemberId || cachedMembers[0].id,
+        currentMemberId: validIds.has(currentId) ? currentId : cachedMembers[0].id,
       })
     }
     this.loadMembers()
@@ -77,7 +79,12 @@ Page({
       const res = await api.get('/api/members')
       const members = res.data.members || []
       setMembers(members)
-      const currentId = this.data.currentMemberId || (members[0] && members[0].id)
+      const validIds = new Set(members.map(m => m.id))
+      let currentId = this.data.currentMemberId
+      if (!currentId || !validIds.has(currentId)) {
+        currentId = members[0] && members[0].id
+        if (currentId) setCurrentMemberId(currentId)
+      }
       this.setData({ members, currentMemberId: currentId })
       if (currentId) this.loadIndicators(currentId)
     } catch (err) {

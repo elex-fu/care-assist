@@ -47,6 +47,7 @@ class OCRTriggerOut(BaseModel):
     report_id: str
     ocr_status: str
     extracted: list[OCRResultItem]
+    ai_summary: str | None = None
 
 
 class ReportAISummaryOut(BaseModel):

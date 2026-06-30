@@ -36,6 +36,11 @@
       <text class="summary-text">{{summary}}</text>
     </view>
 
+    <view class="trend-entry" bindtap="showTrend">
+      <text class="trend-entry-text">📈 查看多指标趋势</text>
+      <text class="trend-entry-arrow">›</text>
+    </view>
+
     <view class="indicator-section">
       <text class="section-title">相关指标</text>
       <view class="indicator-list" wx:if="{{indicators.length}}">
@@ -74,4 +79,12 @@
   </view>
 
   <ai-fab bind:tap="onAIFabTap" />
+
+  <trend-bottom-sheet
+    visible="{{showTrend}}"
+    member-id="{{memberId}}"
+    package-key="{{package}}"
+    title="{{packageName}}趋势"
+    bind:close="closeTrend"
+  />
 </view>

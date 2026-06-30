@@ -233,6 +233,80 @@
   color: #F59E0B;
 }
 
+/* 5-layer structured output */
+.ai-data-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.ai-data-card {
+  flex: 1;
+  min-width: 90px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  border-left: 3px solid #2563EB;
+}
+
+.ai-data-card.high {
+  border-left-color: #EF4444;
+}
+
+.ai-data-card.low {
+  border-left-color: #F59E0B;
+}
+
+.ai-data-card-title {
+  display: block;
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.ai-data-card-value {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.ai-section-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 10px 0 6px;
+}
+
+.ai-suggestion-item {
+  display: block;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  padding: 2px 0;
+}
+
+.ai-follow-up-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  margin: 4px 8px 4px 0;
+  background: #F5F3FF;
+  color: #7C3AED;
+  border-radius: 16px;
+  font-size: 13px;
+}
+
+.ai-disclaimer {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+
 /* Question Card */
 .ai-question-card {
   background: #F5F3FF;

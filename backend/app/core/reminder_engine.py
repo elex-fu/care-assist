@@ -1,11 +1,14 @@
+import contextlib
 from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.medication import Medication, MedicationLog
+from app.models.member import Member
 from app.models.reminder import Reminder
 from app.models.vaccine import VaccineRecord
+from app.services.notification_service import NotificationService
 from app.services.reminder_service import find_duplicate_reminder
 
 
@@ -40,17 +43,19 @@ class ReminderEngine:
                 related_indicator=None,
             )
             if duplicate is None:
-                db.add(
-                    Reminder(
-                        member_id=log.member_id,
-                        type="medication",
-                        title=title,
-                        description=description,
-                        scheduled_date=today,
-                        status="pending",
-                        priority="high",
-                    )
+                reminder = Reminder(
+                    member_id=log.member_id,
+                    type="medication",
+                    title=title,
+                    description=description,
+                    scheduled_date=today,
+                    status="pending",
+                    priority="high",
                 )
+                db.add(reminder)
+                member = await db.get(Member, log.member_id)
+                with contextlib.suppress(Exception):
+                    await NotificationService.send_reminder(reminder, member)
         await db.commit()
         return len(logs)
 
@@ -80,17 +85,19 @@ class ReminderEngine:
                 related_indicator=None,
             )
             if duplicate is None:
-                db.add(
-                    Reminder(
-                        member_id=rec.member_id,
-                        type="vaccine",
-                        title=title,
-                        description=description,
-                        scheduled_date=today,
-                        status="pending",
-                        priority="high",
-                    )
+                reminder = Reminder(
+                    member_id=rec.member_id,
+                    type="vaccine",
+                    title=title,
+                    description=description,
+                    scheduled_date=today,
+                    status="pending",
+                    priority="high",
                 )
+                db.add(reminder)
+                member = await db.get(Member, rec.member_id)
+                with contextlib.suppress(Exception):
+                    await NotificationService.send_reminder(reminder, member)
         await db.commit()
         return len(records)
 

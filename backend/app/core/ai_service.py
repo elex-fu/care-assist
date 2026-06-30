@@ -1,16 +1,18 @@
+from __future__ import annotations
+
 import asyncio
 import json
-import os
 import re
-import uuid
-from datetime import datetime, timezone
-from typing import Optional
 
-from app.ai.factory import chat_with_fallback, get_default_provider
+from app.ai.factory import get_default_provider
 from app.ai.provider import AIProvider
 from app.config import settings
 from app.core.indicator_engine import IndicatorEngine
+from app.core.logging import get_logger
 from app.models.member import Member
+from app.models.report import Report
+
+logger = get_logger(__name__)
 
 
 class AIService:
@@ -27,10 +29,10 @@ class AIService:
 
 免责声明：本助手的建议仅供参考，不能替代专业医生的诊断和治疗。如有严重不适，请及时就医。"""
 
-    def __init__(self, provider: Optional[AIProvider] = None):
+    def __init__(self, provider: AIProvider | None = None):
         self.provider = provider
 
-    def _get_provider(self) -> Optional[AIProvider]:
+    def _get_provider(self) -> AIProvider | None:
         if self.provider is not None:
             return self.provider
         try:
@@ -47,9 +49,9 @@ class AIService:
         member: Member,
         conversation_history: list[dict],
         user_message: str,
-        page_context: Optional[str] = None,
-        recent_indicators: Optional[list[dict]] = None,
-        recent_reports: Optional[list[dict]] = None,
+        page_context: str | None = None,
+        recent_indicators: list[dict] | None = None,
+        recent_reports: list[dict] | None = None,
     ) -> str:
         """Generate AI reply based on member health data and user message."""
         provider = self._get_provider()
@@ -74,9 +76,9 @@ class AIService:
         member: Member,
         conversation_history: list[dict],
         user_message: str,
-        page_context: Optional[str] = None,
-        recent_indicators: Optional[list[dict]] = None,
-        recent_reports: Optional[list[dict]] = None,
+        page_context: str | None = None,
+        recent_indicators: list[dict] | None = None,
+        recent_reports: list[dict] | None = None,
     ):
         """Generate AI reply as an async generator of text chunks."""
         import asyncio
@@ -88,7 +90,6 @@ class AIService:
         )
 
         # Stream by sentences for a natural typing effect
-        import re
         sentences = re.split(r'(?<=[。！？\n])', full_reply)
         sentences = [s for s in sentences if s]
 
@@ -102,9 +103,9 @@ class AIService:
         member: Member,
         history: list[dict],
         message: str,
-        page_context: Optional[str],
-        indicators: Optional[list[dict]],
-        reports: Optional[list[dict]],
+        page_context: str | None,
+        indicators: list[dict] | None,
+        reports: list[dict] | None,
     ) -> str:
         """Call the configured AI provider with built context."""
         context = self._build_context(member, indicators, reports)
@@ -134,9 +135,9 @@ class AIService:
         self,
         member: Member,
         user_message: str,
-        page_context: Optional[str],
-        recent_indicators: Optional[list[dict]],
-        recent_reports: Optional[list[dict]],
+        page_context: str | None,
+        recent_indicators: list[dict] | None,
+        recent_reports: list[dict] | None,
     ) -> str:
         user_lower = user_message.lower()
 
@@ -271,7 +272,7 @@ class AIService:
             f"（从{prev.get('value')}到{latest.get('value')} {latest.get('unit')}）"
         )
 
-    def _give_advice(self, member: Member, indicators: Optional[list[dict]]) -> str:
+    def _give_advice(self, member: Member, indicators: list[dict] | None) -> str:
         advice = [f"针对{member.name}的情况，建议："]
         if member.type == "child":
             advice.append("1. 保证充足睡眠，每天9-11小时")
@@ -305,9 +306,9 @@ class AIService:
     async def generate_quick_questions(
         self,
         member: Member,
-        page_context: Optional[str] = None,
-        recent_indicators: Optional[list[dict]] = None,
-        recent_reports: Optional[list[dict]] = None,
+        page_context: str | None = None,
+        recent_indicators: list[dict] | None = None,
+        recent_reports: list[dict] | None = None,
     ) -> list[str]:
         """Generate contextual quick question suggestions for the AI page."""
         provider = self._get_provider()
@@ -333,9 +334,9 @@ class AIService:
     def _build_quick_questions_prompt(
         self,
         member: Member,
-        page_context: Optional[str],
-        recent_indicators: Optional[list[dict]],
-        recent_reports: Optional[list[dict]],
+        page_context: str | None,
+        recent_indicators: list[dict] | None,
+        recent_reports: list[dict] | None,
     ) -> str:
         lines = [
             f"请为家庭健康助手生成 2-4 条用户可能想问的快捷问题，针对成员 {member.name}。",
@@ -351,9 +352,9 @@ class AIService:
     def _rule_based_quick_questions(
         self,
         member: Member,
-        page_context: Optional[str],
-        recent_indicators: Optional[list[dict]],
-        recent_reports: Optional[list[dict]],
+        page_context: str | None,
+        recent_indicators: list[dict] | None,
+        recent_reports: list[dict] | None,
     ) -> list[str]:
         base = list(self.QUICK_QUESTION_TEMPLATES.get(page_context or "", ["{name}最近身体怎么样？"]))
         if recent_indicators:
@@ -365,7 +366,7 @@ class AIService:
     async def summarize_report(
         self,
         member: Member,
-        report: "Report",
+        report: Report,
     ) -> str:
         """Generate an AI summary for a report and store it on the report."""
         extracted = report.extracted_indicators or []
@@ -384,10 +385,25 @@ class AIService:
                 pass
         return self._rule_based_summary(member, report, extracted)
 
+    STRUCTURED_SYSTEM_PROMPT = """你是一位家庭智能健康助手。请根据用户问题和提供的健康数据，
+按以下 JSON 格式输出回答。只输出 JSON，不要添加任何解释或 Markdown 代码块。
+
+{
+  "answer": "直接、温暖的中文回答（不超过150字）",
+  "data_cards": [
+    {"title": "指标/数据名称", "value": "数值+单位", "status": "normal|high|low|critical"}
+  ],
+  "suggestions": ["具体可操作的健康建议1", "建议2"],
+  "follow_up_questions": ["引导用户进一步描述的追问1", "追问2"],
+  "disclaimer": "本建议仅供参考，不能替代专业医生诊断和治疗。"
+}
+
+如果问题与健康无关，data_cards 和 suggestions 可为空数组。"""
+
     def _build_report_summary_prompt(
         self,
         member: Member,
-        report: "Report",
+        report: Report,
         extracted: list[dict],
     ) -> str:
         lines = [f"请用简洁中文总结{member.name}的{report.type}报告："]
@@ -397,10 +413,88 @@ class AIService:
             )
         return "\n".join(lines)
 
+    async def generate_structured_reply(
+        self,
+        member: Member,
+        conversation_history: list[dict],
+        user_message: str,
+        page_context: str | None = None,
+        recent_indicators: list[dict] | None = None,
+        recent_reports: list[dict] | None = None,
+    ) -> dict:
+        """Generate a 5-layer structured AI reply."""
+        provider = self._get_provider()
+        if provider is not None:
+            try:
+                context = self._build_context(member, recent_indicators, recent_reports)
+                messages = [
+                    {"role": "system", "content": self.STRUCTURED_SYSTEM_PROMPT},
+                ]
+                if conversation_history:
+                    messages.extend(conversation_history[-6:])
+                messages.append({"role": "user", "content": f"{context}\n\n用户问题：{user_message}"})
+
+                reply = await provider.chat(
+                    messages,
+                    stream=False,
+                    max_tokens=1024,
+                    temperature=1.0,
+                )
+                parsed = self._parse_structured_json(reply)
+                if parsed:
+                    return parsed
+            except Exception as exc:
+                logger.warning(f"Structured AI reply failed: {exc}")
+
+        return self._rule_based_structured_reply(member, user_message, recent_indicators)
+
+    def _parse_structured_json(self, text: str) -> dict | None:
+        """Extract and validate structured JSON from model output."""
+        text = text.strip()
+        if text.startswith("```"):
+            text = text.split("```json", 1)[-1].split("```", 1)[0].strip()
+        try:
+            parsed = json.loads(text)
+            required = {"answer", "data_cards", "suggestions", "follow_up_questions", "disclaimer"}
+            if not required.issubset(parsed.keys()):
+                return None
+            return {
+                "answer": str(parsed.get("answer", "")),
+                "data_cards": parsed.get("data_cards", []),
+                "suggestions": parsed.get("suggestions", []),
+                "follow_up_questions": parsed.get("follow_up_questions", []),
+                "disclaimer": str(parsed.get("disclaimer", "")),
+            }
+        except Exception:
+            return None
+
+    def _rule_based_structured_reply(
+        self,
+        member: Member,
+        user_message: str,
+        recent_indicators: list[dict] | None,
+    ) -> dict:
+        """Fallback structured reply when AI provider is unavailable."""
+        data_cards = []
+        if recent_indicators:
+            for i in recent_indicators[:3]:
+                data_cards.append({
+                    "title": i.get("indicator_name", i.get("indicator_key", "指标")),
+                    "value": f"{i.get('value', '')} {i.get('unit', '')}".strip(),
+                    "status": i.get("status", "unknown"),
+                })
+        return {
+            "answer": f"{member.name}您好，我已收到您的问题。当前可提供最近指标供您参考，具体诊断建议咨询医生。",
+            "data_cards": data_cards,
+            "suggestions": ["保持健康作息", "定期监测指标", "如有不适及时就医"],
+            "follow_up_questions": ["您最近有哪里不舒服吗？", "需要我帮您分析哪项指标？"],
+            "disclaimer": "本建议仅供参考，不能替代专业医生诊断和治疗。",
+        }
+
     def _rule_based_summary(
         self,
         member: Member,
-        report: "Report",
+        report: Report,
         extracted: list[dict],
     ) -> str:
         if not extracted:

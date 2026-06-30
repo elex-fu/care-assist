@@ -102,7 +102,7 @@ def get_ocr_provider(name: str | None = None) -> OCRProvider:
     Raises:
         ValueError: If provider name is unknown.
     """
-    name = (name or settings.OCR_PROVIDER or "mock").lower()
+    name = (name or settings.OCR_PROVIDER or "kimi").lower()
     provider_cls = _OCR_PROVIDER_REGISTRY.get(name)
     if not provider_cls:
         raise ValueError(

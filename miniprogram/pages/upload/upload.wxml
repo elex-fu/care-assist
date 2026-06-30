@@ -92,6 +92,11 @@
       <text class="result-subtitle">{{hospital || '未填写医院'}} · {{reportDate}}</text>
     </view>
 
+    <view class="ai-summary-card" wx:if="{{aiSummary}}">
+      <text class="ai-summary-title">🤖 AI 解读</text>
+      <text class="ai-summary-text">{{aiSummary}}</text>
+    </view>
+
     <view class="indicator-list" wx:if="{{extractedIndicators.length}}">
       <indicator-row
         wx:for="{{extractedIndicators}}"
