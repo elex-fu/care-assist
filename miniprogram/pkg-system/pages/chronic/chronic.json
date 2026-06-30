@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "ai-fab": "/components/ai-fab/ai-fab",
+    "trend-bottom-sheet": "/components/trend-bottom-sheet/trend-bottom-sheet"
+  },
   "navigationBarTitleText": "慢性病专区"
 }

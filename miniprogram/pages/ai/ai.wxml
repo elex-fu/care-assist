@@ -34,8 +34,39 @@
         id="msg-{{index}}"
       >
         <view class="bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
-          <!-- Structured assistant message -->
-          <block wx:if="{{item.role === 'assistant' && item._blocks && item._blocks.length}}">
+          <!-- New 5-layer structured assistant message -->
+          <block wx:if="{{item.role === 'assistant' && item.structured}}">
+            <text class="bubble-text">{{item.structured.answer}}</text>
+
+            <view class="ai-data-cards" wx:if="{{item.structured.dataCards.length}}">
+              <view class="ai-data-card {{card.status}}" wx:for="{{item.structured.dataCards}}" wx:for-item="card" wx:key="index">
+                <text class="ai-data-card-title">{{card.title}}</text>
+                <text class="ai-data-card-value">{{card.value}}</text>
+              </view>
+            </view>
+
+            <view class="ai-suggestions" wx:if="{{item.structured.suggestions.length}}">
+              <text class="ai-section-title">💡 建议</text>
+              <text class="ai-suggestion-item" wx:for="{{item.structured.suggestions}}" wx:for-item="s" wx:key="index">• {{s}}</text>
+            </view>
+
+            <view class="ai-follow-ups" wx:if="{{item.structured.followUpQuestions.length}}">
+              <text class="ai-section-title">🔍 继续问</text>
+              <view
+                class="ai-follow-up-chip"
+                wx:for="{{item.structured.followUpQuestions}}"
+                wx:for-item="q"
+                wx:key="index"
+                data-question="{{q}}"
+                bindtap="onFollowUpTap"
+              >{{q}}</view>
+            </view>
+
+            <text class="ai-disclaimer" wx:if="{{item.structured.disclaimer}}">{{item.structured.disclaimer}}</text>
+          </block>
+
+          <!-- Legacy structured assistant message -->
+          <block wx:elif="{{item.role === 'assistant' && item._blocks && item._blocks.length}}">
             <view class="struct-block" wx:for="{{item._blocks}}" wx:for-item="block" wx:key="index">
               <!-- Text block -->
               <text class="bubble-text" wx:if="{{block.type === 'text'}}">{{block.content}}</text>
@@ -73,7 +104,7 @@
           <!-- Plain text fallback -->
           <text class="bubble-text" wx:elif="{{item.content}}">{{item.content}}</text>
 
-          <view class="typing" wx:if="{{!item.content && item.role === 'assistant'}}">
+          <view class="typing" wx:if="{{!item.content && !item.structured && item.role === 'assistant'}}">
             <view class="dot"></view>
             <view class="dot"></view>
             <view class="dot"></view>

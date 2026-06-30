@@ -1,6 +1,8 @@
 const { getApiBase } = require('./config')
 
 const API_BASE = getApiBase()
+const IS_DEV_LOCAL = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')
+const DEV_TIMEOUT_MS = 15000
 
 let refreshingPromise = null
 const MAX_RETRIES = 3
@@ -13,9 +15,16 @@ function delay(ms) {
 function request(options, attempt = 1) {
   return new Promise((resolve, reject) => {
     const token = wx.getStorageSync('access_token')
+    const start = Date.now()
+    const url = API_BASE + options.url
+    const method = options.method || 'GET'
+    if (IS_DEV_LOCAL) {
+      console.log(`[api] ${method} ${options.url} (attempt ${attempt})`)
+    }
     wx.request({
-      url: API_BASE + options.url,
-      method: options.method || 'GET',
+      url,
+      method,
+      timeout: IS_DEV_LOCAL ? DEV_TIMEOUT_MS : undefined,
       header: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -23,6 +32,10 @@ function request(options, attempt = 1) {
       },
       data: options.data,
       success: (res) => {
+        const elapsed = Date.now() - start
+        if (IS_DEV_LOCAL) {
+          console.log(`[api] ${method} ${options.url} -> ${res.statusCode} in ${elapsed}ms`)
+        }
         if (res.statusCode === 401) {
           handle401(options, resolve, reject)
           return
@@ -39,6 +52,10 @@ function request(options, attempt = 1) {
         resolve(res.data)
       },
       fail: (err) => {
+        const elapsed = Date.now() - start
+        if (IS_DEV_LOCAL) {
+          console.warn(`[api] ${method} ${options.url} failed in ${elapsed}ms:`, err.errMsg || err)
+        }
         if (attempt <= MAX_RETRIES) {
           const backoff = RETRY_DELAY_BASE * Math.pow(2, attempt - 1)
           delay(backoff).then(() => request(options, attempt + 1).then(resolve).catch(reject))
@@ -139,11 +156,31 @@ module.exports = {
     if (pageContext) url += `&page_context=${encodeURIComponent(pageContext)}`
     return request({ url, method: 'GET' })
   },
+  sendMessage(conversationId, userMessage) {
+    return request({
+      url: `/api/ai-conversations/${conversationId}/messages`,
+      method: 'POST',
+      data: { user_message: userMessage },
+    })
+  },
+  sendStructuredMessage(conversationId, userMessage) {
+    return request({
+      url: `/api/ai-conversations/${conversationId}/structured-messages`,
+      method: 'POST',
+      data: { user_message: userMessage },
+    })
+  },
 
   // Indicators
   compareIndicators(memberId, indicatorKeys) {
     const keys = indicatorKeys.map(k => `indicator_keys=${encodeURIComponent(k)}`).join('&')
     return request({ url: `/api/indicators/compare?member_id=${memberId}&${keys}`, method: 'GET' })
+  },
+  getChronicTrend(memberId, packageKey, days = 180) {
+    return request({
+      url: `/api/indicators/chronic/${packageKey}/trend?member_id=${memberId}&days=${days}`,
+      method: 'GET',
+    })
   },
 
   // Medication
@@ -186,5 +223,11 @@ module.exports = {
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join('&')
     return request({ url: `/api/reminders?${qs}`, method: 'GET' })
+  },
+  getReminderTemplateIds() {
+    return request({ url: '/api/reminders/template-ids', method: 'GET' })
+  },
+  recordReminderSubscription(templateIds) {
+    return request({ url: '/api/reminders/subscribe', method: 'POST', data: { template_ids: templateIds } })
   },
 }

@@ -1,5 +1,6 @@
 const api = require('../../../utils/api')
 const { getVaccineStatusLabel } = require('../../../utils/format')
+const notification = require('../../../utils/notification')
 
 Page({
   data: {
@@ -108,6 +109,7 @@ Page({
         await api.post('/api/vaccines', { ...payload, member_id: memberId })
         wx.showToast({ title: '添加成功', icon: 'success' })
       }
+      await notification.requestReminderSubscription()
       setTimeout(() => wx.navigateBack(), 1000)
     } catch (err) {
       wx.showToast({ title: err.message || '操作失败', icon: 'none' })

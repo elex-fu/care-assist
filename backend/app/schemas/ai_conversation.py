@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
@@ -44,3 +43,18 @@ class AIReplyOut(BaseModel):
     conversation_id: str
     reply: str
     messages: list[dict[str, Any]]
+
+
+class AIDataCard(BaseModel):
+    title: str
+    value: str
+    status: str | None = None
+
+
+class AIStructuredReplyOut(BaseModel):
+    conversation_id: str
+    answer: str
+    data_cards: list[AIDataCard]
+    suggestions: list[str]
+    follow_up_questions: list[str]
+    disclaimer: str

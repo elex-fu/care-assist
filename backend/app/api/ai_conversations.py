@@ -19,6 +19,7 @@ from app.schemas.ai_conversation import (
     AIConversationMessageRequest,
     AIConversationOut,
     AIReplyOut,
+    AIStructuredReplyOut,
 )
 from app.schemas.common import ResponseWrapper
 
@@ -221,6 +222,60 @@ async def send_message(
             conversation_id=conv.id,
             reply=reply,
             messages=conv.messages,
+        )
+    )
+
+
+@router.post(
+    "/{conversation_id}/structured-messages",
+    response_model=ResponseWrapper[AIStructuredReplyOut],
+)
+async def send_structured_message(
+    conversation_id: str,
+    payload: AIConversationMessageRequest,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Send a message and receive a 5-layer structured AI reply."""
+    conv = await db.get(AIConversation, conversation_id)
+    if not conv:
+        raise NotFoundException("对话不存在")
+
+    target = await _verify_member_in_family(conv.member_id, current, db)
+
+    now = datetime.now(UTC).isoformat()
+    messages = list(conv.messages or [])
+    messages.append({"role": "user", "content": payload.user_message, "timestamp": now})
+
+    recent_indicators = await _get_recent_indicators(db, target.id)
+    recent_reports = await _get_recent_reports(db, target.id)
+    history = [{"role": m["role"], "content": m["content"]} for m in messages[:-1]]
+
+    ai_svc = AIService()
+    structured = await ai_svc.generate_structured_reply(
+        member=target,
+        conversation_history=history,
+        user_message=payload.user_message,
+        page_context=conv.page_context,
+        recent_indicators=recent_indicators if recent_indicators else None,
+        recent_reports=recent_reports if recent_reports else None,
+    )
+
+    messages.append(
+        {"role": "assistant", "content": structured["answer"], "timestamp": datetime.now(UTC).isoformat()}
+    )
+    conv.messages = messages
+    await db.commit()
+    await db.refresh(conv)
+
+    return ResponseWrapper(
+        data=AIStructuredReplyOut(
+            conversation_id=conv.id,
+            answer=structured["answer"],
+            data_cards=structured["data_cards"],
+            suggestions=structured["suggestions"],
+            follow_up_questions=structured["follow_up_questions"],
+            disclaimer=structured["disclaimer"],
         )
     )
 

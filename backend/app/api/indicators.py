@@ -1,33 +1,41 @@
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import get_current_member, get_db
-from app.core.exceptions import NotFoundException, ForbiddenException
+from app.core.chronic_packages import (
+    CHRONIC_PACKAGES,
+    build_chronic_package,
+    build_chronic_trend,
+    list_chronic_packages,
+)
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.indicator_engine import IndicatorEngine
+from app.core.indicator_search import search_indicators
 from app.core.logging import get_logger
-from app.models.member import Member
+from app.core.security import get_current_member, get_db
 from app.models.indicator import IndicatorData
+from app.models.member import Member
+from app.schemas.batch import BatchIndicatorCreate
+from app.schemas.chronic import (
+    ChronicPackageListItem,
+    ChronicPackageResponse,
+    ChronicTrendOut,
+)
+from app.schemas.common import ResponseWrapper
 from app.schemas.indicator import (
+    IndicatorCompareOut,
     IndicatorCreate,
     IndicatorOut,
-    IndicatorTrendOut,
-    IndicatorTrendPoint,
-    IndicatorCompareOut,
     IndicatorSeries,
     IndicatorSeriesPoint,
+    IndicatorTrendOut,
+    IndicatorTrendPoint,
 )
-from app.schemas.batch import BatchIndicatorCreate
-from app.schemas.common import ResponseWrapper
 from app.schemas.indicator_matrix import IndicatorMatrixResponse, MatrixCell
 from app.schemas.indicator_metadata import IndicatorMetadata
-from app.schemas.chronic import ChronicPackageListItem, ChronicPackageResponse
-from app.core.indicator_search import search_indicators
-from app.core.chronic_packages import CHRONIC_PACKAGES, list_chronic_packages, build_chronic_package
 
 router = APIRouter(prefix="/indicators", tags=["指标中心"])
 logger = get_logger("app.api.indicators")
@@ -102,7 +110,7 @@ async def create_indicator(
 @router.get("", response_model=ResponseWrapper[list[IndicatorOut]])
 async def list_indicators(
     member_id: str = Query(...),
-    indicator_key: Optional[str] = Query(None),
+    indicator_key: str | None = Query(None),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
@@ -243,8 +251,8 @@ async def get_indicator_trend(
 @router.get("/matrix", response_model=ResponseWrapper[IndicatorMatrixResponse])
 async def get_indicator_matrix(
     member_id: str = Query(...),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
@@ -272,9 +280,9 @@ async def get_indicator_matrix(
     names = {r.indicator_key: r.indicator_name for r in records}
     units = {r.indicator_key: r.unit for r in records}
 
-    cells: dict[str, dict[str, Optional[MatrixCell]]] = {}
+    cells: dict[str, dict[str, MatrixCell | None]] = {}
     for d in dates:
-        cells[d] = {k: None for k in keys}
+        cells[d] = dict.fromkeys(keys)
 
     for r in records:
         d = str(r.record_date)
@@ -302,8 +310,8 @@ async def get_indicator_matrix(
 async def compare_indicators(
     member_id: str = Query(...),
     indicator_keys: list[str] = Query(default=[]),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     current: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
@@ -385,4 +393,20 @@ async def get_chronic_package_endpoint(
         raise NotFoundException("套餐不存在")
     target = await _verify_member_in_family(member_id, current, db)
     data = await build_chronic_package(package, target, db)
+    return ResponseWrapper(data=data)
+
+
+@router.get("/chronic/{package}/trend", response_model=ResponseWrapper[ChronicTrendOut])
+async def get_chronic_trend_endpoint(
+    package: str,
+    member_id: str = Query(...),
+    days: int = Query(180, ge=7, le=730),
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get multi-indicator trend data for a chronic disease package."""
+    if package not in CHRONIC_PACKAGES:
+        raise NotFoundException("套餐不存在")
+    target = await _verify_member_in_family(member_id, current, db)
+    data = await build_chronic_trend(package, target, db, days=days)
     return ResponseWrapper(data=data)

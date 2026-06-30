@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     KIMI_CODE_TIMEOUT: float = 60.0
 
     # OCR Provider configuration
-    OCR_PROVIDER: str = "mock"  # mock | baidu | tencent | kimi
+    OCR_PROVIDER: str = "kimi"  # mock | baidu | tencent | kimi
     BAIDU_OCR_API_KEY: str = ""
     BAIDU_OCR_SECRET_KEY: str = ""
     TENCENT_OCR_SECRET_ID: str = ""
@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = ""
     CELERY_RESULT_BACKEND: str = ""
     CELERY_SCAN_INTERVAL_SEC: int = 3600  # production default: 1 hour
+
+    # WeChat subscription message template IDs (one per reminder type)
+    REMINDER_MEDICATION_TEMPLATE_ID: str = ""
+    REMINDER_VACCINE_TEMPLATE_ID: str = ""
+    REMINDER_CHECKUP_TEMPLATE_ID: str = ""
+    REMINDER_REVIEW_TEMPLATE_ID: str = ""
 
 
 settings = Settings()

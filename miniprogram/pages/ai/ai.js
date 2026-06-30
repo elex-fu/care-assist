@@ -25,9 +25,10 @@ Page({
     const currentId = store.currentMemberId
     this.setData({ pageContext })
     if (cachedMembers && cachedMembers.length) {
+      const validIds = new Set(cachedMembers.map(m => m.id))
       this.setData({
         members: cachedMembers,
-        currentMemberId: currentId || cachedMembers[0].id,
+        currentMemberId: validIds.has(currentId) ? currentId : cachedMembers[0].id,
       })
     }
     this.init()
@@ -49,7 +50,12 @@ Page({
       const res = await api.get('/api/members')
       const members = res.data.members || []
       setMembers(members)
-      const currentId = this.data.currentMemberId || (members[0] && members[0].id)
+      const validIds = new Set(members.map(m => m.id))
+      let currentId = this.data.currentMemberId
+      if (!currentId || !validIds.has(currentId)) {
+        currentId = members[0] && members[0].id
+        if (currentId) setCurrentMemberId(currentId)
+      }
       this.setData({ members, currentMemberId: currentId })
       if (currentId) {
         await this.loadOrCreateConversation(currentId)
@@ -182,21 +188,39 @@ Page({
   async _sendRestMessage(text) {
     const { conversationId, messages } = this.data
     try {
-      const res = await api.post(`/api/ai-conversations/${conversationId}/messages`, {
-        user_message: text,
-      })
-      const messages = (res.data.messages || []).map(m => ({
-        ...m,
-        _blocks: m.role === 'assistant' ? this.parseStructuredContent(m.content) : null,
-      }))
+      const res = await api.sendStructuredMessage(conversationId, text)
+      const data = res.data
+      const structured = {
+        answer: data.answer || '',
+        dataCards: data.data_cards || [],
+        suggestions: data.suggestions || [],
+        followUpQuestions: data.follow_up_questions || [],
+        disclaimer: data.disclaimer || '',
+      }
+
+      // Replace placeholder assistant message with structured response
+      const newMessages = [...messages]
+      const lastIdx = newMessages.length - 1
+      if (lastIdx >= 0 && newMessages[lastIdx].role === 'assistant') {
+        newMessages[lastIdx] = {
+          role: 'assistant',
+          content: structured.answer,
+          structured,
+        }
+      }
       this.setData({
-        messages,
+        messages: newMessages,
         loading: false,
       })
     } catch (err) {
       wx.showToast({ title: err.message || '发送失败', icon: 'none' })
       this.setData({ loading: false })
     }
+  },
+
+  onFollowUpTap(e) {
+    const q = e.currentTarget.dataset.question
+    if (q) this.sendMessage(q)
   },
 
   onSendTap() {

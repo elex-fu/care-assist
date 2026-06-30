@@ -1,4 +1,4 @@
-const { compareIndicators } = require('../../utils/api')
+const { compareIndicators, getChronicTrend } = require('../../utils/api')
 
 const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
 
@@ -7,6 +7,7 @@ Component({
     visible: Boolean,
     memberId: String,
     indicatorKeys: { type: Array, value: [] },
+    packageKey: String,
     title: String,
   },
   data: {
@@ -14,8 +15,8 @@ Component({
     colors: COLORS,
   },
   observers: {
-    'visible,memberId,indicatorKeys': function (visible, memberId, indicatorKeys) {
-      if (visible && memberId && indicatorKeys && indicatorKeys.length) {
+    'visible,memberId,indicatorKeys,packageKey': function (visible, memberId, indicatorKeys, packageKey) {
+      if (visible && memberId && (packageKey || (indicatorKeys && indicatorKeys.length))) {
         this.loadData()
       }
     }
@@ -23,8 +24,14 @@ Component({
   methods: {
     async loadData() {
       try {
-        const res = await compareIndicators(this.data.memberId, this.data.indicatorKeys)
-        const series = res.data && res.data.series ? res.data.series : []
+        let series = []
+        if (this.data.packageKey) {
+          const res = await getChronicTrend(this.data.memberId, this.data.packageKey, 180)
+          series = (res.data && res.data.series) ? res.data.series : []
+        } else {
+          const res = await compareIndicators(this.data.memberId, this.data.indicatorKeys)
+          series = res.data && res.data.series ? res.data.series : []
+        }
         this.setData({ series })
         this.drawChart(series)
       } catch (err) {

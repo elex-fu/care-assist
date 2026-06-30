@@ -189,6 +189,29 @@
   color: #94A3B8;
 }
 
+.ai-summary-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-left: 4px solid #8B5CF6;
+}
+
+.ai-summary-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 8px;
+}
+
+.ai-summary-text {
+  display: block;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+
 .indicator-list {
   background: #FFFFFF;
   border-radius: 12px;

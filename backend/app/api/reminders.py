@@ -1,8 +1,11 @@
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.exceptions import ForbiddenException, NotFoundException
 from app.core.security import get_current_member, get_db
 from app.models.member import Member
@@ -13,6 +16,8 @@ from app.schemas.reminder import (
     ReminderCreate,
     ReminderGenerateRequest,
     ReminderOut,
+    ReminderSubscribeRequest,
+    ReminderTemplateIdsOut,
     ReminderUpdate,
 )
 from app.services.reminder_service import (
@@ -154,3 +159,34 @@ async def delete_reminder(
     await db.delete(reminder)
     await db.commit()
     return ResponseWrapper(data={"deleted": True})
+
+
+@router.get("/template-ids", response_model=ResponseWrapper[ReminderTemplateIdsOut])
+async def get_reminder_template_ids():
+    """Return configured WeChat subscription message template IDs."""
+    return ResponseWrapper(
+        data=ReminderTemplateIdsOut(
+            medication=settings.REMINDER_MEDICATION_TEMPLATE_ID or None,
+            vaccine=settings.REMINDER_VACCINE_TEMPLATE_ID or None,
+            checkup=settings.REMINDER_CHECKUP_TEMPLATE_ID or None,
+            review=settings.REMINDER_REVIEW_TEMPLATE_ID or None,
+        )
+    )
+
+
+@router.post("/subscribe", response_model=ResponseWrapper[dict])
+async def record_subscription(
+    payload: ReminderSubscribeRequest,
+    current: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """Record which subscription message templates the user has authorized."""
+    current.subscription_status = {
+        **(current.subscription_status or {}),
+        "reminder_template_ids": list(set(payload.template_ids)),
+        "subscribed_at": datetime.now(UTC).isoformat(),
+    }
+    db.add(current)
+    await db.commit()
+    await db.refresh(current)
+    return ResponseWrapper(data={"subscribed": True})

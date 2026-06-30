@@ -324,6 +324,18 @@ async def trigger_ocr(
             )
     await db.commit()
 
+    # Auto-generate AI summary after OCR. This is best-effort: summary failure
+    # should not break the OCR response.
+    try:
+        ai_svc = AIService()
+        summary = await ai_svc.summarize_report(member=target, report=report)
+        report.ai_summary = summary
+        await db.commit()
+        await db.refresh(report)
+        logger.info(f"AI summary auto-generated: report_id={report_id}")
+    except Exception as exc:
+        logger.warning(f"AI summary generation failed for report {report_id}: {exc}")
+
     logger.info(
         f"OCR completed: report_id={report_id} extracted={len(extracted_items)} "
         f"indicators_created={len(extracted_items)}"
@@ -335,6 +347,7 @@ async def trigger_ocr(
             report_id=report.id,
             ocr_status=report.ocr_status,
             extracted=schema_items,
+            ai_summary=report.ai_summary,
         )
     )
 

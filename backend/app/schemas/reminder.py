@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -100,3 +100,14 @@ class ReminderGenerateRequest(BaseModel):
     member_id: str
     report_id: str
     scheduled_date: date
+
+
+class ReminderTemplateIdsOut(BaseModel):
+    medication: str | None = None
+    vaccine: str | None = None
+    checkup: str | None = None
+    review: str | None = None
+
+
+class ReminderSubscribeRequest(BaseModel):
+    template_ids: list[str]
